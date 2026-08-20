@@ -125,6 +125,14 @@ Then run from the workspace root:
 .venv/bin/python "Website Scrape/Visit Lumphun/scrape.py"
 ```
 
+While it runs, timestamped progress messages appear in the terminal. The final
+one-line success result remains on standard output, so it can still be used in
+a script. To suppress the live progress messages, use `--quiet`:
+
+```bash
+.venv/bin/python "Website Scrape/Visit Lumphun/scrape.py" --quiet
+```
+
 To reparse all static content even when the site bundle has not changed:
 
 ```bash

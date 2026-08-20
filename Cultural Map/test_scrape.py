@@ -31,6 +31,25 @@ class CleaningTests(unittest.TestCase):
         self.assertEqual(warnings, [])
 
 
+class ProgressTests(unittest.TestCase):
+    def test_detail_progress_reports_first_interval_and_final_fetch(self) -> None:
+        messages: list[str] = []
+        for index in range(1, 13):
+            scrape.report_detail_progress(messages.append, "Products", index, 12, f"PD-{index}", 5)
+        self.assertEqual(
+            messages,
+            [
+                "Products: 1/12 — fetching PD-1",
+                "Products: 5/12 — fetching PD-5",
+                "Products: 10/12 — fetching PD-10",
+                "Products: 12/12 — fetching PD-12",
+            ],
+        )
+
+    def test_quiet_reporter_does_not_write_messages(self) -> None:
+        self.assertIs(scrape.create_progress_reporter(True), scrape.no_progress)
+
+
 class DetailParserTests(unittest.TestCase):
     def test_map_inspiration_schema_uses_names_and_drops_raw_source_fields(self) -> None:
         source = {
@@ -150,7 +169,7 @@ class StateTests(unittest.TestCase):
         )
 
     def test_large_removal_is_rejected_without_mutating_state(self) -> None:
-        source = scrape.SourceDefinition("test", "test.json", 1, (), 1, lambda _s, _d, _l: [])
+        source = scrape.SourceDefinition("test", "test.json", 1, (), 1, lambda _s, _d, _l, _r, _p: [])
         with tempfile.TemporaryDirectory() as directory:
             connection = scrape.open_database(Path(directory) / "state.sqlite3")
             initial = [self.record(f"X-{number}") for number in range(1, 5)]

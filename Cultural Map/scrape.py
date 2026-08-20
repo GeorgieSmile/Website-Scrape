@@ -45,6 +45,7 @@ MAP_SCHEMA_VERSION = 2
 DEFAULT_DELAY_SECONDS = 1.0
 DEFAULT_USER_AGENT = "CulturalMapWWWCollector/1.0 (contact: replace-with-your-email)"
 PLACEHOLDER_TEXT = {"-", "ไม่มี", "-ไม่มี-"}
+ProgressReporter = Callable[[str], None]
 
 
 @dataclass(frozen=True)
@@ -54,11 +55,49 @@ class SourceDefinition:
     schema_version: int
     source_urls: tuple[str, ...]
     minimum_records: int
-    collect: Callable[[requests.Session, float, int], list[dict[str, Any]]]
+    collect: Callable[[requests.Session, float, int, ProgressReporter, int], list[dict[str, Any]]]
 
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def no_progress(_: str) -> None:
+    """Default reporter for direct function calls and offline tests."""
+
+
+def create_progress_reporter(quiet: bool) -> ProgressReporter:
+    """Return a timestamped stderr reporter without affecting JSON stdout."""
+    if quiet:
+        return no_progress
+
+    def report(message: str) -> None:
+        timestamp = datetime.now().astimezone().strftime("%H:%M:%S")
+        print(f"[{timestamp}] {message}", file=sys.stderr, flush=True)
+
+    return report
+
+
+def report_detail_progress(
+    report: ProgressReporter,
+    source_name: str,
+    index: int,
+    total: int,
+    external_id: str,
+    progress_every: int,
+) -> None:
+    if index == 1 or index == total or index % progress_every == 0:
+        report(f"{source_name}: {index:,}/{total:,} — fetching {external_id}")
+
+
+def source_display_name(page_id: str) -> str:
+    return {
+        "map_inspiration": "Map/Inspiration",
+        "products": "Products",
+        "activities": "Activities",
+        "recreation": "Re-Creation",
+        "team": "Team",
+    }[page_id]
 
 
 def create_session(user_agent: str) -> requests.Session:
@@ -491,13 +530,19 @@ def map_funding(source: dict[str, Any], warnings: list[str]) -> dict[str, Any]:
 
 
 def collect_map_inspiration(
-    session: requests.Session, delay_seconds: float, limit: int = 0
+    session: requests.Session,
+    delay_seconds: float,
+    limit: int = 0,
+    report: ProgressReporter = no_progress,
+    progress_every: int = 10,
 ) -> list[dict[str, Any]]:
-    del delay_seconds
+    del delay_seconds, progress_every
+    report("Map/Inspiration: downloading public JSON feed")
     payload = fetch_json(session, MAP_FEED_URL)
     if not isinstance(payload, list):
         raise TypeError("Map feed did not return a JSON array")
 
+    report(f"Map/Inspiration: processing {len(payload):,} feed rows")
     lookups = load_map_lookups()
     records: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
@@ -611,6 +656,7 @@ def collect_map_inspiration(
                 warnings,
             )
         )
+    report(f"Map/Inspiration: discovered {len(records):,} records")
     return records[:limit] if limit else records
 
 
@@ -654,9 +700,14 @@ def product_category_urls(html: str, page_url: str) -> dict[str, str]:
 
 
 def collect_products(
-    session: requests.Session, delay_seconds: float, limit: int = 0
+    session: requests.Session,
+    delay_seconds: float,
+    limit: int = 0,
+    report: ProgressReporter = no_progress,
+    progress_every: int = 10,
 ) -> list[dict[str, Any]]:
     root_url = f"{BASE_URL}culturalproduct"
+    report("Products: downloading listing and category pages")
     root_html = fetch_text(session, root_url)
     categories = product_category_urls(root_html, root_url)
     required_categories = {f"P-{number}" for number in range(1, 7)}
@@ -680,10 +731,20 @@ def collect_products(
     items = sorted(discovered.values(), key=natural_id_key)
     if limit:
         items = items[:limit]
+    report(f"Products: discovered {len(items):,} detail pages")
     for item in items:
+        report_detail_progress(
+            report,
+            "Products",
+            len(records) + 1,
+            len(items),
+            item["external_id"],
+            progress_every,
+        )
         detail_html = fetch_text(session, item["source_url"])
         records.append(parse_product_detail(detail_html, item))
         time.sleep(delay_seconds)
+    report(f"Products: parsed {len(records):,} detail pages")
     return records
 
 
@@ -737,18 +798,33 @@ def parse_product_detail(html: str, item: dict[str, Any]) -> dict[str, Any]:
 
 
 def collect_activities(
-    session: requests.Session, delay_seconds: float, limit: int = 0
+    session: requests.Session,
+    delay_seconds: float,
+    limit: int = 0,
+    report: ProgressReporter = no_progress,
+    progress_every: int = 10,
 ) -> list[dict[str, Any]]:
     listing_url = f"{BASE_URL}activity"
+    report("Activities: downloading listing page")
     discovered = discover_links(fetch_text(session, listing_url), listing_url, "G")
     records = []
     items = sorted(discovered.values(), key=natural_id_key)
     if limit:
         items = items[:limit]
+    report(f"Activities: discovered {len(items):,} detail pages")
     for item in items:
+        report_detail_progress(
+            report,
+            "Activities",
+            len(records) + 1,
+            len(items),
+            item["external_id"],
+            progress_every,
+        )
         detail_html = fetch_text(session, item["source_url"])
         records.append(parse_activity_detail(detail_html, item))
         time.sleep(delay_seconds)
+    report(f"Activities: parsed {len(records):,} detail pages")
     return records
 
 
@@ -776,18 +852,33 @@ def parse_activity_detail(html: str, item: dict[str, Any]) -> dict[str, Any]:
 
 
 def collect_recreation(
-    session: requests.Session, delay_seconds: float, limit: int = 0
+    session: requests.Session,
+    delay_seconds: float,
+    limit: int = 0,
+    report: ProgressReporter = no_progress,
+    progress_every: int = 10,
 ) -> list[dict[str, Any]]:
     listing_url = f"{BASE_URL}ReAll"
+    report("Re-Creation: downloading listing page")
     discovered = discover_links(fetch_text(session, listing_url), listing_url, "REDetail")
     records = []
     items = sorted(discovered.values(), key=natural_id_key)
     if limit:
         items = items[:limit]
+    report(f"Re-Creation: discovered {len(items):,} detail pages")
     for item in items:
+        report_detail_progress(
+            report,
+            "Re-Creation",
+            len(records) + 1,
+            len(items),
+            item["external_id"],
+            progress_every,
+        )
         detail_html = fetch_text(session, item["source_url"])
         records.append(parse_recreation_detail(detail_html, item))
         time.sleep(delay_seconds)
+    report(f"Re-Creation: parsed {len(records):,} detail pages")
     return records
 
 
@@ -835,10 +926,15 @@ def parse_recreation_detail(html: str, item: dict[str, Any]) -> dict[str, Any]:
 
 
 def collect_team(
-    session: requests.Session, delay_seconds: float, limit: int = 0
+    session: requests.Session,
+    delay_seconds: float,
+    limit: int = 0,
+    report: ProgressReporter = no_progress,
+    progress_every: int = 10,
 ) -> list[dict[str, Any]]:
-    del delay_seconds
+    del delay_seconds, progress_every
     team_url = f"{BASE_URL}team"
+    report("Team: downloading public page")
     soup = BeautifulSoup(fetch_text(session, team_url), "html.parser")
     records: list[dict[str, Any]] = []
     current_group: str | None = None
@@ -866,7 +962,9 @@ def collect_team(
         )
     if not records:
         raise ValueError("Team page did not contain any expected team members")
-    return records[:limit] if limit else records
+    selected = records[:limit] if limit else records
+    report(f"Team: discovered {len(selected):,} members")
+    return selected
 
 
 SOURCES = {
@@ -1061,6 +1159,7 @@ def select_sources(name: str) -> list[SourceDefinition]:
 
 def run_scrape(args: argparse.Namespace) -> int:
     selected_sources = select_sources(args.source)
+    report = create_progress_reporter(args.quiet)
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     connection = open_database(STATE_PATH)
     session = create_session(args.user_agent)
@@ -1077,14 +1176,17 @@ def run_scrape(args: argparse.Namespace) -> int:
 
     has_failures = False
     for source in selected_sources:
+        source_name = source_display_name(source.page_id)
+        report(f"{source_name}: starting")
         try:
-            records = source.collect(session, args.delay, args.limit)
+            records = source.collect(session, args.delay, args.limit, report, args.progress_every)
             if args.limit:
                 summary["sources"][source.page_id] = {
                     "status": "smoke_test",
                     "discovered": len(records),
                     "state_updated": False,
                 }
+                report(f"{source_name}: smoke test completed with {len(records):,} records")
                 continue
             counts = sync_records(
                 connection,
@@ -1101,6 +1203,7 @@ def run_scrape(args: argparse.Namespace) -> int:
                 "state_updated": True,
                 **counts,
             }
+            report(f"{source_name}: validated and saved {len(records):,} records")
         except Exception as error:  # noqa: BLE001 - each source must report its own failure.
             has_failures = True
             summary["sources"][source.page_id] = {
@@ -1109,6 +1212,7 @@ def run_scrape(args: argparse.Namespace) -> int:
                 "error": str(error),
                 "state_updated": False,
             }
+            report(f"{source_name}: failed — {type(error).__name__}: {error}")
 
     status = "failed" if has_failures else "completed"
     finished_at = utc_now()
@@ -1128,6 +1232,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--delay", type=float, default=DEFAULT_DELAY_SECONDS)
     parser.add_argument("--limit", type=int, default=0, help="Smoke-test record limit; does not update state or JSON outputs.")
     parser.add_argument(
+        "--progress-every",
+        type=int,
+        default=10,
+        help="Print progress before the first, final, and every Nth detail-page fetch.",
+    )
+    parser.add_argument("--quiet", action="store_true", help="Suppress progress messages written to stderr.")
+    parser.add_argument(
         "--allow-large-removal",
         action="store_true",
         help="Allow an update that would deactivate more than 25% of an existing source.",
@@ -1138,8 +1249,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
-    if args.delay < 0 or args.limit < 0:
-        raise SystemExit("--delay and --limit must be non-negative")
+    if args.delay < 0 or args.limit < 0 or args.progress_every < 1:
+        raise SystemExit("--delay and --limit must be non-negative; --progress-every must be at least 1")
     return run_scrape(args)
 
 

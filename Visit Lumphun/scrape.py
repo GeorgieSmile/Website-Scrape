@@ -13,7 +13,9 @@ import hashlib
 import json
 import re
 import sqlite3
+import sys
 import unicodedata
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -35,10 +37,27 @@ PAGES = {
     "contact": "/app/contact",
 }
 LANGUAGES = ("TH", "EN", "CN")
+ProgressReporter = Callable[[str], None]
 
 
 def now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def no_progress(_: str) -> None:
+    """Default reporter when progress reporting is disabled."""
+
+
+def create_progress_reporter(quiet: bool) -> ProgressReporter:
+    """Return timestamped stderr progress messages without changing stdout."""
+    if quiet:
+        return no_progress
+
+    def report(message: str) -> None:
+        timestamp = datetime.now().astimezone().strftime("%H:%M:%S")
+        print(f"[{timestamp}] {message}", file=sys.stderr, flush=True)
+
+    return report
 
 
 def fetch(url: str) -> str:
@@ -650,21 +669,33 @@ def main() -> None:
         action="store_true",
         help="Parse static content even if the bundle hash is unchanged.",
     )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress progress messages written to stderr.",
+    )
     args = parser.parse_args()
+    report = create_progress_reporter(args.quiet)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     # Each route is a shell for the same SPA bundle. Fetch every requested
     # route anyway: this confirms the source pages are still publicly served.
-    page_html = {
-        page_id: fetch(urljoin(BASE_URL, path)) for page_id, path in PAGES.items()
-    }
+    report("Visit Lumphun: starting")
+    page_html = {}
+    for index, (page_id, path) in enumerate(PAGES.items(), start=1):
+        report(f"Pages: {index}/{len(PAGES)} — fetching {path}")
+        page_html[page_id] = fetch(urljoin(BASE_URL, path))
+    report(f"Pages: fetched {len(PAGES)} route shells")
     script_path = re.search(
         r'<script[^>]+src="([^"]+index-[^"]+\.js)"', page_html["homepage"]
     )
     if not script_path:
         raise RuntimeError("could not locate Vite bundle")
-    bundle_source = fetch(urljoin(BASE_URL, script_path.group(1)))
+    bundle_url = urljoin(BASE_URL, script_path.group(1))
+    report("Static bundle: fetching published JavaScript")
+    bundle_source = fetch(bundle_url)
     bundle_hash, timestamp = hashlib.sha256(bundle_source.encode()).hexdigest(), now()
+    report(f"Static bundle: downloaded {bundle_hash[:12]}")
     connection = sqlite3.connect(STATE_PATH)
     setup_database(connection)
     run_id = connection.execute(
@@ -680,10 +711,18 @@ def main() -> None:
             and previous[0] == bundle_hash
             and not args.force_static
         )
-        bundle_data = None if static_is_current else BundleData(bundle_source)
-        for page_id, extractor in EXTRACTORS.items():
+        if static_is_current:
+            report("Static bundle: unchanged; reusing previous page extractions")
+            bundle_data = None
+        else:
+            reason = "forced reparse" if args.force_static else "bundle changed"
+            report(f"Static bundle: {reason}; parsing JavaScript AST")
+            bundle_data = BundleData(bundle_source)
+            report("Static bundle: AST parsed")
+        for index, (page_id, extractor) in enumerate(EXTRACTORS.items(), start=1):
             warnings: list[str] = []
             existing_output = OUTPUT_DIR / f"{page_id}.json"
+            report(f"{page_id}: {index}/{len(EXTRACTORS)} — preparing output")
             if static_is_current and existing_output.exists():
                 output = json.loads(existing_output.read_text(encoding="utf-8"))
                 data = output["data"]
@@ -710,6 +749,7 @@ def main() -> None:
                 json.dumps(output, ensure_ascii=False, indent=2) + "\n",
                 encoding="utf-8",
             )
+            report(f"{page_id}: saved {existing_output.name}")
         connection.execute(
             "UPDATE runs SET finished_at=?,outcome=? WHERE run_id=?",
             (now(), "success", run_id),
@@ -718,12 +758,14 @@ def main() -> None:
         print(
             f"Saved five page outputs to {OUTPUT_DIR} using bundle {bundle_hash[:12]}."
         )
+        report("Visit Lumphun: completed")
     except Exception as error:
         connection.execute(
             "UPDATE runs SET finished_at=?,outcome=?,warnings_json=? WHERE run_id=?",
             (now(), "failed", json.dumps([str(error)]), run_id),
         )
         connection.commit()
+        report(f"Visit Lumphun: failed — {type(error).__name__}: {error}")
         raise
     finally:
         connection.close()

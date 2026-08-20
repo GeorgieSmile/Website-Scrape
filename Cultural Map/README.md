@@ -62,6 +62,8 @@ cd "Website Scrape/Cultural Map"
 
 `--limit` is explicitly a smoke test: it discovers and parses only the first natural-ID records needed for the sample, then exits without changing SQLite or the JSON exports. `--allow-large-removal` is the conscious override for the normal removal guard.
 
+Long runs report timestamped progress to standard error: source start, discovery totals, the first/final detail fetch, and every tenth detail page by default. The final JSON run summary remains on standard output, so it is still safe to redirect or parse. Use `--progress-every 25` to reduce the detail-page messages, or `--quiet` to suppress them.
+
 ## Output contract
 
 Each output file has this common envelope:

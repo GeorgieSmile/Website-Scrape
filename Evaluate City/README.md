@@ -106,10 +106,19 @@ Useful commands:
 "Website Scrape/.venv/bin/python" \
   "Website Scrape/Evaluate City/scrape.py" --save-html
 
+# Suppress timestamped progress messages; keep the final result on stdout.
+"Website Scrape/.venv/bin/python" \
+  "Website Scrape/Evaluate City/scrape.py" --quiet
+
 # Run parser, cleaning, catalog, and validation tests without network access.
 "Website Scrape/.venv/bin/python" \
   "Website Scrape/Evaluate City/scrape.py" --self-test
 ```
+
+Normal runs send timestamped stage progress to standard error: start, homepage
+download, parsing/validation, SQLite/export work, and completion or failure.
+The concise run result remains on standard output, so it can still be redirected
+or parsed. Use `--quiet` to suppress only these progress messages.
 
 For editor/static checks, point Pyright/Pylance at the same project
 interpreter so the installed ChompJS package is resolved:
@@ -253,6 +262,7 @@ The single script is organized from source description to runtime behavior:
 | HTTP | `fetch_page`, `parse_retry_after` | Unconditional GET, response decoding, retries, and error handling |
 | State | `open_database`, `save_snapshot`, `apply_observations` | Maintain SQLite snapshots, latest observations, and immutable changes |
 | Export | `build_export`, `write_json_atomic` | Produce a safe, database-ready `latest.json` |
+| Progress | `create_progress_reporter`, `no_progress` | Report timestamped stages to stderr without contaminating stdout |
 | CLI/tests | `run_pipeline`, `main`, `ScraperTests` | Run collection, expose options, and test core behavior |
 
 ## Maintenance
@@ -279,7 +289,7 @@ intended use.
 The implementation was validated against the current public page and the
 existing saved source snapshot:
 
-- `--self-test`: six parser, catalog, cleaning, validation, and stable-ID tests passed.
+- `--self-test`: eight parser, catalog, cleaning, validation, stable-ID, and progress-report tests passed.
 - Saved snapshot parse: 18 cities, 39 metrics, no validation errors, and the same canonical source hash as the existing reference run.
 - Live run: HTTP 200, 18 cities, and 702 observations processed successfully.
 - Repeated live run: HTTP 200, the same parsed-data hash, and no new observation versions created.

@@ -9,8 +9,10 @@ never executes JavaScript from the site.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import html as html_module
+import io
 import json
 import math
 import re
@@ -20,6 +22,7 @@ import tempfile
 import time
 import unicodedata
 import unittest
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -38,6 +41,7 @@ DEFAULT_TIMEOUT_SECONDS = 30
 DEFAULT_MAX_ATTEMPTS = 3
 DEFAULT_USER_AGENT = "EvaluateCityPublicScraper/1.0"
 PARSER_VERSION = "evaluate-city-v2"
+SOURCE_NAME = "Evaluate City"
 
 CATEGORIES = {
     "geoData": "environment",
@@ -47,6 +51,7 @@ CATEGORIES = {
 DATA_VARIABLES = ("cityNames", *CATEGORIES)
 SUCCESS_OUTCOMES = ("success", "unchanged_data")
 RETRYABLE_HTTP_CODES = {408, 429, 500, 502, 503, 504}
+ProgressReporter = Callable[[str], None]
 
 
 @dataclass(frozen=True)
@@ -203,6 +208,23 @@ class FetchResult:
 
 class ScrapeError(RuntimeError):
     """An expected scraper failure that should be recorded in SQLite."""
+
+
+def no_progress(_: str) -> None:
+    """Default reporter for direct function calls and offline tests."""
+
+
+def create_progress_reporter(quiet: bool) -> ProgressReporter:
+    """Return a timestamped stderr reporter without affecting stdout."""
+
+    if quiet:
+        return no_progress
+
+    def report(message: str) -> None:
+        timestamp = datetime.now().astimezone().strftime("%H:%M:%S")
+        print(f"[{timestamp}] {message}", file=sys.stderr, flush=True)
+
+    return report
 
 
 def now() -> str:
@@ -847,10 +869,12 @@ def run_pipeline(
     timeout: float = DEFAULT_TIMEOUT_SECONDS,
     keep_html: bool = False,
     user_agent: str = DEFAULT_USER_AGENT,
+    report: ProgressReporter = no_progress,
 ) -> dict[str, Any]:
     """Run one safe, incremental collection and return its summary."""
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    report(f"{SOURCE_NAME}: starting")
     connection = open_database(state_path)
     started_at = now()
     run_cursor = connection.execute(
@@ -871,6 +895,7 @@ def run_pipeline(
     raw_html_path: Path | None = None
 
     try:
+        report(f"{SOURCE_NAME}: downloading homepage")
         fetched = fetch_page(
             SOURCE_URL,
             timeout=timeout,
@@ -878,15 +903,26 @@ def run_pipeline(
         )
         if fetched.html is None:
             raise ScrapeError(f"Unexpected empty response with HTTP {fetched.status}")
+        report(
+            f"{SOURCE_NAME}: downloaded HTTP {fetched.status} "
+            f"({len(fetched.html):,} bytes)"
+        )
         if keep_html:
             raw_html_path = save_raw_html(output_dir, run_id, fetched.html)
 
+        report(f"{SOURCE_NAME}: parsing and validating published data")
         parsed_data = clean_dataset(parse_raw_data(fetched.html))
         errors, warnings = validate_dataset(parsed_data, previous_data)
         if errors:
             raise ScrapeError("Source validation failed: " + "; ".join(errors))
         source_hash = content_hash(parsed_data)
         data_observed_at = now()
+        city_count = len(parsed_data["cityNames"])
+        observation_count = city_count * len(METRIC_CATALOG)
+        report(
+            f"{SOURCE_NAME}: validated {city_count:,} cities, "
+            f"{len(METRIC_CATALOG):,} metrics, and {observation_count:,} observations"
+        )
 
         if (
             previous is not None
@@ -898,6 +934,7 @@ def run_pipeline(
                 "Parsed source data is unchanged; no observation versions created"
             )
             outcome = "unchanged_data"
+            report(f"{SOURCE_NAME}: parsed data unchanged; state history not updated")
         else:
             save_snapshot(connection, source_hash, parsed_data, data_observed_at)
             with connection:
@@ -907,6 +944,9 @@ def run_pipeline(
                     )
                 )
             outcome = "success"
+            report(
+                f"{SOURCE_NAME}: applied {observation_count:,} observations to SQLite"
+            )
 
         export = build_export(
             parsed_data,
@@ -917,6 +957,7 @@ def run_pipeline(
             warnings=warnings,
         )
         write_json_atomic(output_dir / "latest.json", export)
+        report(f"{SOURCE_NAME}: wrote output/latest.json")
         update_run(
             connection,
             run_id,
@@ -927,16 +968,18 @@ def run_pipeline(
             warnings=warnings,
             raw_html_path=raw_html_path,
         )
+        report(f"{SOURCE_NAME}: completed with outcome={outcome}")
         return {
             "run_id": run_id,
             "outcome": outcome,
             "http_status": fetched.status,
-            "city_count": len(parsed_data["cityNames"]),
-            "observation_count": len(parsed_data["cityNames"]) * len(METRIC_CATALOG),
+            "city_count": city_count,
+            "observation_count": observation_count,
             "source_hash": source_hash,
             "warnings": warnings,
         }
     except Exception as error:
+        report(f"{SOURCE_NAME}: failed — {type(error).__name__}: {error}")
         update_run(
             connection,
             run_id,
@@ -963,6 +1006,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Keep the downloaded HTML under output/raw_html.",
     )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress progress messages written to stderr.",
+    )
     parser.add_argument("--user-agent", default=DEFAULT_USER_AGENT)
     parser.add_argument(
         "--self-test",
@@ -973,6 +1021,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 class ScraperTests(unittest.TestCase):
+    def test_quiet_progress_reporter_is_noop(self) -> None:
+        self.assertIs(create_progress_reporter(True), no_progress)
+
+    def test_progress_reporter_writes_to_stderr(self) -> None:
+        output = io.StringIO()
+        with contextlib.redirect_stderr(output):
+            create_progress_reporter(False)("downloaded homepage")
+        self.assertIn("downloaded homepage", output.getvalue())
+
     def test_extract_balanced_literal_ignores_braces_in_strings_and_comments(
         self,
     ) -> None:
@@ -1061,6 +1118,7 @@ def main() -> int:
             timeout=args.timeout,
             keep_html=args.save_html,
             user_agent=args.user_agent,
+            report=create_progress_reporter(args.quiet),
         )
     except (ScrapeError, OSError, ValueError, sqlite3.Error) as error:
         print(f"Scrape failed: {error}", file=sys.stderr)
