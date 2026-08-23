@@ -1,0 +1,724 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>38RAT</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
+	<script src="https://38rat.nstru.ac.th/backend/assets/axios/axios/dist/axios.min.js"></script>
+	<link href="https://38rat.nstru.ac.th/backend/assets/veltrix/libs/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css">
+    <script src="https://38rat.nstru.ac.th/backend/assets/veltrix/libs/sweetalert2/sweetalert2.min.js"></script>
+	<link rel="stylesheet" href="https://38rat.nstru.ac.th/backend/assets/veltrix/css/cnff_style.css">
+	<link rel="stylesheet" href="https://38rat.nstru.ac.th/css/cnff_style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <script src="https://38rat.nstru.ac.th/backend/assets/veltrix/libs/jquery/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/2.2.1/css/dataTables.bootstrap5.css">
+<script src="https://cdn.datatables.net/2.2.1/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.2.1/js/dataTables.bootstrap5.js"></script>
+<script src="https://38rat.nstru.ac.th/backend/assets/vue/dist/vue.global.js"></script>
+<style>
+    body {
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .btn-outline-warning {
+        color: orange;
+        /* สีตัวอักษร */
+        border-color: orange;
+        /* สีขอบ */
+    }
+
+    .btn-outline-warning:hover {
+        background-color: orange;
+        /* สีพื้นหลังเมื่อเลื่อนเมาส์ */
+        color: white;
+        /* สีตัวอักษรเมื่อเลื่อนเมาส์ */
+    }
+
+    .text-highlight-orange {
+        color: orange;
+    }
+
+    .progress-bar.bg-warning {
+        background-color: orange !important;
+    }
+
+    div.dt-container div.dt-length label {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+</head>
+
+<body>
+    <!-- Navbar with dropdown menu -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="https://38rat.nstru.ac.th">
+            <img src="/../img/TSRI_Logo.png" alt="Logo" style="height: 55px;"><span class="ms-2"></span>
+            <img src="/../img/UWN_Logo.png" alt="Logo" style="height: 55px;"><span class="ms-2"></span>
+            <img src="/../img/Rajabhat_Logo.png" alt="Logo" style="height: 58px;"><span class="ms-2"></span>
+            <!-- <img src="/../img/Logo.png" alt="Logo" style="height: 60px;"><span class="ms-2"></span> -->
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- <i class="bi bi-list"></i> เมนู -->
+                        เมนู
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="https://38rat.nstru.ac.th"><i class="bi bi-house"></i> หน้าแรก</a></li>
+                        <li><a class="dropdown-item" href="/page/search_innovation.php"><i class="bi bi-lightbulb"></i> นวัตกรรมพร้อมใช้</a></li>
+                        <li><a class="dropdown-item" href="/page/search_requirement.php"><i class="bi bi-chat-dots"></i> ความต้องการ - ปัญหา</a></li>
+                        <li><a class="dropdown-item" href="/page/chat_apptech.php"><i class="bi bi-envelope"></i> ช่องทางพูดคุย</a></li>
+                        <li><a class="dropdown-item" href="/page/map_dashboard.php"><i class="bi bi-bar-chart"></i> รายงานผลการสนเทศ</a></li>
+                        <li><a class="dropdown-item" href="/page/search_news.php"><i class="bi bi-newspaper"></i> ข่าวประชาสัมพันธ์</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <!-- <form class="d-flex search-bar mb-3 mb-sm-3 mb-md-3 mb-lg-0">
+                <input class="form-control me-2" type="search" placeholder="ค้นหา" aria-label="Search">
+            </form> -->
+
+                            <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            คู่มือการใช้งานระบบ
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" target="_blank" href="https://38rat.nstru.ac.th/backend/store/document/user_usertype1.pdf">สำหรับผู้นำเสนอนวัตกรรม</a></li>
+                            <li><a class="dropdown-item" target="_blank" href="https://38rat.nstru.ac.th/backend/store/document/user_usertype2.pdf">สำหรับผู้ส่งโจทย์ปัญหา</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <a class="btn btn-warning me-2" href="https://38rat.nstru.ac.th/form/register.php">สมัครบริการ</a>
+                <a class="btn btn-outline-warning" href="https://38rat.nstru.ac.th/form/login-apptech.php">เข้าสู่ระบบ</a>
+                    </div>
+    </div>
+</nav>
+	<div class="main-content-cus">
+		<div class="page-content-cus">
+			<div class="container" id="innovationpage" style="margin-top: 3rem !important;">
+    <div class="row gy-4">
+        <!-- Left section -->
+        <div class="col-lg-8">
+            <h1 class="card-title text-highlight-orange" style="margin-bottom: 15px;">นวัตกรรมการผลิตมันสำปะหลังแบบ “ต้นทุนต่ำ–ผลผลิตสูง”</h1>
+            <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                                                                <div class="carousel-item active">
+                            <img src="https://38rat.nstru.ac.th/backend/store/innovation/699472714d125.jpg" class="img-fluid w-100" alt="Product Image">
+                        </div>
+                                    </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="mt-5">
+                    <div class="card-body">
+                        <h5>รายละเอียด</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            นวัตกรรมการผลิตมันสำปะหลังแบบ “ต้นทุนต่ำ–ผลผลิตสูง” เกิดจากกระบวนการผลิตน้ำหมักชีวภาพจากกิ่งอ่อนและใบกระถินไทย (Leucaena leucocephala) ในการใช้เป็นวัตถุดิบผลิตปุ๋ยอินทรีย์และน้ำหมักชีวภาพ ร่วมกับกากน้ำตาล สับปะรด และจุลินทรีย์ EM วัตถุดิบที่สำคัญคือ กิ่งอ่อนและใบของกระถินไทยซึ่งกระถินเป็นพืชตระกูลถั่วที่มีข้อได้เปรียบหลายประการ ได้แก่ เจริญเติบโตเร็ว มีปริมาณไนโตรเจนในใบสูง มีโปรตีนพืชสูงกว่า 25% มีแคลเซียม แมกนีเซียม เหล็ก และธาตุรองที่จำเป็นต่อพืช ดังนั้นใบกระถินจึงเป็นวัตถุดิบอินทรีย์ที่มีคุณค่าอย่างยิ่งสำหรับใช้ผลิตปุ๋ยอินทรีย์และน้ำหมักชีวภาพ งานวิจัยทั่วโลกยืนยันว่าใบกระถินสามารถเพิ่มผลผลิตและฟื้นฟูดินได้ เช่น จากรายงานการวิจัย เรื่อง การพัฒนาสูตรน้ำหมักชีวภาพจากใบกระถินเพื่อเพิ่มการเจริญเติบโต ผลผลิตของมันสำปะหลังและบูรณาการองค์ความรู้สู่โรงเรียนและชุมชนในจังหวัดลำปาง (ทุนวิจัย ววน. 2567) พบว่า การใช้น้ำหมักชีวภาพใบกระถินทำให้ผลผลิตของน้ำหนักสดมันสำปะหลังสูงกว่าสูตรเดิมที่เกษตรปลูกมากกว่า 13-18% กำไรสุทธิเพิ่มขึ้น 20-25% ลดต้นทุนการผลิตลงได้ 40-60% (ไพบูลย์ และคณะ, 2568a) การศึกษาในข้าวโพด พบว่า การใช้ปุ๋ยเคมี 50 กิโลกรัม/ไร่ ร่วมกับน้ำหมักชีวภาพใบกระถิน 60 มิลลิลิตร/ลิตร (ไพบูลย์ และคณะ, 2568b) และการใช้น้ำหมักชีวภาพใบกระถินเพียงอย่างเดียวในอัตราที่เหมาะสม (3 มิลลิลิตร/ลิตร/ต้น) สามารถเพิ่มการเจริญเติบโตและผลผลิตของผักคะน้าได้ดีมากในระบบปลูกกระถาง ส่วนในแปลงเกษตรกร การผสมผสานปุ๋ยอินทรีย์และปุ๋ยเคมีร่วมกันให้ผลผลิตของข้าวโพดหวานสูงกว่า โดยเฉพาะสูตรปุ๋ยเคมี 25–5–5 ร่วมกับมูลไก่แกลบ (ไพบูลย์ และคณะ, 2568c) นอกจากนี้ยงมีรายงานของ Shaibu et al. (2025) พบว่าสารสกัดใบกระถินช่วยเพิ่มการงอกและผลผลิตข้าวโพด Pangaribuan et al. (2019) สรุปว่าปุ๋ยน้ำจากพืชตระกูลถั่วเพิ่มผลผลิตของพืชหลากหลายชนิด Maula et al. (2025) รายงานปุ๋ยจากใบกระถินช่วยเพิ่มผลผลิตตะไคร้หอม Ganyo et al. (2025) พบว่าวัสดุอินทรีย์จากใบกระถินช่วยเพิ่มผลผลิตข้าวฟ่างในดินเค็ม Escalada et al. (1998) ยืนยันว่ามูลเขียวจากกระถินเพิ่มผลผลิตของพืชไร่รวมถึงมันสำปะหลัง จากหลักฐานจำนวนมากนี้ทำให้ “น้ำหมักชีวภาพใบกระถิน” เป็นทางเลือกที่มีต้นทุนต่ำ รูปแบบง่าย แต่ประสิทธิภาพสูงเหมาะต่อเกษตรกรรายย่อยในประเทศไทยอย่างยิ่ง
+เทคนิคการปลูกแบบร่องกว้าง (Wide-Ridge Technique) เทคนิคการปลูกร่องกว้างเป็นวิธีที่นักวิชาการให้ความสนใจมากขึ้นในช่วงหลัง เนื่องจากสามารถแก้ไขปัญหาโครงสร้างดินและช่วยให้ระบบรากของมันสำปะหลังเจริญได้ดีขึ้น โดยมีข้อดีคือ เพิ่มการระบายน้ำ ลดการอัดแน่นของดิน ช่วยให้รากมันสำปะหลังขยายตัวได้ดีขึ้น ลดปัญหาน้ำขังในช่วงฤดูฝน เพิ่มความโปร่งของดิน ลดการชะล้างพังทลายของหน้าดิน งานวิจัยของ Sriket et al. (2015) และ Leitch et al. (2023) ยืนยันว่าการปรับปรุงโครงสร้างดินและเทคนิคการปลูกที่เหมาะสมสามารถเพิ่มผลผลิตมันสำปะหลังได้อย่างมีนัยสำคัญ โดยเฉพาะเมื่อผสานร่วมกับปุ๋ยอินทรีย์หรือวัสดุปรับปรุงดิน ดังนั้นการผสาน น้ำหมักชีวภาพใบกระถิน กับ เทคนิคปลูกร่องกว้าง จึงเป็นแนวทางที่มีฐานวิชาการรองรับอย่างเข้มแข็งและเหมาะที่จะพัฒนาเป็น “ระบบการผลิตต้นทุนต่ำ–ผลผลิตสูง” อย่างแท้จริง                        </h6>
+
+                        <h5></h5>
+
+                        <h5 class="mt-3">ความรู้/เทคโนโลยี</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            นวัตกรรมการผลิตมันสำปะหลังแบบ “ต้นทุนต่ำ–ผลผลิตสูง” เป็นการบูรณาการองค์ความรู้ด้านสารปรับปรุงดินชีวภาพและเทคนิคการจัดการแปลงปลูก โดยใช้น้ำหมักชีวภาพจากใบกระถินเป็นแหล่งธาตุอาหารและสารกระตุ้นการเจริญเติบโต ช่วยเพิ่มอินทรียวัตถุ ฟื้นฟูจุลินทรีย์ดิน ลดการใช้ปุ๋ยเคมี และปรับสมดุลความเป็นกรด–ด่างของดิน ควบคู่กับเทคนิคการปลูกแบบร่องกว้างที่เพิ่มระยะปลูกและการระบายน้ำ ส่งเสริมการพัฒนาระบบราก การสะสมแป้งในหัว และเอื้อต่อการจัดการวัชพืชเชิงกล
+เทคโนโลยีดังกล่าวช่วยลดต้นทุนการผลิต เพิ่มประสิทธิภาพการใช้ปัจจัยการผลิต เพิ่มผลผลิตต่อไร่ และยกระดับรายได้เกษตรกรอย่างยั่งยืน เหมาะสำหรับการขยายผลในพื้นที่ดินเสื่อมโทรมและระบบเกษตรเชิงพาณิชย์ในระดับชุมชนและอุตสาหกรรมฐานราก                        </h6>
+
+                        <h5 class="mt-3">เจ้าของสิทธิ์</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            มหาวิทยาลัยราชภัฏลำปาง                        </h6>
+
+                        <h5 class="mt-3">ชื่อทรัพย์สินทางปัญญา</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            นวัตกรรมการผลิตมันสำปะหลังแบบต้นทุนต่ำ ผลผลิตสูง                        </h6>
+
+                        <h5 class="mt-3">ชื่อผู้ที่ประดิษฐ์</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            ไพบูลย์ หมุ่ยมาศ  ณรงค์ คชภักดี                        </h6>
+
+                        <h5 class="mt-3">เลขที่คำขอ</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            อยู่ระหว่างยืนคำขอ                        </h6>
+
+                        <h5 class="mt-3">เลขที่สิทธิบัตร</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            -                        </h6>
+
+                        <h5 class="mt-3">ทรัพย์สินทางปัญญา</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            ทรัพย์สินอุตสาหกรรม : อนุสิทธิบัตร                        </h6>
+
+
+
+                        <h5 class="mt-3">ผู้วิจัยหลัก</h5>
+
+                                                <h6 style="line-height: 1.7; text-align: justify;">
+                            <ul>
+                                                                    <li>
+                                        ผู้ช่วยศาสตราจารย์ ดร. ไพบูลย์ หมุ่ยมาศ 
+                                        คณะ <span class="text-primary">วิทยาศาสตร์</span>
+                                        สถาบัน <span class="text-primary">มหาวิทยาลัยราชภัฏลำปาง</span>
+                                    </li>
+                                                            </ul>
+                        </h6>
+
+                        <h5 class="mt-3">ผู้ร่วมวิจัย</h5>
+
+                                                <h6 style="line-height: 1.7; text-align: justify;">
+                            <ul>
+                                                                    <li>
+                                        ผู้ช่วยศาสตราจารย์ ดร. ณรงค์ คชภักดี 
+                                        คณะ <span class="text-primary">วิทยาศาสตร์</span>
+                                        สถาบัน <span class="text-primary">มหาวิทยาลัยราชภัฏลำปาง</span>
+                                    </li>
+                                                            </ul>
+                        </h6>
+
+                        <h5 class="mt-3">กลุ่มเป้าหมาย</h5>
+
+                                                <h6 style="line-height: 1.7; text-align: justify;">
+                            <ul>
+                                                                    <li>เกษตรกรผู้ผลิตมันสำปะหลัง</li>
+                                                            </ul>
+                        </h6>
+
+                        <h5 class="mt-3">จุดเด่น</h5>
+
+                        
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            <ul>
+                                                                    <li>วัถตุดิบหาได้ง่ายในท้องถิ่น ประหยัดเวลา ต้นทุนต่ำ ผลผลิตสูง</li>
+                                                            </ul>
+                        </h6>
+
+                        <h5 class="mt-3">แหล่งเงินทุนที่ใช้วิจัย</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            <ul>
+                                                                    <li>
+                                        <span>
+                                            แหล่งเงินทุนที่ใช้วิจัย/นวัตกรรม
+                                            <span class="text-primary">
+                                                แหล่งเงินทุนภายในมหาวิทยาลัย                                            </span>
+                                            รายละเอียดเพิ่มเติม
+                                            <span class="text-primary">
+                                                กองทุนมหาวิทยาลัย 2565 ววน. 2567-2567                                            </span>
+                                            เป็นจำนวนเงิน
+                                            <span class="text-primary">
+                                                550,000 บาท
+                                            </span>
+                                        </span>
+                                    </li>
+                                                            </ul>
+                        </h6>
+
+                        <h5 class="mt-3">ตัวชี้วัดผลลัพธ์ ROI</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            รายได้เพิ่มขึ้น                        </h6>
+
+                        <h5 class="mt-3">ปริมาณหน่วยนับ ROI</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            20%                        </h6>
+
+                        <h5 class="mt-3">ตัวชี้วัดผลลัพธ์ SROI</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            -                        </h6>
+
+                        <h5 class="mt-3">ปริมาณหน่วยนับ SROI</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            -                        </h6>
+
+                        <h5 class="mt-3">มูลค่านวัตกรรม</h5>
+                        <h6 style="line-height: 1.7; text-align: justify;">
+                            1,500 / บาท
+                        </h6>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right section -->
+        <div class="col-lg-4">
+            <!-- <div class="d-flex justify-content-end align-items-center"> -->
+            <!-- Views Section -->
+            <!-- <div class="d-flex align-items-center me-3">
+                    <i class="bi bi-eye-fill text-secondary"></i>
+                    <span class="ms-2">100 Views</span>
+                </div> -->
+            <!-- Interested Section -->
+            <!-- <div class="d-flex align-items-center">
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <span class="ms-2">ผู้สนใจคน</span>
+                </div> -->
+            <!-- </div> -->
+            <div class="card-body">
+                <p style="margin-top: 39px;"></p>
+                <!-- <button class="btn btn-warning w-100 mb-3">พร้อมใช้</button> -->
+                <div class="d-flex align-items-center mb-4">
+                                            <img src="https://38rat.nstru.ac.th/backend/store/user/6994694a9e309.jpg" class="rounded-circle me-2" style="width: 100px; height: 100px;">
+                                        <div>
+                                                <p class="mb-0"><strong>ผู้จัดทำ: ผู้ช่วยศาสตราจารย์ ดร.ไพบูลย์ หมุ่ยมาศ</strong></p>
+                        <p class="text-muted">มหาวิทยาลัยราชภัฏลำปาง</p>
+                                                    <button type="button" class="btn btn-warning w-100 mb-2" disabled>
+                                โปรดเข้าสู่ระบบ<br />ก่อนติดต่อพูดคุยกับเจ้าของ
+                            </button>
+                                            </div>
+                </div>
+                <div class="mb-3">
+                    <h5 class="mb-3">ประเภทนวัตกรรม
+                        <span class="badge rounded-pill bg-primary">
+                            พร้อมใช้                        </span>
+                    </h5>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header fw-bold">
+                        พื้นที่
+                    </div>
+                    <ul class="list-group list-group-flush">
+                                                    <li class="list-group-item">
+                                แขวง/ตำบล : บ้านเอื้อม                                เขต/อำเภอ : เมืองลำปาง,
+                                ลำปาง                            </li>
+                                                    <li class="list-group-item">
+                                แขวง/ตำบล : วังทอง                                เขต/อำเภอ : วังเหนือ,
+                                ลำปาง                            </li>
+                        
+                    </ul>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-6 text-center">
+                        <button class="btn btn-outline-warning w-100 mb-3" @click="likeinnovation()" id="btn_like">
+                            <i class="bi bi-heart-fill me-2"></i> {{ countlike }} Like
+                        </button>
+                    </div>
+
+                    <div class="col-6">
+                        <p>
+                            <i class="bi bi-eye-fill text-secondary"></i>
+                            <span class="ms-2">265 Views</span>
+                        </p>
+                    </div>
+                </div>
+                <!-- <p><strong>พื้นที่:</strong> <span class="blue-text">อดนตะโก อำเภอท่าศาลา นครศรีธรรมราช</span></p> -->
+                <!-- <button class="btn btn-warning w-100 mb-3">
+                    <i class="bi bi-heart-fill me-2" style="color: white;"></i>สนใจนวัตกรรมนี้
+                </button> -->
+                <div class="mb-3">
+                    <strong>
+                        <h5 class="mb-3">หมวดหมู่: เกษตรและเทคโนโลยี</h5>
+                    </strong>
+                    <!-- <strong> -->
+                        <!-- <h5 class="mb-3">ระดับผลงาน: TRL7</h5> -->
+                        <img src="https://38rat.nstru.ac.th/backend/store/TRL-9Lv/TRL-6.png" class="card-img-top">
+                        <!-- <h6>TRL7: ผลงานชั้นสุดท้าย ได้ทดลองใช้ในสภาวะทำงานจริง</h6> -->
+                    <!-- </strong> -->
+                    <strong>
+                        <strong>
+                            <h5 class="mt-3">ระดับผลงาน: SRL7</h5>
+                        </strong>
+                        <!-- Progress Bar -->
+                        <div class="progress" style="height: 30px;">
+                            <div
+                                class="progress-bar bg-warning"
+                                role="progressbar"
+                                style="width: 0%;"
+                                aria-valuenow="70"
+                                aria-valuemin="0"
+                                ria-valuemax="100">
+                                <!-- ไม่มีข้อความภายใน -->
+                            </div>
+                        </div>
+                        <!-- <strong>
+                            <h6 class="text-center">
+                                B : พร้อมใช้                            </h6>
+                        </strong> -->
+                    </strong>
+					<strong>
+                        <h5 class="mb-3">ลิงค์วิดีโอ : 
+														<span>
+								<a href="-" target="_blank">ไปยังวิดีโอ</a>
+							</span>
+													</h5>
+                    </strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="Modal1" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">เลือกโจทย์ / ปัญหาของคุณเพื่อเริ่มต้นการสนทนา</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-10">
+                            <input type="text" class="form-control" placeholder="ค้นหาด้วย โจทย์ / ปัญหาของคุณ" v-model.trim="tooldatatable1.filter.cus_search1" @keyup.enter="datatable1reload">
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-warning w-100" @click="datatable1reload">ค้นหา</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered border-dark nowrap" id="datatable1">
+                            <thead class="text-center">
+                                <tr>
+                                    <th>#</th>
+                                    <th>ชื่อโจทย์ปัญหา</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="align-middle"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const url = "https://38rat.nstru.ac.th/backend"
+    var datatable1
+
+    Vue.createApp({
+        data() {
+            return {
+                url: url,
+                tooldatatable1: {
+                    filter: {
+                        cus_search1: "",
+                        innovationid: "10620"
+                    }
+                },
+                countlike: "0",
+            }
+        },
+        methods: {
+            async likeinnovation() {
+                try {
+                    let res = await axios.post(url + "/ajax/user/innovation.php", {
+                        action: "likeinnovation",
+                        innovationid: this.tooldatatable1.filter.innovationid
+                    })
+
+                    console.log(res.data)
+
+                    let statusDB = res.data.data.statusDB
+                    let countlike = res.data.data.countlike
+
+                    await this.$nextTick()
+
+                    let ele = document.getElementById("btn_like")
+                    console.log(ele)
+
+                    if (statusDB == 1) {
+                        ele.classList.remove("btn-outline-warning")
+                        ele.classList.add("btn-warning")
+                    } else if (statusDB == 0) {
+                        ele.classList.remove("btn-warning")
+                        ele.classList.add("btn-outline-warning")
+                    }
+
+                    this.countlike = res.data.data.countlike
+
+                } catch (err) {
+                    console.log(err)
+
+                    if (err.response.status == 401) {
+                        window.location.href = url + "/../form/login-apptech.php"
+                        return false
+                    }
+
+                    console.log(err.response.data)
+                }
+            },
+            async startchat(id) {
+                await this.$nextTick()
+
+                let ele = document.querySelectorAll(".startchat")
+
+                ele.forEach(e => {
+                    e.disabled = true
+                })
+
+                await axios.post(url + "/ajax/user/matching.php", {
+                    action: "matching",
+                    innovationid: this.tooldatatable1.filter.innovationid,
+                    requirementid: id
+                }).then(res => {
+                    console.log(res.data)
+                    ele.forEach(e => {
+                        e.disabled = false
+                    })
+                    window.open("chat_apptech.php", "_blank")
+                }).catch(err => {
+                    console.log(err.response.data)
+                })
+
+                datatable1.ajax.reload()
+
+            },
+            datatable1reload() {
+                datatable1.ajax.reload()
+            },
+            verifyRequired(data, require) {
+                let keys = Object.keys(require)
+                let count = 0
+                let status = true
+                keys.forEach(d => {
+                    console.log(`require : ${require[d]}\ndata : ${data[d]}`)
+                    if (require[d] && (data[d] === "" || data[d] === false || data[d] === null)) {
+                        count++
+                    }
+                })
+
+                if (count > 0) {
+                    status = false
+                }
+
+                return status
+            },
+            isNumber(evt) {
+                evt = (evt) ? evt : window.event;
+                let charCode = (evt.which) ? evt.which : evt.keyCode;
+                if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
+                    evt.preventDefault();
+                } else {
+                    return true;
+                }
+            },
+        },
+        mounted() {
+            let vm = this
+
+            datatable1 = $('#datatable1').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                autoWidth: false,
+                columns: [{
+                        name: "indexDT",
+                        data: "indexDT",
+                        className: "text-center",
+                        orderable: false,
+                    },
+                    {
+                        name: "requirementname",
+                        data: "requirementname",
+                        className: "text-start",
+                    },
+                    {
+                        name: "action",
+                        data: "action",
+                        className: "text-center",
+                        orderable: false,
+                    }
+                ],
+                ajax: {
+                    url: url + "/ajax/user/requirement.php",
+                    type: "POST",
+                    data: function(d) {
+                        return $.extend({}, d, {
+                            filter: vm.tooldatatable1.filter,
+                            action: "fetchdatatable2_JSON"
+                        });
+                    },
+                    error: function(xhr, error, code) {
+                        console.log(xhr, code);
+                    }
+                },
+                drawCallback: function(settings) {
+                    let api = this.api()
+                    let json = api.ajax.json()
+
+                    // let ele = document.querySelectorAll(`.datatable1checkbox1`)
+
+                    // ele.forEach((e, index) => {
+                    //     // console.log(e.value)
+                    //     let indexArr = vm.tooldatatable1.selectedinnovationid.findIndex(d => d == parseInt(e.value))
+                    //     // console.log(indexArr)
+                    //     if (indexArr != -1) {
+                    //         e.checked = true
+                    //     }
+                    // })
+
+                    // vm.tooldatatable1.checkedAll = false
+                    console.log(json)
+                },
+                dom: 'lrtip',
+                order: [],
+                pagingType: "simple_numbers",
+                language: {
+                    sLengthMenu: "แสดง _MENU_ แถว",
+                    sZeroRecords: "ไม่พบข้อมูล",
+                    sInfo: "แสดง _START_ ถึง _END_ จาก _TOTAL_ แถว",
+                    sInfoEmpty: "แสดง 0 ถึง 0 จาก 0 แถว",
+                    sInfoFiltered: "(กรองข้อมูลจากข้อมูลทั้งหมด _MAX_ แถว)",
+                    sInfoPostFix: "",
+                    sSearch: "ค้นหา:",
+                    oPaginate: {
+                        sFirst: "เริ่มต้น",
+                        sPrevious: "ก่อนหน้า",
+                        sNext: "ถัดไป",
+                        sLast: "สุดท้าย"
+                    }
+                },
+            })
+
+            $(document).on('click', '.startchat', function() {
+                let id = $(this).data('requirementid')
+                vm.startchat(id)
+            })
+        },
+        created() {
+            // console.log(this.modal1.form.groupdetail)
+        }
+    }).mount("#innovationpage")
+</script>
+		</div>
+		
+    	<!-- CSS สำหรับตกแต่ง Footer -->
+<style>
+    footer {
+        background-color: #fff3e0;
+        /* สีส้มอ่อน */
+        color: #333;
+        padding: 40px 0;
+        font-size: 16px;
+    }
+
+    .footer-contact h5 {
+        color: #d85c10;
+        /* ส้มเข้ม */
+        font-weight: bold;
+    }
+
+    .footer-contact span,
+    .footer-contact a {
+        color: #555;
+        font-size: 15px;
+    }
+
+    .contact-mini i {
+        font-size: 28px;
+        margin-right: 12px;
+        color: #d85c10;
+        transition: transform 0.3s, color 0.3s;
+    }
+
+    .contact-mini i:hover {
+        transform: scale(1.2);
+        color: #ff7f2a;
+    }
+
+    .text-center p {
+        color: #777;
+        font-size: 14px;
+    }
+</style>
+
+<!-- Footer -->
+<footer>
+    <div class="container footer-container footer-wrap">
+        <div class="row gy-4 align-items-start" style="margin-bottom: 50px;">
+            <!-- Logo -->
+            <div class="col-md-4 col-12 text-center text-md-start">
+                <div class="logo-footer">
+                    <img src="/img/logo-apptech01.png" alt="Logo" class="img-fluid" style="max-width: 260px; height: auto;">
+                </div>
+                <div class="footer-contact">
+                    <p class="mb-0" style="margin-left: 28px;">มหาวิทยาลัยราชภัฏนครศรีธรรมราช</p>
+                </div>
+            </div>
+
+            <!-- Center Text -->
+            <div class="col-md-4 col-12" style="margin-top: 85px;">
+                <div class="footer-contact contact-mini">
+                    <h5>ที่อยู่</h5>
+                </div>
+                <div class="footer-contact contact-mini mt-2">
+                    <span>
+                        1 ตำบลท่างิ้ว อำเภอเมืองนครศรีธรรมราช<br>
+                        จังหวัดนครศรีธรรมราช 80280<br>
+                        อีเมล: 38rat.nstru@gmail.com
+                        <a href="" class="text-decoration-none" target="_blank"></a><br>
+                        เบอร์โทร:
+                    </span>
+                </div>
+            </div>
+
+            <!-- Contact & Social -->
+            <div class="col-md-4 col-12" style="margin-top: 55px;">
+
+                <!-- Google Maps Embed -->
+                <div class="mt-3">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3949.177054507215!2d99.85853847482332!3d8.461157497347168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3053a9a748f9ffef%3A0x37bc9fea7369a1dd!2z4Lia4Lij4Li04Lip4Lix4LiV4Li44Liq4LiZ4Lix4LiX4Li04LiZ4LmA4Lih4LiZ4Li04Lip4LiZ4LmA4Lih4LiK4Liy4LiV4Li44Liq4Li44Lij4Liw4LmA4Lig4Lit4Li44LiX4LiZ4Li1!5e0!3m2!1sth!2sth!4v1715679999999!5m2!1sth!2sth"
+                        width="100%"
+                        height="200"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+
+                <div class="footer-contact social-link mt-3">
+                    <div class="contact-mini d-flex gap-3">
+                        <a href="https://www.facebook.com/nstru.pr" target="_blank" class="text-white">
+                            <i class="fa-brands fa-square-facebook fa-2xl"></i>
+                        </a>
+                        <a href="https://www.youtube.com/@NSTRU-jj5by/playlists" target="_blank" class="text-white">
+                            <i class="fa-brands fa-youtube fa-2xl"></i>
+                        </a>
+                        <!-- <a href="" target="_blank" class="text-white">
+                            <i class="fa-brands fa-line fa-2xl"></i>
+                        </a>
+                        <a href="" target="_blank" class="text-white">
+                            <i class="fa-brands fa-square-instagram fa-2xl"></i>
+                        </a> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="mb-0">&copy; 2025 NSTRU. All rights reserved.</p>
+        </div>
+    </div>
+</footer>	</div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+	</body>
+
+</html>

@@ -1,0 +1,558 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>38RAT</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
+	<script src="https://38rat.nstru.ac.th/backend/assets/axios/axios/dist/axios.min.js"></script>
+	<link href="https://38rat.nstru.ac.th/backend/assets/veltrix/libs/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css">
+    <script src="https://38rat.nstru.ac.th/backend/assets/veltrix/libs/sweetalert2/sweetalert2.min.js"></script>
+	<link rel="stylesheet" href="https://38rat.nstru.ac.th/backend/assets/veltrix/css/cnff_style.css">
+	<link rel="stylesheet" href="https://38rat.nstru.ac.th/css/cnff_style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+    body {
+        font-family: 'Kanit', sans-serif;
+    }
+
+    .hero-section {
+        background: linear-gradient(90deg, #f46b45, #eea849);
+        color: white;
+        padding: 50px 0;
+        /* margin-top: 4rem !important; */
+    }
+
+    .hero-section .content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .hero-section img {
+        max-width: 300px;
+    }
+
+    .category-bar {
+        border-radius: 10px;
+        padding: 20px;
+        color: white;
+        font-weight: bold;
+        text-align: left;
+        margin: 0 auto 15px auto;
+        width: 98%;
+        display: flex;
+        align-items: center;
+    }
+
+    .category-bar i {
+        margin-right: 15px;
+        font-size: 24px;
+    }
+
+    .search-bar {
+        flex-grow: 1;
+        margin-left: 20px;
+    }
+
+    .dropdown:hover .dropdown-menu {
+        display: block;
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+</head>
+
+<body>
+    <!-- Navbar with dropdown menu -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="https://38rat.nstru.ac.th">
+            <img src="/../img/TSRI_Logo.png" alt="Logo" style="height: 55px;"><span class="ms-2"></span>
+            <img src="/../img/UWN_Logo.png" alt="Logo" style="height: 55px;"><span class="ms-2"></span>
+            <img src="/../img/Rajabhat_Logo.png" alt="Logo" style="height: 58px;"><span class="ms-2"></span>
+            <!-- <img src="/../img/Logo.png" alt="Logo" style="height: 60px;"><span class="ms-2"></span> -->
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- <i class="bi bi-list"></i> เมนู -->
+                        เมนู
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="https://38rat.nstru.ac.th"><i class="bi bi-house"></i> หน้าแรก</a></li>
+                        <li><a class="dropdown-item" href="/page/search_innovation.php"><i class="bi bi-lightbulb"></i> นวัตกรรมพร้อมใช้</a></li>
+                        <li><a class="dropdown-item" href="/page/search_requirement.php"><i class="bi bi-chat-dots"></i> ความต้องการ - ปัญหา</a></li>
+                        <li><a class="dropdown-item" href="/page/chat_apptech.php"><i class="bi bi-envelope"></i> ช่องทางพูดคุย</a></li>
+                        <li><a class="dropdown-item" href="/page/map_dashboard.php"><i class="bi bi-bar-chart"></i> รายงานผลการสนเทศ</a></li>
+                        <li><a class="dropdown-item" href="/page/search_news.php"><i class="bi bi-newspaper"></i> ข่าวประชาสัมพันธ์</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <!-- <form class="d-flex search-bar mb-3 mb-sm-3 mb-md-3 mb-lg-0">
+                <input class="form-control me-2" type="search" placeholder="ค้นหา" aria-label="Search">
+            </form> -->
+
+                            <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            คู่มือการใช้งานระบบ
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" target="_blank" href="https://38rat.nstru.ac.th/backend/store/document/user_usertype1.pdf">สำหรับผู้นำเสนอนวัตกรรม</a></li>
+                            <li><a class="dropdown-item" target="_blank" href="https://38rat.nstru.ac.th/backend/store/document/user_usertype2.pdf">สำหรับผู้ส่งโจทย์ปัญหา</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <a class="btn btn-warning me-2" href="https://38rat.nstru.ac.th/form/register.php">สมัครบริการ</a>
+                <a class="btn btn-outline-warning" href="https://38rat.nstru.ac.th/form/login-apptech.php">เข้าสู่ระบบ</a>
+                    </div>
+    </div>
+</nav>
+	<div class="main-content-cus">
+		<div class="page-content-cus">
+			<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row content">
+            <div class="col-md-6">
+                <div class="row">
+                    <h1 class="display-4">นวัตกรรมพร้อมใช้ RAT</h1>
+                    <p class="lead">การปฏิบัติ หรือสิ่งประดิษฐ์ใหม่ ๆ ที่ยังไม่เคยใช้งานมาก่อน</p>
+                </div>
+                <!-- <div class="row justify-content-center">
+                    <div class="col-auto mb-3">
+                        <a href="#features" class="btn btn-light btn-lg">ดูเพิ่มเติม</a>
+                    </div>
+                </div> -->
+            </div>
+            <div class="col-md-6 text-center">
+                <img src="/../img/logo-researcher.png" alt="Illustration" style="max-height: 500px; width: auto;">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Icon Menu Section -->
+<div class="container py-5 text-center">
+    <div class="row icon-menu">
+        <div class="col-6 col-md-3">
+            <a href="/page/search_innovation.php" class="text-decoration-none">
+                <img src="/backend/store/indexpage/icon-innovation-300x300.png" alt="Logo" style="height: 130px; margin-bottom: 3px;">
+                <h6 style="margin-top: 3px; color: #000000;">นวัตกรรมพร้อมใช้</h6>
+                <p style="color: #000000;">RAT</p>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="/page/search_requirement.php" class="text-decoration-none">
+                <img src="/backend/store/indexpage/icon-initiator-300x300.png" alt="Problem" style="height: 130px; margin-bottom: 3px;">
+                <h6 style="margin-top: 3px; color: #000000;">ความต้องการ / ปัญหา</h6>
+                <p style="color: #000000;">Problem</p>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="/page/chat_apptech.php" class="text-decoration-none">
+                <img src="/backend/store/indexpage/icon-chatbox-150x150.png" alt="Chat Box" style="height: 130px; margin-bottom: 3px;">
+                <h6 style="margin-top: 3px; color: #000000">ช่องทางพูดคุย</h6>
+                <p style="color: #000000;">Chat Box</p>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="/page/map_dashboard.php" class="text-decoration-none">
+                <img src="/backend/store/indexpage/icon-dashboard-150x150.png" alt="Dashboard" style="height: 130px; margin-bottom: 3px;">
+                <h6 style="margin-top: 3px; color: #000000">รายงานสารสนเทศ</h6>
+                <p style="color: #000000">Dashboard</p>
+            </a>
+        </div>
+    </div>
+    <!-- Categories Section -->
+    <div class="container py-5">
+        <div class="row mb-3 align-items-center rounded" style="background-color: #f68026; height: 50px;">
+            <div class="col-8 d-flex align-items-center text-white">
+                <i class="bi bi-lightbulb me-2"></i> เทคโนโลยี / นวัตกรรมพร้อมใช้
+            </div>
+            <div class="col-4 text-end">
+                <a href="/page/search_innovation.php" class="text-white text-decoration-none">ดูทั้งหมด >></a>
+            </div>
+        </div>
+        <div class="container py-5">
+            <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/innovationdetail.php?innovationid=10620" style="text-decoration: none; color: inherit;">
+                                                                    <img src="https://38rat.nstru.ac.th/backend/store/innovation/699472714d125.jpg" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">นวัตกรรมการผลิตมันสำปะหลังแบบ “ต้นทุนต่ำ–ผลผลิตสูง”</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="https://38rat.nstru.ac.th/backend/store/user/6994694a9e309.jpg" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย ผู้ช่วยศาสตราจารย์ ดร.ไพบูลย์ หมุ่ยมาศ</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฏลำปาง</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/innovationdetail.php?innovationid=10620" class="btn btn-warning w-100 mt-2">แชทกับเจ้าของเทคโนโลยี</a>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/innovationdetail.php?innovationid=10617" style="text-decoration: none; color: inherit;">
+                                                                    <img src="https://38rat.nstru.ac.th/backend/store/innovation/697df38b6b236.jpg" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">เครื่องอบลดความชื้นเมล็ดพันธุ์ข้าวและถั่วเขียวด้วยระบบไฟฟ้า Single Phase สนามแบบลากจูง</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="https://38rat.nstru.ac.th/backend/store/user/689192e03e1a5.jpg" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย นายวชิรศักดิ์ เขียนวงศ์</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฏบ้านสมเด็จเจ้าพระยา</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/innovationdetail.php?innovationid=10617" class="btn btn-warning w-100 mt-2">แชทกับเจ้าของเทคโนโลยี</a>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/innovationdetail.php?innovationid=10613" style="text-decoration: none; color: inherit;">
+                                                                    <img src="https://38rat.nstru.ac.th/backend/store/innovation/6979d97bd095c.png" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">เทคโนโลยีการปลูกข้าวอัจฉริยะ</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="/../img/user-128.png" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย ดร.ยุทธศิลป์ ชูมณี</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฏเชียงราย</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/innovationdetail.php?innovationid=10613" class="btn btn-warning w-100 mt-2">แชทกับเจ้าของเทคโนโลยี</a>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/innovationdetail.php?innovationid=10611" style="text-decoration: none; color: inherit;">
+                                                                    <img src="/../img/problem-solving.png" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">วัสดุปรับปรุงดินชีวภาพมูลแมลงโปรตีน (BioFrass Soil Amendment)</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="/../img/user-128.png" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย อาจารย์ณัฏฐิยา เกื้อทาน</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฏศรีสะเกษ</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/innovationdetail.php?innovationid=10611" class="btn btn-warning w-100 mt-2">แชทกับเจ้าของเทคโนโลยี</a>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/innovationdetail.php?innovationid=10610" style="text-decoration: none; color: inherit;">
+                                                                    <img src="/../img/problem-solving.png" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">ปุ๋ยไบโอชาร์</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="https://38rat.nstru.ac.th/backend/store/user/694d2180343ec.jpg" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย ผู้ช่วยศาสตราจารย์ชัญญาภัค ไชยพรรณ</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฏนครศรีธรรมราช</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/innovationdetail.php?innovationid=10610" class="btn btn-warning w-100 mt-2">แชทกับเจ้าของเทคโนโลยี</a>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/innovationdetail.php?innovationid=10609" style="text-decoration: none; color: inherit;">
+                                                                    <img src="/../img/problem-solving.png" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">เตาเผาไบโอชาร์</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="https://38rat.nstru.ac.th/backend/store/user/694d2180343ec.jpg" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย ผู้ช่วยศาสตราจารย์ชัญญาภัค ไชยพรรณ</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฏนครศรีธรรมราช</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/innovationdetail.php?innovationid=10609" class="btn btn-warning w-100 mt-2">แชทกับเจ้าของเทคโนโลยี</a>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/innovationdetail.php?innovationid=10608" style="text-decoration: none; color: inherit;">
+                                                                    <img src="/../img/problem-solving.png" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">กระบวนการหมักและแยกน้ำมันมะพร้าวสกัดเย็น</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="https://38rat.nstru.ac.th/backend/store/user/6948ba0227279.jpg" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย อาจารย์วัสสา รวยรวย</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฏนครศรีธรรมราช</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/innovationdetail.php?innovationid=10608" class="btn btn-warning w-100 mt-2">แชทกับเจ้าของเทคโนโลยี</a>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/innovationdetail.php?innovationid=10607" style="text-decoration: none; color: inherit;">
+                                                                    <img src="/../img/problem-solving.png" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">เทคโนโลยีการสร้างแบรนด์และการสื่อสารดิจิทัลป่าจาก</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="https://38rat.nstru.ac.th/backend/store/user/6893110f3d7e6.jpg" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย รองศาสตราจารย์ ดร.จุฑามาศ ศุภพันธ์</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฏนครศรีธรรมราช</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/innovationdetail.php?innovationid=10607" class="btn btn-warning w-100 mt-2">แชทกับเจ้าของเทคโนโลยี</a>
+                            </div>
+                        </div>
+                    </div>
+                            </div>
+        </div>
+        <div class="row mb-3 align-items-center rounded" style="background-color: #4caf50; height: 50px;">
+            <div class="col-8 d-flex align-items-center text-white">
+                <i class="bi bi-chat-dots me-2"></i> ความต้องการ / ปัญหา
+            </div>
+            <div class="col-4 text-end">
+                <a href="/page/search_requirement.php" class="text-white text-decoration-none">ดูทั้งหมด >></a>
+            </div>
+        </div>
+        <div class="container py-5">
+            <div class="row">
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/requirementdetail.php?requirementid=15126" style="text-decoration: none; color: inherit;">
+                                                                    <img src="/../img/concentrate.png" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">นวัตกรรมโรงอบแห้งพริกพลังงานแสงอาทิตย์</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="https://38rat.nstru.ac.th/backend/store/user/695cae034fab1.png" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย อาจารย์พนารัตน์ สังข์อินทร์</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฏศรีสะเกษ</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/requirementdetail.php?requirementid=15126" class="btn btn-success w-100 mt-2">แชทกับเจ้าของโจทย์</a>
+                            </div>
+                        </div>
+                    </div>
+                                    <div class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <div class="card h-100 overflow-hidden">
+                            <a href="/page/requirementdetail.php?requirementid=12" style="text-decoration: none; color: inherit;">
+                                                                    <img src="/../img/concentrate.png" class="img-fluid" alt="Innovation 1" style="height: 20em; border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; object-fit: cover;">
+                                                                <div class="card-body" style="text-align: left;">
+                                    <h5 class="card-title">ระบบแจ้งเตือนภัยแผ่นดินไหว ประเทศไทย</h5>
+                                    <div class="d-flex align-items-center mt-3">
+                                                                                    <img src="/../img/user-128.png" class="rounded-circle me-2" style="width: 50px; height: 50px;">
+                                                                                <div>
+                                                                                        <p class="mb-0"><strong>โดย นายจิรันดร บู๊ฮวดใช้</strong></p>
+                                            <small class="text-muted">มหาวิทยาลัยราชภัฎนครปฐม</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="card-footer bg-white border-0">
+                                <a href="/page/requirementdetail.php?requirementid=12" class="btn btn-success w-100 mt-2">แชทกับเจ้าของโจทย์</a>
+                            </div>
+                        </div>
+                    </div>
+                            </div>
+        </div>
+        <div class="row mb-3 align-items-center rounded" style="background-color: #2196f3; height: 50px;">
+            <div class="col-8 d-flex align-items-center text-white">
+                <i class="bi bi-newspaper me-2"></i> ข่าวสาร
+            </div>
+            <div class="col-4 text-end">
+                <a href="/page/search_news.php" class="text-white text-decoration-none">ดูทั้งหมด >></a>
+            </div>
+        </div>
+        <div class="container py-5">
+            <div class="row">
+                            </div>
+        </div>
+
+        <div class="row mb-3 align-items-center rounded" style="background-color: #f68026; height: 50px;">
+            <div class="col-8 d-flex align-items-center text-white">
+                <i class="bi bi-bar-chart me-2"></i> รายงานผลการพัฒนา
+            </div>
+            <div class="col-4 text-end">
+                <a href="/page/map_dashboard.php" class="text-white text-decoration-none">ดูทั้งหมด >></a>
+            </div>
+        </div>
+    </div>
+</div>
+		</div>
+		
+    	<!-- CSS สำหรับตกแต่ง Footer -->
+<style>
+    footer {
+        background-color: #fff3e0;
+        /* สีส้มอ่อน */
+        color: #333;
+        padding: 40px 0;
+        font-size: 16px;
+    }
+
+    .footer-contact h5 {
+        color: #d85c10;
+        /* ส้มเข้ม */
+        font-weight: bold;
+    }
+
+    .footer-contact span,
+    .footer-contact a {
+        color: #555;
+        font-size: 15px;
+    }
+
+    .contact-mini i {
+        font-size: 28px;
+        margin-right: 12px;
+        color: #d85c10;
+        transition: transform 0.3s, color 0.3s;
+    }
+
+    .contact-mini i:hover {
+        transform: scale(1.2);
+        color: #ff7f2a;
+    }
+
+    .text-center p {
+        color: #777;
+        font-size: 14px;
+    }
+</style>
+
+<!-- Footer -->
+<footer>
+    <div class="container footer-container footer-wrap">
+        <div class="row gy-4 align-items-start" style="margin-bottom: 50px;">
+            <!-- Logo -->
+            <div class="col-md-4 col-12 text-center text-md-start">
+                <div class="logo-footer">
+                    <img src="/img/logo-apptech01.png" alt="Logo" class="img-fluid" style="max-width: 260px; height: auto;">
+                </div>
+                <div class="footer-contact">
+                    <p class="mb-0" style="margin-left: 28px;">มหาวิทยาลัยราชภัฏนครศรีธรรมราช</p>
+                </div>
+            </div>
+
+            <!-- Center Text -->
+            <div class="col-md-4 col-12" style="margin-top: 85px;">
+                <div class="footer-contact contact-mini">
+                    <h5>ที่อยู่</h5>
+                </div>
+                <div class="footer-contact contact-mini mt-2">
+                    <span>
+                        1 ตำบลท่างิ้ว อำเภอเมืองนครศรีธรรมราช<br>
+                        จังหวัดนครศรีธรรมราช 80280<br>
+                        อีเมล: 38rat.nstru@gmail.com
+                        <a href="" class="text-decoration-none" target="_blank"></a><br>
+                        เบอร์โทร:
+                    </span>
+                </div>
+            </div>
+
+            <!-- Contact & Social -->
+            <div class="col-md-4 col-12" style="margin-top: 55px;">
+
+                <!-- Google Maps Embed -->
+                <div class="mt-3">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3949.177054507215!2d99.85853847482332!3d8.461157497347168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3053a9a748f9ffef%3A0x37bc9fea7369a1dd!2z4Lia4Lij4Li04Lip4Lix4LiV4Li44Liq4LiZ4Lix4LiX4Li04LiZ4LmA4Lih4LiZ4Li04Lip4LiZ4LmA4Lih4LiK4Liy4LiV4Li44Liq4Li44Lij4Liw4LmA4Lig4Lit4Li44LiX4LiZ4Li1!5e0!3m2!1sth!2sth!4v1715679999999!5m2!1sth!2sth"
+                        width="100%"
+                        height="200"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+
+                <div class="footer-contact social-link mt-3">
+                    <div class="contact-mini d-flex gap-3">
+                        <a href="https://www.facebook.com/nstru.pr" target="_blank" class="text-white">
+                            <i class="fa-brands fa-square-facebook fa-2xl"></i>
+                        </a>
+                        <a href="https://www.youtube.com/@NSTRU-jj5by/playlists" target="_blank" class="text-white">
+                            <i class="fa-brands fa-youtube fa-2xl"></i>
+                        </a>
+                        <!-- <a href="" target="_blank" class="text-white">
+                            <i class="fa-brands fa-line fa-2xl"></i>
+                        </a>
+                        <a href="" target="_blank" class="text-white">
+                            <i class="fa-brands fa-square-instagram fa-2xl"></i>
+                        </a> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="mb-0">&copy; 2025 NSTRU. All rights reserved.</p>
+        </div>
+    </div>
+</footer>	</div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+	</body>
+
+</html>

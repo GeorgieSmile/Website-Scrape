@@ -1,6 +1,7 @@
 .venv
 */__pycache__/
 .DS_Store
+pyrightconfig.json
 
 # Visit Lumphun
 Visit Lumphun/output
@@ -16,3 +17,14 @@ Evaluate City/SCRAPER_PLAN.md
 Cultural Map/output
 Cultural Map/state
 Cultural Map/SCRAPER_PLAN.md
+
+# RinMP
+RinMP/output
+RinMP/state
+RinMP/SCRAPER_PLAN.md
+
+#APPTech MRU
+APPTech MRU/output
+APPTech MRU/state
+APPTech MRU/SCRAPER_PLAN.md
+

@@ -1,0 +1,17 @@
+{
+  "note": "Pinned institute headquarters provinces, verified against listAppTechInstituteMapData.summary on 2026-08-22. Used only as a fallback when a technology record has no structured address of its own.",
+  "institute_hq_provinces": {
+    "มทร.ศรีวิชัย": "สงขลา",
+    "มทร.ล้านนา": "เชียงใหม่",
+    "มทร.อีสาน": "นครราชสีมา",
+    "มทร.กรุงเทพ": "กรุงเทพมหานคร",
+    "มทร.ตะวันออก": "ชลบุรี",
+    "มทร.ธัญบุรี": "ปทุมธานี",
+    "มทร.พระนคร": "กรุงเทพมหานคร",
+    "มทร.รัตนโกสินทร์": "นครปฐม",
+    "มทร.สุวรรณภูมิ": "พระนครศรีอยุธยา",
+    "มนร.": "นราธิวาส",
+    "ม.ฟ.น.": "ยะลา",
+    "มจธ.": "กรุงเทพมหานคร"
+  }
+}
