@@ -1,0 +1,1818 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>
+    โปรไฟล์ศูนย์ถ่ายทอดและบริการเทคโนโลยี - 
+     โครงการจัดตั้งและพัฒนาศูนย์ออกแบบพัฒนา และถ่ายทอดเทคโนโลยีที่เหมาะสมสู่ชุมชน เพื่อยกระดับรายได้ครัวเรือนและพัฒนาเศรษฐกิจฐานราก  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+      
+  
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:300,500,600" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500i" rel="stylesheet">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/themify-icons/0.1.2/css/themify-icons.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/linearicons.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com//temptour/fontawesome/css/all.css" >
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/bootstrap.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/magnific-popup.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/nice-select.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/animate.min.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/owl.carousel.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/main.css">
+	
+	<link rel="stylesheet"  href="https://pmua-apptech.com/slick/slick.css"/>
+	<link rel="stylesheet"  href="https://pmua-apptech.com/slick/slick-theme.css"/>
+	
+	
+	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+	<!-- วางแท็กนี้ในส่วนหัวหรือก่อนแท็กปิดของเนื้อความ -->
+	<script src="https://apis.google.com/js/platform.js" async defer>
+	  {lang: 'th'}
+	</script>
+	
+    
+  <style>
+  /* ขยายความกว้าง container ประมาณ 20% บนจอใหญ่ */
+  @media (min-width: 1200px) {
+    .container {
+      max-width: 1368px;
+    }
+  }
+</style>
+
+  <!-- ===== STYLE เดิม (คงไว้) + ใช้งานซ้ำ ===== -->
+  <style>
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      border-left: 4px solid #007bff;
+      padding-left: .75rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-title-primary {
+      background: var(--primary, #007bff);
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 12px;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    @media (max-width: 576px) {
+      .section-title-primary {
+        font-size: 18px;
+        padding: 12px 15px;
+      }
+    }
+
+    .scrolling-wrapper,
+    .tech-scrolling-wrapper {
+      display: flex;
+      overflow-x: auto;
+      padding-bottom: .5rem;
+    }
+    .scrolling-wrapper::-webkit-scrollbar,
+    .tech-scrolling-wrapper::-webkit-scrollbar {
+      height: 6px;
+    }
+    .scrolling-wrapper::-webkit-scrollbar-thumb,
+    .tech-scrolling-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.2);
+      border-radius: 3px;
+    }
+
+    .event-card {
+      flex: 0 0 260px;
+      margin-right: 1rem;
+    }
+    .event-cover {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-top-left-radius: .25rem;
+      border-top-right-radius: .25rem;
+    }
+
+    /* ===== สำหรับเทคโนโลยี ===== */
+    .tech-card {
+      flex: 0 0 260px;
+      margin-right: 1rem;
+    }
+
+    /* กรอบรูปจตุรัส + เบลอพื้นหลัง */
+    .tech-cover-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 100%; /* ทำให้เป็นสี่เหลี่ยมจตุรัส */
+      overflow: hidden;
+      border-top-left-radius: .25rem;
+      border-top-right-radius: .25rem;
+    }
+    .tech-cover-bg {
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 120%;
+      height: 120%;
+      background-position: center;
+      background-size: cover;
+      filter: blur(12px);
+      transform: scale(1.1);
+    }
+    .tech-cover-foreground {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: .25rem;
+    }
+
+    .tech-slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .5rem;
+    }
+
+    /* HEADER HERO */
+    .center-header-gradient {
+      width: 100%;
+      background: linear-gradient(135deg, #f8fbff 0%, #e8f0ff 50%, #fdfdff 100%);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      padding-top: 40px;
+      padding-bottom: 40px;
+    }
+
+    .center-hero-name {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .center-hero-slogan {
+      font-size: 1.05rem;
+      color: #555;
+      max-width: 780px;
+      margin: 10px auto 20px auto;
+      line-height: 1.6;
+    }
+
+    .center-banner-hero {
+      margin-top: 15px;
+    }
+
+    .center-banner-hero img {
+      width: 100%;
+      object-fit: cover;
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    @media (max-width: 768px){
+      .center-hero-name{
+        font-size: 1.6rem;
+      }
+      .center-banner-hero img{
+        max-height: 260px;
+      }
+    }
+
+    .blur-box {
+      background: #ffffffaa;
+      backdrop-filter: blur(6px);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .step-num {
+      font-weight: bold;
+      width: 40px;
+      display: inline-block;
+    }
+
+    .faq-card {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e5e5e5;
+    }
+    .faq-toggle {
+      width: 100%;
+      text-align: left;
+      padding: 8px 12px;
+      background: #f8f9fa;
+      border: none;
+      outline: none;
+      color: #333;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .faq-toggle:hover {
+      text-decoration: none;
+      background: #e9f3ff;
+    }
+    .faq-toggle i {
+      margin-right: 6px;
+    }
+    .faq-card + .faq-card {
+      margin-top: 6px;
+    }
+
+    .contact-panel {
+      border-radius: 18px;
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .contact-panel-header {
+      background: linear-gradient(135deg, #007bff, #4dabff);
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .contact-panel-header h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .contact-panel-header small {
+      opacity: .85;
+      font-size: .8rem;
+    }
+    .contact-panel-body {
+      padding: 18px 20px 16px 20px;
+    }
+    .contact-item-row {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .contact-label {
+      width: 140px;
+      font-weight: 600;
+      color: #374151;
+    }
+    .contact-value {
+      flex: 1;
+      min-width: 0;
+      color: #111827;
+      word-break: break-all;
+    }
+    .contact-value a {
+      color: #0056b3;
+    }
+    .contact-value a:hover {
+      text-decoration: underline;
+    }
+    .contact-empty {
+      color: #9ca3af;
+      font-style: italic;
+    }
+    @media(max-width: 576px){
+      .contact-label {
+        width: 120px;
+      }
+    }
+
+    .scrolling-wrapper {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .scrolling-wrapper::-webkit-scrollbar {
+      height: 6px;
+    }
+    .scrolling-wrapper::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 999px;
+    }
+
+    .event-card-link {
+      text-decoration: none !important;
+      color: inherit;
+    }
+
+    .event-card {
+      min-width: 230px;
+      margin-right: 12px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(15,23,42,.12);
+      border: none;
+      background: #fff;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .event-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 18px rgba(15,23,42,.16);
+    }
+
+    /* กล่องรูป 1:1 พร้อมเบลอพื้นหลัง */
+    .event-cover-box {
+      width: 100%;
+      position: relative;
+      padding-top: 100%; /* 1:1 */
+      overflow: hidden;
+    }
+    .event-cover-blur {
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 120%;
+      height: 120%;
+      background-size: cover;
+      background-position: center;
+      filter: blur(14px) brightness(0.9);
+      transform: scale(1.1);
+    }
+    .event-cover-main {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+      z-index: 2;
+      background: rgba(255,255,255,0.8);
+    }
+
+    .event-meta {
+      font-size: .8rem;
+      color: #6b7280;
+    }
+    .event-title {
+      font-size: .95rem;
+      font-weight: 600;
+      min-height: 40px;
+    }
+
+    .center-hero-row {
+      margin-top: 10px;
+    }
+
+    .center-avatar-inline {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(15,23,42,0.25);
+      border: 3px solid #ffffff;
+      background: #f3f4f6;
+    }
+
+    @media (max-width: 576px) {
+      .center-avatar-inline {
+        width: 64px;
+        height: 64px;
+      }
+    }
+
+    /* กล่องข่าวสาร/กิจกรรมให้พื้นหลังขาวเหมือนเทคโนโลยี */
+    .news-card-wrapper {
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 4px 16px rgba(15,23,42,0.08);
+      padding: 20px;
+    }
+
+    /* กล่องแผนที่ */
+    #center-map {
+      width: 100%;
+      height: 260px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+
+	
+	
+<style>
+/* Modern Dark Navbar */
+.navbar-modern-dark {
+    background: linear-gradient(90deg, #2a4079, #3f5999);
+    box-shadow: 0 4px 20px rgba(42, 64, 121, 0.25);
+    padding: 12px 0;
+    transition: all 0.3s ease;
+}
+
+/* Brand Logo */
+.navbar-brand img {
+    transition: transform 0.2s;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+/* Nav Links (White Text) */
+.nav-modern .nav-item .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+}
+.nav-modern .nav-item .nav-link:hover,
+.nav-modern .nav-item.active .nav-link {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.15);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Dropdown Menu (White Box) */
+.dropdown-menu-modern {
+    border: 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    margin-top: 12px;
+    padding: 8px;
+    background: #fff;
+    min-width: 220px;
+}
+.dropdown-menu-modern .dropdown-item {
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    color: #334155;
+    font-weight: 500;
+}
+.dropdown-menu-modern .dropdown-item:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+.dropdown-menu-modern::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 20px;
+    width: 12px; height: 12px;
+    background: #fff;
+    transform: rotate(45deg);
+    box-shadow: -2px -2px 5px rgba(0,0,0,0.04);
+}
+
+/* Buttons */
+.btn-nav-login {
+    border-radius: 50px;
+    padding: 6px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.btn-nav-search {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: 0.2s;
+}
+.btn-nav-search:hover {
+    background: #fff;
+    color: #2a4079;
+    transform: scale(1.1);
+}
+
+/* Mobile Toggler */
+.navbar-toggler { border: 1px solid rgba(255,255,255,0.3); }
+.navbar-toggler-icon { 
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255, 255, 255, 0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); 
+}
+
+/* Scroll Offset */
+html {
+  scroll-padding-top: 100px; 
+  scroll-behavior: smooth;
+}
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-modern-dark sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://pmua-apptech.com/">
+      <img src="https://pmua-apptech.com/pic/logohead.png" width="100" alt="Logo" />
+    </a>
+
+    <button class="navbar-toggler" type="button" 
+            data-toggle="collapse" data-target="#navbarModern" 
+            data-bs-toggle="collapse" data-bs-target="#navbarModern"
+            aria-controls="navbarModern" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarModern">
+      
+      <ul class="navbar-nav mr-auto nav-modern align-items-center">
+        <li class="nav-item">
+          <a class="nav-link" href="https://pmua-apptech.com/">หน้าแรก</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://pmua-apptech.com/propose">เทคโนโลยีที่เหมาะสม</a>
+        </li>
+        
+        
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dashDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             สถิติ / Dashboard
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="dashDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard"><i class="fa fa-cubes mr-2 text-muted"></i> Dashboard นวัตกรรม</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard/familydashboard"><i class="fa fa-home mr-2 text-muted"></i> Dashboard ครัวเรือน</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard/innovatordashboard"><i class="fa fa-user mr-2 text-muted"></i> Dashboard นวัตกรชุมชน</a></li>
+          </ul>
+        </li>
+		
+		<li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="menuDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             เมนู
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="menuDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/news"><i class="fa fa-newspaper-o mr-2 text-muted"></i> ข่าวสาร</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/news/calendar"><i class="fa fa-calendar-check-o mr-2 text-muted"></i> ปฏิทินกิจกรรม</a></li>
+			<li><a class="dropdown-item" href="https://pmua-apptech.com/video"><i class="fa fa-video mr-2 text-muted"></i> วีดีโอ</a></li>
+            <div class="dropdown-divider"></div>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/problem"><i class="fa fa-exclamation-triangle mr-2 text-muted"></i> กระดานโจทย์ปัญหา</a></li>
+          </ul>
+        </li>
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="aboutDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             เกี่ยวกับเรา
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="aboutDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/about"><i class="fa fa-info-circle mr-2 text-muted"></i> เกี่ยวกับเรา</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/contact"><i class="fa fa-phone mr-2 text-muted"></i> ติดต่อเรา</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="d-flex align-items-center mt-3 mt-lg-0">
+        
+        <a href="https://pmua-apptech.com/search" class="btn-nav-search mr-3" >
+            <i class="fa fa-search"></i>
+        </a>
+
+                    <a href="https://pmua-apptech.com/userlogin/home" class="btn btn-warning btn-nav-login text-dark">
+                <i class="fa fa-user mr-1"></i> เข้าสู่ระบบ
+            </a>
+        
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+function goBack() { window.history.back(); }
+</script>
+	
+<!-- ⭐ HEADER + SLIDE ⭐ -->
+<div class="center-header-gradient mb-4">
+  <div class="container">
+
+    
+    <div class="d-flex justify-content-center align-items-center flex-wrap text-center center-hero-row">
+      <div class="mr-3 mb-2 mb-md-0">
+        <img src="https://pmua-apptech.com/pic/station/cover/325.jpg" 
+             alt="โปรไฟล์ศูนย์"
+             class="center-avatar-inline">
+      </div>
+      <div class="text-left">
+        <h1 class="center-hero-name text-dark mb-1">
+           โครงการจัดตั้งและพัฒนาศูนย์ออกแบบพัฒนา และถ่ายทอดเทคโนโลยีที่เหมาะสมสู่ชุมชน เพื่อยกระดับรายได้ครัวเรือนและพัฒนาเศรษฐกิจฐานราก        </h1>
+
+                  <p class="center-hero-slogan mb-0">
+            เพื่อเป็นศูนย์กลางการพัฒนาและถ่ายทอด เทคโนโลยีที่เหมาะสม (Appropriate Technology) ที่ช่วยเพิ่มขีดความสามารถทางการแข่งขันให้กับกลุ่มเกษตรกรและวิสาหกิจชุมชน โดยเฉพาะในอุตสาหกรรมพืชเศรษฐกิจใหม่และนวัตกรรม          </p>
+              </div>
+    </div>
+
+    <!-- แบนเนอร์ -->
+    <div class="center-banner-hero mt-3">
+              <div id="centerBannerCarousel" class="carousel slide" data-ride="carousel">
+          <ol class="carousel-indicators">
+                          <li data-target="#centerBannerCarousel" data-slide-to="0" class="active"></li>
+                      </ol>
+
+          <div class="carousel-inner">
+                          <div class="carousel-item active">
+                <img src="https://pmua-apptech.com/pic/station/banner/325/325_banner_1.jpg" class="d-block w-100" alt="Center banner 1">
+              </div>
+                      </div>
+
+                  </div>
+          </div>
+
+  </div>
+</div>
+
+<div class="container pt-4 pb-4">
+
+  <div class="row">
+  <div class="col-md-8">
+  <!-- ================== SECTION 4: เทคโนโลยี ================== -->
+  <div class="mb-4">
+    <div class="section-title section-title-primary">เทคโนโลยี / นวัตกรรมที่ศูนย์ให้บริการ</div>
+
+          <div class="card">
+        <div class="card-body">
+          <div class="tech-slider-header">
+            <h5 class="mb-0"><i class="fa fa-cogs"></i> รายการเทคโนโลยีของศูนย์</h5>
+            <div>
+              <button type="button" class="btn btn-outline-secondary btn-sm"
+                      onclick="scrollTechSlider(-1)">
+                <i class="fa fa-chevron-left"></i>
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm"
+                      onclick="scrollTechSlider(1)">
+                <i class="fa fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="tech-slider" class="tech-scrolling-wrapper mt-3">
+                          <div class="card tech-card shadow-sm">
+                <a href="https://pmua-apptech.com/product/show/8779" target="_blank">
+                  <div class="tech-cover-wrapper">
+                    <div class="tech-cover-bg"
+                         style="background-image:url('https://pmua-apptech.com/pic/cover/s8779.jpg');">
+                    </div>
+                    <img src="https://pmua-apptech.com/pic/cover/s8779.jpg"
+                         alt="เครื่องสกัดเย็นน้ำมันกัญชง"
+                         class="tech-cover-foreground"
+                         onerror="this.src='https://pmua-apptech.com/pic/nopic.jpg';
+                                  this.onerror=null;
+                                  this.closest('.tech-cover-wrapper')
+                                      .querySelector('.tech-cover-bg')
+                                      .style.backgroundImage='url(https://pmua-apptech.com/pic/nopic.jpg)';">
+                  </div>
+                </a>
+
+                <div class="card-body">
+                  <h6 class="card-title mb-1">
+                    <a href="https://pmua-apptech.com/product/show/8779" target="_blank">
+                      เครื่องสกัดเย็นน้ำมันกัญชง                    </a>
+                  </h6>
+
+                                      <div class="small text-muted mb-1">
+                      เครื่องสกัดเย็นน้ำมันกัญชงมีหลักการทำงานด้วยการส่งกำลังจากมอเตอร์                    </div>
+                  
+                                      <div class="mb-2">
+                      <span class="badge badge-info">
+                        <i class="fa fa-tag"></i> เครื่องสกัดเย็นน้ำมันกัญชง                      </span>
+                    </div>
+                  
+                                      <p class="small mb-2">
+                      เครื่องสกัดเย็นน้ำมันกัญชงมีหลักการทำงานด้วยการส่งกำลังจากมอเตอร์ 1 แรงม้าผ่านชุดสายพานไปสู่เกียร์บล็อกที่มีอัตราทด  20:1 เปลี่ยนทิศทาง 90 องศาในแนวราบ ออกไปยังปลายเพลาอีกด้านหนึ่ง ที่คสามเร็วรอบ 90 รอบต่อราที เข้าสู่แกนของสกรูเพลสส่วนปลายของสกรูเพลสมีสกรูปรับระยะความห่างของปลายรีด และภายในชุกสกรูมีโครงสร้างใสตระแกรงละเอียดสำหลับกรอกกากเมล็ดกัญชงเพื่อไม่ให้มีกากปนเปื้อนออกมากับน้ำมัน<br />
+                    </p>
+                  
+                  <!-- 🔹 เพิ่มราคาขายเทคโนโลยี/บริการ -->
+                                      <div class="mb-2">
+                      <div class="alert alert-success ">
+						<small>
+                        <i class="fa fa-money"></i>
+                        ราคาขายเทคโนโลยี/บริการ:
+                        45,000.00 บาท
+						</small>
+                      </div>
+                    </div>
+                  
+                  <a href="https://pmua-apptech.com/product/show/8779" 
+                     class="btn btn-outline-primary btn-sm btn-block" 
+                     target="_blank">
+                    ดูรายละเอียดเทคโนโลยี
+                  </a>
+                </div>
+              </div>
+                          <div class="card tech-card shadow-sm">
+                <a href="https://pmua-apptech.com/product/show/4648" target="_blank">
+                  <div class="tech-cover-wrapper">
+                    <div class="tech-cover-bg"
+                         style="background-image:url('https://pmua-apptech.com/pic/cover/s4648.jpg');">
+                    </div>
+                    <img src="https://pmua-apptech.com/pic/cover/s4648.jpg"
+                         alt="เครื่องลอกเปลือกกัญชง ขับเคลื่อนด้วยพลังงานแสงอาทิตย์"
+                         class="tech-cover-foreground"
+                         onerror="this.src='https://pmua-apptech.com/pic/nopic.jpg';
+                                  this.onerror=null;
+                                  this.closest('.tech-cover-wrapper')
+                                      .querySelector('.tech-cover-bg')
+                                      .style.backgroundImage='url(https://pmua-apptech.com/pic/nopic.jpg)';">
+                  </div>
+                </a>
+
+                <div class="card-body">
+                  <h6 class="card-title mb-1">
+                    <a href="https://pmua-apptech.com/product/show/4648" target="_blank">
+                      เครื่องลอกเปลือกกัญชง ขับเคลื่อนด้วยพลังงานแสงอาทิตย์                    </a>
+                  </h6>
+
+                                      <div class="small text-muted mb-1">
+                      เครื่องลอกเปลือกกัญชงประสิทธิภาพสูงต้นแบบ ที่ควบคุมด้วยพลังงานไฟฟ้าทั้งจากระบบไฟฟ้าของการไฟฟ้า และระบบไฟฟ้าที่ได้จากการผลิตจากแสงอาทิตย์                    </div>
+                  
+                                      <div class="mb-2">
+                      <span class="badge badge-info">
+                        <i class="fa fa-tag"></i> เครื่องลอกเปลือกกัญชง                      </span>
+                    </div>
+                  
+                                      <p class="small mb-2">
+                      เครื่องลอกเปลือกกัญชงขับเคลื่อนด้วยพลังงานแสงอาทิตย์ ประหยัดเวลาในการลอกเปลือกกัญชง  ลอกเปลือกได้  อัตรา 20 ต้น/นาที ประหยัดพลังงานไฟฟ้าเพราะสามารถใช้ระบบผลิตไฟฟ้าพลังงานแสงอาทิตย์ได้                    </p>
+                  
+                  <!-- 🔹 เพิ่มราคาขายเทคโนโลยี/บริการ -->
+                                      <div class="mb-2">
+                      <div class="alert alert-success ">
+						<small>
+                        <i class="fa fa-money"></i>
+                        ราคาขายเทคโนโลยี/บริการ:
+                        60,000.00 บาท
+						</small>
+                      </div>
+                    </div>
+                  
+                  <a href="https://pmua-apptech.com/product/show/4648" 
+                     class="btn btn-outline-primary btn-sm btn-block" 
+                     target="_blank">
+                    ดูรายละเอียดเทคโนโลยี
+                  </a>
+                </div>
+              </div>
+                          <div class="card tech-card shadow-sm">
+                <a href="https://pmua-apptech.com/product/show/8782" target="_blank">
+                  <div class="tech-cover-wrapper">
+                    <div class="tech-cover-bg"
+                         style="background-image:url('https://pmua-apptech.com/pic/cover/s8782.jpg');">
+                    </div>
+                    <img src="https://pmua-apptech.com/pic/cover/s8782.jpg"
+                         alt="เครื่องต้นแบบสำหรับการเพิ่มประสิทธิภาพการเตรียมเส้นใยกัญชง ด้วยอุปกรณ์ตำเส้นใย "
+                         class="tech-cover-foreground"
+                         onerror="this.src='https://pmua-apptech.com/pic/nopic.jpg';
+                                  this.onerror=null;
+                                  this.closest('.tech-cover-wrapper')
+                                      .querySelector('.tech-cover-bg')
+                                      .style.backgroundImage='url(https://pmua-apptech.com/pic/nopic.jpg)';">
+                  </div>
+                </a>
+
+                <div class="card-body">
+                  <h6 class="card-title mb-1">
+                    <a href="https://pmua-apptech.com/product/show/8782" target="_blank">
+                      เครื่องต้นแบบสำหรับการเพิ่มประสิทธิภาพการเตรียมเส้นใยกัญชง ด้วยอุปกรณ์ตำเส้นใย                     </a>
+                  </h6>
+
+                                      <div class="small text-muted mb-1">
+                      เครื่องจักรต้นแบบสำหรับตำเส้นใยกัญชงเพื่อทดแทนการใช้แรงงานคน                     </div>
+                  
+                                      <div class="mb-2">
+                      <span class="badge badge-info">
+                        <i class="fa fa-tag"></i> เครื่องต้นแบบสำหรับการเพิ่มประสิทธิภาพการเตรียมเส้นใยกัญชง ด้วยอุปกรณ์ตำเส้นใย                       </span>
+                    </div>
+                  
+                                      <p class="small mb-2">
+                      การออกแบบและสร้างเครื่องจักรต้นแบบสำหรับตำเส้นใยกัญชงเพื่อทดแทนการใช้แรงงานคน <br />
+เทคโนโลยีการเพิ่มประสิทธิภาพในการเตรียมเส้นใยให้มีความนุ่มและพร้อมสำหรับการทอ <br />
+การศึกษาความเป็นไปได้ในการลงทุนและการวิเคราะห์ความคุ้มทุนเชิงธุรกิจ <br />
+                    </p>
+                  
+                  <!-- 🔹 เพิ่มราคาขายเทคโนโลยี/บริการ -->
+                                      <div class="mb-2">
+                      <div class="alert alert-success ">
+						<small>
+                        <i class="fa fa-money"></i>
+                        ราคาขายเทคโนโลยี/บริการ:
+                        425,000.00 บาท
+						</small>
+                      </div>
+                    </div>
+                  
+                  <a href="https://pmua-apptech.com/product/show/8782" 
+                     class="btn btn-outline-primary btn-sm btn-block" 
+                     target="_blank">
+                    ดูรายละเอียดเทคโนโลยี
+                  </a>
+                </div>
+              </div>
+                          <div class="card tech-card shadow-sm">
+                <a href="https://pmua-apptech.com/product/show/8781" target="_blank">
+                  <div class="tech-cover-wrapper">
+                    <div class="tech-cover-bg"
+                         style="background-image:url('https://pmua-apptech.com/pic/cover/s8781.jpg');">
+                    </div>
+                    <img src="https://pmua-apptech.com/pic/cover/s8781.jpg"
+                         alt="นวัตกรรมตู้อบแห้งเส้นใยกัญชงที่สามารถควบคุมอุณหภูมิ"
+                         class="tech-cover-foreground"
+                         onerror="this.src='https://pmua-apptech.com/pic/nopic.jpg';
+                                  this.onerror=null;
+                                  this.closest('.tech-cover-wrapper')
+                                      .querySelector('.tech-cover-bg')
+                                      .style.backgroundImage='url(https://pmua-apptech.com/pic/nopic.jpg)';">
+                  </div>
+                </a>
+
+                <div class="card-body">
+                  <h6 class="card-title mb-1">
+                    <a href="https://pmua-apptech.com/product/show/8781" target="_blank">
+                      นวัตกรรมตู้อบแห้งเส้นใยกัญชงที่สามารถควบคุมอุณหภูมิ                    </a>
+                  </h6>
+
+                                      <div class="small text-muted mb-1">
+                      ตู้อบแห้งเส้นใยกัญชงต้นแบบที่มีระบบการทำงานเหมาะสมกับเกษตรกร                     </div>
+                  
+                                      <div class="mb-2">
+                      <span class="badge badge-info">
+                        <i class="fa fa-tag"></i> เตาอบแห้งสำหรับกระบวนการอบแห้งเส้นใยจากกัญชง                      </span>
+                    </div>
+                  
+                                      <p class="small mb-2">
+                      นวัตกรรมตู้อบแห้งเส้นใยกัญชงที่สามารถควบคุมอุณหภูมิและสามารถลดความชื้นได้อย่างมีประสิทธิภาพ ช่วยลดปัญหาเชื้อรา ความชื้นไม่สม่ำเสมอ และสิ่งปนเปื้อน พร้อมมีองค์ความรู้ด้านการใช้งานและการบำรุงรักษาเพื่อการถ่ายทอดสู่ชุมชน                    </p>
+                  
+                  <!-- 🔹 เพิ่มราคาขายเทคโนโลยี/บริการ -->
+                                      <div class="mb-2">
+                      <div class="alert alert-success ">
+						<small>
+                        <i class="fa fa-money"></i>
+                        ราคาขายเทคโนโลยี/บริการ:
+                        100,000.00 บาท
+						</small>
+                      </div>
+                    </div>
+                  
+                  <a href="https://pmua-apptech.com/product/show/8781" 
+                     class="btn btn-outline-primary btn-sm btn-block" 
+                     target="_blank">
+                    ดูรายละเอียดเทคโนโลยี
+                  </a>
+                </div>
+              </div>
+                          <div class="card tech-card shadow-sm">
+                <a href="https://pmua-apptech.com/product/show/4652" target="_blank">
+                  <div class="tech-cover-wrapper">
+                    <div class="tech-cover-bg"
+                         style="background-image:url('https://pmua-apptech.com/pic/cover/s4652.jpg');">
+                    </div>
+                    <img src="https://pmua-apptech.com/pic/cover/s4652.jpg"
+                         alt="โปรแกรมออกแบบลายผ้าสำหรับกี่ทอผ้ากึ่งอัตโนมัติ"
+                         class="tech-cover-foreground"
+                         onerror="this.src='https://pmua-apptech.com/pic/nopic.jpg';
+                                  this.onerror=null;
+                                  this.closest('.tech-cover-wrapper')
+                                      .querySelector('.tech-cover-bg')
+                                      .style.backgroundImage='url(https://pmua-apptech.com/pic/nopic.jpg)';">
+                  </div>
+                </a>
+
+                <div class="card-body">
+                  <h6 class="card-title mb-1">
+                    <a href="https://pmua-apptech.com/product/show/4652" target="_blank">
+                      โปรแกรมออกแบบลายผ้าสำหรับกี่ทอผ้ากึ่งอัตโนมัติ                    </a>
+                  </h6>
+
+                                      <div class="small text-muted mb-1">
+                      การพัฒนากี่กึ่งทอเอวกึ่งอัตโนมัติทำให้ลดการปวดเมื่อยในกลุ่มผู้ทอเนื่องด้วยสามารถนั่งได้ หลากหลายรูปแบบและสามารถเปลี่ยนแปลงอิริยาบถได้ และทำให้สามารถพัฒนารูปแบบและมองเห็นลวดลายผ้าก่อนการทอจริง                    </div>
+                  
+                                      <div class="mb-2">
+                      <span class="badge badge-info">
+                        <i class="fa fa-tag"></i> โปรแกรมออกแบบลายผ้า,ออกแบบลายผ้า                      </span>
+                    </div>
+                  
+                                      <p class="small mb-2">
+                      การพัฒนากี่กึ่งทอเอวกึ่งอัตโนมัติทำให้ลดการปวดเมื่อยในกลุ่มผู้ทอเนื่องด้วยสามารถนั่งได้ หลากหลายรูปแบบและสามารถเปลี่ยนแปลงอิริยาบถได้ และทำให้สามารถพัฒนารูปแบบและมองเห็นลวดลายผ้าก่อนการทอจริง                    </p>
+                  
+                  <!-- 🔹 เพิ่มราคาขายเทคโนโลยี/บริการ -->
+                                      <div class="mb-2">
+                      <div class="alert alert-success ">
+						<small>
+                        <i class="fa fa-money"></i>
+                        ราคาขายเทคโนโลยี/บริการ:
+                        40,000.00 บาท
+						</small>
+                      </div>
+                    </div>
+                  
+                  <a href="https://pmua-apptech.com/product/show/4652" 
+                     class="btn btn-outline-primary btn-sm btn-block" 
+                     target="_blank">
+                    ดูรายละเอียดเทคโนโลยี
+                  </a>
+                </div>
+              </div>
+                          <div class="card tech-card shadow-sm">
+                <a href="https://pmua-apptech.com/product/show/8777" target="_blank">
+                  <div class="tech-cover-wrapper">
+                    <div class="tech-cover-bg"
+                         style="background-image:url('https://pmua-apptech.com/pic/cover/s8777.jpg');">
+                    </div>
+                    <img src="https://pmua-apptech.com/pic/cover/s8777.jpg"
+                         alt="นวัตกรรมการเพิ่มประสิทธิภาพการติดสีย้อมธรรมชาติ"
+                         class="tech-cover-foreground"
+                         onerror="this.src='https://pmua-apptech.com/pic/nopic.jpg';
+                                  this.onerror=null;
+                                  this.closest('.tech-cover-wrapper')
+                                      .querySelector('.tech-cover-bg')
+                                      .style.backgroundImage='url(https://pmua-apptech.com/pic/nopic.jpg)';">
+                  </div>
+                </a>
+
+                <div class="card-body">
+                  <h6 class="card-title mb-1">
+                    <a href="https://pmua-apptech.com/product/show/8777" target="_blank">
+                      นวัตกรรมการเพิ่มประสิทธิภาพการติดสีย้อมธรรมชาติ                    </a>
+                  </h6>
+
+                                      <div class="small text-muted mb-1">
+                      นวัตกรรมนี้ใช้ สารปรับประจุบวก (Cationic Agent) เคลือบบนเส้นใยสิ่งทอก่อนการย้อมสีธรรมชาติ                     </div>
+                  
+                                      <div class="mb-2">
+                      <span class="badge badge-info">
+                        <i class="fa fa-tag"></i> นวัตกรรมการเพิ่มประสิทธิภาพการติดสีย้อมธรรมชาติ                      </span>
+                    </div>
+                  
+                                      <p class="small mb-2">
+                      นวัตกรรมนี้ คือ สะพานเชื่อมระหว่างภูมิปัญญาการย้อมสีธรรมชาติกับนวัตกรรมสมัยใหม่<br />
+เพื่อสร้างสีธรรมชาติที่งดงาม ยั่งยืน และเป็นมิตรต่อสิ่งแวดล้อม<br />
+                    </p>
+                  
+                  <!-- 🔹 เพิ่มราคาขายเทคโนโลยี/บริการ -->
+                                      <div class="mb-2">
+                      <div class="alert alert-success ">
+						<small>
+                        <i class="fa fa-money"></i>
+                        ราคาขายเทคโนโลยี/บริการ:
+                        300.00 บาท
+						</small>
+                      </div>
+                    </div>
+                  
+                  <a href="https://pmua-apptech.com/product/show/8777" 
+                     class="btn btn-outline-primary btn-sm btn-block" 
+                     target="_blank">
+                    ดูรายละเอียดเทคโนโลยี
+                  </a>
+                </div>
+              </div>
+                          <div class="card tech-card shadow-sm">
+                <a href="https://pmua-apptech.com/product/show/8780" target="_blank">
+                  <div class="tech-cover-wrapper">
+                    <div class="tech-cover-bg"
+                         style="background-image:url('https://pmua-apptech.com/pic/cover/s8780.jpg');">
+                    </div>
+                    <img src="https://pmua-apptech.com/pic/cover/s8780.jpg"
+                         alt="เครื่องตี/สกัดเส้นใยกล้วย"
+                         class="tech-cover-foreground"
+                         onerror="this.src='https://pmua-apptech.com/pic/nopic.jpg';
+                                  this.onerror=null;
+                                  this.closest('.tech-cover-wrapper')
+                                      .querySelector('.tech-cover-bg')
+                                      .style.backgroundImage='url(https://pmua-apptech.com/pic/nopic.jpg)';">
+                  </div>
+                </a>
+
+                <div class="card-body">
+                  <h6 class="card-title mb-1">
+                    <a href="https://pmua-apptech.com/product/show/8780" target="_blank">
+                      เครื่องตี/สกัดเส้นใยกล้วย                    </a>
+                  </h6>
+
+                                      <div class="small text-muted mb-1">
+                      เครื่องตี/สกัดเส้นใยกล้วย เป็นอุปกรณ์ที่ใช้สำหรับตีเปลือกออกจากเส้นใยกล้วย                    </div>
+                  
+                                      <div class="mb-2">
+                      <span class="badge badge-info">
+                        <i class="fa fa-tag"></i> เครื่องตีสกัดเส้นใยกล้วย                      </span>
+                    </div>
+                  
+                                      <p class="small mb-2">
+                      เครื่องตี/สกัดเส้นใยกันชง เป็นอุปกรณ์ที่ใช้สำหรับตีเปลือกออกจากเส้นใยกันชง โดยใบตีเปลือกกันชงทำจากแผ่นเหล็ก ทำหน้าที่ในการตี และสกัดเอาเปลือกออกจากเส้นใย โดยใช้มอเตอร์ ขนาด 2 แรงม้า เป็นต้นกำลัง และใช้ไฟฟ้า 220 โวลล์ เป็นแหล่งพลังงาน                    </p>
+                  
+                  <!-- 🔹 เพิ่มราคาขายเทคโนโลยี/บริการ -->
+                                      <div class="mb-2">
+                      <div class="alert alert-success ">
+						<small>
+                        <i class="fa fa-money"></i>
+                        ราคาขายเทคโนโลยี/บริการ:
+                        55,000.00 บาท
+						</small>
+                      </div>
+                    </div>
+                  
+                  <a href="https://pmua-apptech.com/product/show/8780" 
+                     class="btn btn-outline-primary btn-sm btn-block" 
+                     target="_blank">
+                    ดูรายละเอียดเทคโนโลยี
+                  </a>
+                </div>
+              </div>
+                      </div>
+
+        </div>
+      </div>
+      </div>
+
+  <!-- ================== SECTION 2: ข่าวสาร/กิจกรรม ================== -->
+    <div class="mb-4">
+    <div class="section-title section-title-primary">
+      ข่าวสารและกิจกรรมของศูนย์
+    </div>
+
+    <!-- 🔹 ใส่กรอบพื้นหลังสีขาวคล้ายเทคโนโลยี -->
+    <div class="news-card-wrapper">
+
+      <!-- กำลังจะเกิดขึ้น -->
+      <h5 class="mb-2 mt-2">
+        <i class="fa fa-calendar"></i> กิจกรรมที่กำลังจะเกิดขึ้น
+      </h5>
+              <p class="text-muted">ยังไม่มีกิจกรรมที่จะเกิดขึ้น</p>
+      
+      <!-- ผ่านมาแล้ว -->
+      <h5 class="mb-2 mt-3">
+        <i class="fa fa-history"></i> กิจกรรมที่ผ่านมาแล้ว
+      </h5>
+              <p class="text-muted">ยังไม่มีกิจกรรมที่ผ่านมา</p>
+      
+    </div>
+  </div>
+
+  <!-- ================== SECTION 3: โครงสร้างองค์กร ================== -->
+  
+  <div class="mb-4">
+    <div class="section-title section-title-primary">โครงสร้างองค์กรของศูนย์</div>
+
+          <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive mb-0">
+            <table class="table table-bordered mb-0">
+              <thead class="bg-light text-center">
+                <tr>
+                  <th width="5%">#</th>
+                  <th width="35%">ชื่อบุคลากร</th>
+                  <th width="25%">ตำแหน่งในศูนย์</th>
+                  <th>ติดต่อ</th>
+                </tr>
+              </thead>
+              <tbody>
+                                  <tr>
+                    <td class="text-center">1</td>
+                    <td>
+                      <div><b>นพพร พัชรประกิติ</b></div>
+                                              <div class="small text-muted">วิศวกรรมศาสตร์</div>
+                                          </td>
+                    <td>
+                      หัวหน้าศูนย์                                              <div class="mt-1">
+                          <span class="badge badge-success">
+                            <i class="fa fa-star"></i> ตำแหน่งบริหาร
+                          </span>
+                        </div>
+                                          </td>
+                    <td>
+                                              <div class="small"><i class="fa fa-envelope"></i> pnopporn@rmutl.ac.th</div>
+                                                                    <div class="small"><i class="fa fa-phone"></i> 0830094349</div>
+                                                                </td>
+                  </tr>
+                                  <tr>
+                    <td class="text-center">2</td>
+                    <td>
+                      <div><b>รัตนพล พนมวัน ณ อยุธยา</b></div>
+                                              <div class="small text-muted">คณะวิทยาศาสตร์และเทคโนโลยีการเกษตร</div>
+                                          </td>
+                    <td>
+                      นักวิจัย                                          </td>
+                    <td>
+                                              <div class="small"><i class="fa fa-envelope"></i> rattanapol@rmutl.ac.th</div>
+                                                                    <div class="small"><i class="fa fa-phone"></i> 0895545887</div>
+                                                                </td>
+                  </tr>
+                                  <tr>
+                    <td class="text-center">3</td>
+                    <td>
+                      <div><b>ศศิพัชร์ สันกลกิจ</b></div>
+                                              <div class="small text-muted">บริหารธุรกิจและศิลปศาสตร์</div>
+                                          </td>
+                    <td>
+                      นักวิจัย                                          </td>
+                    <td>
+                                              <div class="small"><i class="fa fa-envelope"></i> sasisun@rmutl.ac.th</div>
+                                                                    <div class="small"><i class="fa fa-phone"></i> 0818816014</div>
+                                                                </td>
+                  </tr>
+                              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      </div>
+
+  <!-- ================== SECTION 1: ข้อมูลศูนย์ + คอลัมน์ขวาใหม่ ================== -->
+  
+  <div class="mb-4">
+    <div class="section-title section-title-primary">ข้อมูลทั่วไปและการติดต่อศูนย์</div>
+
+    <div class="row">
+      <!-- 🔹 คอลัมน์ซ้าย: ข้อมูลทั่วไป (คงเดิม) -->
+      <div class="col-md-12 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+                          <div class="row">
+                <div class="col-md-12 mb-3">
+                  <div><b>ชื่อหัวหน้าศูนย์:</b> ผศ.ดร.นพพร พัชรประกิติ</div>
+                  <div><b>หน่วยงาน:</b> มหาวิทยาลัยเทคโนโลยีราชมงคลล้านนา</div>
+                  <div><b>ปีที่เริ่มดำเนินการ (พ.ศ.):</b> 2569</div>
+                  <div><b>ที่ตั้ง / หมายเหตุ:</b> 128 ต.ช้างเผือก อ.เมือง จ.เชียงใหม่</div>
+                </div>
+              </div>
+
+              <hr>
+
+              <div class="mb-3">
+                <b>เป้าหมาย</b><br>
+                1. วิจัยและพัฒนา: ออกแบบเครื่องจักรและระบบควบคุมอัตโนมัติที่สอดคล้องกับวิถีชีวิตและต้นทุนของคนในพื้นที่<br />
+2. ถ่ายทอดองค์ความรู้: ยกระดับมาตรฐานการผลิตด้วยเกณฑ์การประเมินระดับเทคโนโลยี (ATL)<br />
+3. สร้างเครือข่าย: ประสานความร่วมมือระหว่างภาครัฐ เอกชน และสถาบันการศึกษาเพื่อบ่มเพาะผู้ประกอบการนวัตกรรม              </div>
+
+              <div class="mb-3">
+                <b>พันธกิจ</b><br>
+                ออกแบบ พัฒนา และถ่ายทอดเทคโนโลยีที่เหมาะสม              </div>
+
+              <div class="mb-3">
+                <b>ประเภทการให้บริการ</b><br>
+                การออกแบบเชิงวิศวกรรม: เช่น ระบบ Smart Farming, โรงเรือนปลูกพืชระบบปิด และเครื่องจักรแปรรูปผลิตผลทางการเกษตร<br />
+การให้คำปรึกษาด้านมาตรฐาน: การเตรียมความพร้อมโรงงานผลิตให้ได้มาตรฐาน (เช่น GMP, ISO)<br />
+การประเมินระดับเทคโนโลยี (ATL): บริการวิเคราะห์ความเหมาะสมของเทคโนโลยีที่จะนำไปใช้ในแต่ละพื้นที่<br />
+              </div>
+
+              <div class="mb-1">
+                <b>การสนับสนุนจากหน่วยงานต้นสังกัด</b><br>
+                มทร.ล้านนา (RMUTL): สนับสนุนพื้นที่ทดสอบนวัตกรรม (Living Lab) ณ วิทยาเขตดอยสะเก็ด พร้อมกำลังคนจากคณะวิศวกรรมศาสตร์และคณะวิทยาศาสตร์ฯ<br />
+สถาบันวิจัยและพัฒนา (RDI): เป็นกลไกหลักในการบริหารจัดการทุนวิจัยและเชื่อมโยงเครือข่ายการวิจัยในระดับชาติ<br />
+              </div>
+                      </div>
+        </div>
+      </div>
+
+      
+    </div>
+  </div>
+
+</div>
+
+<div class="col-md-4">
+	
+	<!-- 🔹 คอลัมน์ขวา: 1.ข้อมูลติดต่อศูนย์ 2.ขั้นตอนการรับบริการ 3.FAQ 4.Map -->
+      <div class=" mb-4">
+
+        <!-- 1) ข้อมูลติดต่อศูนย์ -->
+        <div class="contact-panel">
+          <div class="section-title section-title-primary">
+            <div>
+              <h4 class="mb-1 text-light">
+                <i class="fa fa-phone-square mr-2"></i> ข้อมูลติดต่อศูนย์
+              </h4>
+              
+            </div>
+          </div>
+          <div class="contact-panel-body">
+            
+                              <div class="contact-item-row">
+                  <div class="contact-label">
+                    <i class="fa fa-map-marker text-danger mr-1"></i> ที่ตั้ง
+                  </div>
+                  <div class="contact-value">
+                    128 ต.ช้างเผือก อ.เมือง จ.เชียงใหม่                  </div>
+                </div>
+              
+                              <div class="contact-item-row">
+                  <div class="contact-label">
+                    <i class="fa fa-envelope text-info mr-1"></i> Email
+                  </div>
+                  <div class="contact-value">
+                    <a href="mailto:rmutl@apptechcenter">
+                      rmutl@apptechcenter                    </a>
+                  </div>
+                </div>
+              
+                              <div class="contact-item-row">
+                  <div class="contact-label">
+                    <i class="fa fa-phone text-success mr-1"></i> โทรศัพท์
+                  </div>
+                  <div class="contact-value">
+                    <a href="tel:053 213163">
+                      053 213163                    </a>
+                  </div>
+                </div>
+              
+                              <div class="contact-item-row">
+                  <div class="contact-label">
+                    <i class="fa fa-comment text-success mr-1"></i> LINE
+                  </div>
+                  <div class="contact-value">
+                                          rmutlapptech                                      </div>
+                </div>
+              
+                              <div class="contact-item-row">
+                  <div class="contact-label">
+                    <i class="fab fa-facebook-square text-primary mr-1"></i> Facebook
+                  </div>
+                  <div class="contact-value">
+                    <a href="https://www.facebook.com/people/RMUTL-App-Tech-Center/61578893953746/" target="_blank">
+                      https://www.facebook.com/people/RMUTL-App-Tech-Center/61578893953746/                    </a>
+                  </div>
+                </div>
+              
+              
+              
+                              <div class="contact-item-row">
+                  <div class="contact-label">
+                    <i class="fa fa-globe text-primary mr-1"></i> Website
+                  </div>
+                  <div class="contact-value">
+                                        <a href="https://www.facebook.com/people/RMUTL-App-Tech-Center/61578893953746/" target="_blank">
+                      https://www.facebook.com/people/RMUTL-App-Tech-Center/61578893953746/                    </a>
+                  </div>
+                </div>
+              
+                      </div>
+        </div>
+
+        <!-- 2) ขั้นตอนการรับบริการ -->
+        <div class="blur-box shadow-sm mb-3">
+          <h5 class="text-primary mb-2">
+            <i class="fa fa-list-ol mr-2"></i> ขั้นตอนการรับบริการ
+          </h5>
+          <hr>
+                                    <div class="mb-2">
+                <span class="step-num">1.</span>
+                ลงทะเบียน กรอกข้อมูล สอบถามปัญหา นำมาวิเคราะห์              </div>
+                              </div>
+
+        <!-- 3) FAQ -->
+        <div class="blur-box shadow-sm mb-3">
+          <h5 class="text-success mb-2">
+            <i class="fa fa-question-circle mr-2"></i> คำถามที่พบบ่อย (FAQ)
+          </h5>
+          <hr>
+                      <div id="faqAccordion">
+                              <div class="faq-card">
+                  <div class="card-header p-0 border-0">
+                    <button class="faq-toggle" type="button"
+                            data-toggle="collapse"
+                            data-target="#faqCollapse0"
+                            aria-expanded="true"
+                            aria-controls="faqCollapse0">
+                      <i class="fa fa-question-circle text-primary"></i>
+                      -                    </button>
+                  </div>
+                  <div id="faqCollapse0" 
+                       class="collapse show"
+                       data-parent="#faqAccordion">
+                    <div class="card-body py-2">
+                      -                    </div>
+                  </div>
+                </div>
+                          </div>
+                  </div>
+
+        <!-- 4) แผนที่ Map -->
+        <div class="card">
+          <div class="card-header bg-white">
+            <h6 class="mb-0">
+              <i class="fa fa-map mr-1 text-danger"></i> แผนที่ศูนย์
+            </h6>
+          </div>
+          <div class="card-body p-2">
+                          <p class="text-muted mb-0">
+                ยังไม่มีการระบุตำแหน่งแผนที่ของศูนย์
+              </p>
+                      </div>
+        </div>
+
+      </div>
+
+</div>
+</div>
+</div>
+
+<style>
+    /* Footer Modern Styles */
+    .footer-modern {
+        /* background: ลบออก เพื่อให้ใช้ bg-primary จาก class html แทน */
+        color: rgba(255, 255, 255, 0.85); /* ปรับสีตัวอักษรให้ขาวจางๆ เพื่อให้อ่านง่ายบนพื้นสีเข้ม */
+        font-size: 0.95rem;
+        padding-top: 60px;
+        position: relative;
+    }
+
+    /* Headings */
+    .footer-widget-title {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 25px;
+        position: relative;
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .footer-widget-title::after {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: rgba(255,255,255,0.5); /* เส้นใต้หัวข้อสีขาวจางๆ */
+        margin-top: 8px;
+        border-radius: 2px;
+    }
+
+    /* Links List */
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .footer-links li {
+        margin-bottom: 12px;
+    }
+    .footer-links a {
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+    .footer-links a:hover {
+        color: #fff; /* Hover แล้วเป็นสีขาวสว่าง */
+        transform: translateX(5px);
+        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+    .footer-links a i {
+        font-size: 0.8rem;
+        margin-right: 8px;
+        opacity: 0.7;
+    }
+
+    /* Images & QR */
+    .sponsor-img {
+        background: #fff;
+        padding: 5px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .qr-box {
+        background: rgba(255,255,255,0.1);
+        padding: 10px;
+        border-radius: 10px;
+        display: inline-block;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Footer Bottom */
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.15);
+        padding: 25px 0;
+        margin-top: 40px;
+    }
+    
+    /* Social Icons */
+    .social-btn {
+        width: 40px; height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border-radius: 50%;
+        margin-left: 8px;
+        transition: 0.3s;
+        text-decoration: none !important;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .social-btn:hover {
+        background: #fff;
+        color: var(--primary); /* ใช้สีหลักของเว็บ (หรือสีน้ำเงิน) เมื่อ hover */
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    /* กรณีไม่มีตัวแปร var(--primary) ให้ fallback เป็นสีดำจางๆ หรือสีธีม */
+    .bg-primary .social-btn:hover { color: #000; } 
+</style>
+
+<footer class="footer-modern bg-primary">
+    <div class="container">
+        <div class="row">
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-widget-title">เกี่ยวกับเรา</h5>
+                <p class="mb-4 text-white-50" style="line-height: 1.6;">
+                    ใช้สำหรับค้นหาข้อมูล นวัตกรรม                </p>
+                
+                <div class="d-flex align-items-start gap-3">
+                                            <div class="mr-3">
+                            <img src="https://pmua-apptech.com/pic/sponcor/1.png" class="img-fluid sponsor-img" width="120" alt="Sponsor">
+                        </div>
+                                        
+                    <div class="qr-box text-center">
+                        <img src="https://quickchart.io/chart?chs=300x300&cht=qr&chl=https://pmua-apptech.com/&choe=UTF-8" class="img-fluid rounded" width="100" alt="QR Website" />
+                        <div class="small mt-1 text-white" style="font-size: 10px; opacity:0.8;">Visit Website</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-widget-title">เมนูลัด</h5>
+                <ul class="footer-links">
+                    <li><a href="https://pmua-apptech.com/"><i class="fa fa-angle-right"></i> หน้าแรก</a></li>
+                    <li><a href="https://pmua-apptech.com/about"><i class="fa fa-angle-right"></i> เกี่ยวกับเรา</a></li>
+                    <li><a href="https://pmua-apptech.com/policy"><i class="fa fa-angle-right"></i> นโยบาย (Policy)</a></li>
+                    <li><a href="https://pmua-apptech.com/contact"><i class="fa fa-angle-right"></i> ติดต่อเรา</a></li>
+                    <li><a href="https://pmua-apptech.com/userlogin/home"><i class="fa fa-angle-right"></i> เข้าสู่ระบบ</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-widget-title">แผนผังเว็บไซต์</h5>
+                <ul class="footer-links">
+                    <li><a href="https://pmua-apptech.com/sitemap.xml"><i class="fa fa-sitemap"></i> XML Sitemap</a></li>
+                    <li><a href="https://pmua-apptech.com/sitemap.html"><i class="fa fa-file-code-o"></i> HTML Sitemap</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-widget-title">ติดต่อสอบถาม</h5>
+                
+                <div class="d-flex align-items-center mb-3 bg-white bg-opacity-10 p-3 rounded border border-light border-opacity-25" style="background: rgba(255,255,255,0.1);">
+                    <div class="mr-3">
+                        <img src="https://pmua-apptech.com/pic/lineoa.png" class="img-fluid rounded shadow-sm" width="80" alt="Line QR">
+                    </div>
+                    <div>
+                        <p class="mb-1 text-primary ">พบปัญหาการใช้งาน?</p>
+                        <a href="https://line.me/ti/p/~@pmua-apptech" target="_blank" class="text-primary font-weight-bold" style="text-decoration:none; font-size:1.1em;">
+                            <i class="fab fa-line mr-1"></i> ID : @pmua-apptech                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    
+
+<center><div class="fb-page" data-href="https://www.facebook.com/InnovativeComm" data-tabs="timeline,messages" data-small-header="false" 
+data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="true" height="300"><blockquote cite="https://www.facebook.com/InnovativeComm" 
+class="fb-xfbml-parse-ignore">
+<a href="https://www.facebook.com/InnovativeComm">Apptech</a></blockquote></div></center>
+<hr>
+
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom row align-items-center">
+            <div class="col-md-8 text-center text-md-left mb-3 mb-md-0">
+                <p class="m-0 text-white-50">
+                    Copyright &copy; <script>document.write(new Date().getFullYear());</script> 
+                    All rights reserved | <span class="text-white font-weight-bold">Apptech</span>
+                </p>
+            </div>
+            <div class="col-md-4 text-center text-md-right">
+                <a href="https://www.facebook.com/InnovativeComm" class="social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="" class="social-btn" title="Youtube"><i class="fab fa-youtube"></i></a>
+                <a href="https://line.me/ti/p/~@pmua-apptech" class="social-btn" title="Line"><i class="fab fa-line"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
+<br><br>
+
+	
+	
+	<script src="https://pmua-apptech.com//templatemulty/vendors/jquery/jquery-3.2.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+	 crossorigin="anonymous"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/vendor/bootstrap.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/easing.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/hoverIntent.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/superfish.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.ajaxchimp.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.magnific-popup.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/owl.carousel.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/owl-carousel-thumb.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.sticky.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.nice-select.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/parallax.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/waypoints.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/wow.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.counterup.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/mail-script.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/main.js"></script>
+  
+	<!-- Modal -->
+	<div class="modal fade" id="processModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content border-0 shadow-lg rounded-4">
+		  <div class="modal-header bg-white border-0 justify-content-center">
+			<img src="https://pmua-apptech.com//pic/logohead.png" width="120" alt="Logo" class="img-fluid">
+		  </div>
+		  <div class="modal-body text-center py-4">
+			<div class="spinner-border text-primary mb-4" style="width: 3rem; height: 3rem;" role="status">
+			  <span class="visually-hidden">Loading...</span>
+			</div>
+			<h5 class="fw-bold text-primary">ระบบกำลังประมวลผล กรุณารอสักครู่...</h5>
+			<p class="text-muted small mt-2">โปรดอย่าปิดหน้าต่างนี้จนกว่าจะเสร็จสิ้น</p>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Bootstrap Spinner (เฉพาะ Bootstrap 4) -->
+<style>
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border .75s linear infinite;
+}
+@keyframes spinner-border {
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+
+
+
+<div class="modal fade" style="padding-top:100px" id="agentprofileModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel"><center><h2></h2></center></h4>
+          </div>
+          <div class="modal-body">
+            
+            
+            <form action="https://pmua-apptech.com/agent/addpic/10" method="post" enctype="multipart/form-data">
+					<center><input type="file" required name="userfile" class="form-control" size="" /><hr>
+					<h6 class="text-primary">ไฟล์รูปเท่านั้น </h6><hr>
+					<input name="picname" type="text" hidden readonly id="modal_news_idAPag"><br>
+					<input name="folpicname" type="text" hidden readonly id="modal_news_idCCag"><br>
+					<input type="submit" class="btn btn-primary btn-lg" value="ตกลง"></center>
+			</form>	
+            
+                
+          <br>
+          </div>
+          <div class="modal-footer">
+            
+            <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            
+            
+          </div>
+        </div>
+      </div>
+    </div>
+	
+	<script type="text/javascript">
+      $(document).ready(function(){
+        $('[data-event=UppicDetailagentprofile]').bind('click', function(e){
+
+			 $("#modal_news_idAPag").val($(this).attr("data-id"));
+			 $("#modal_news_idCCag").val($(this).attr("data-id2"));
+			
+		});
+        
+      });
+    </script>
+	
+	<style>
+    /* สไตล์ Banner แจ้งเตือนด้านล่าง */
+    .cookie-banner {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: #fff;
+        padding: 20px 25px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e2e8f0;
+        transform: translateY(150%);
+        transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .cookie-banner.show {
+        transform: translateY(0);
+    }
+    .cookie-text {
+        font-size: 0.95rem;
+        color: #475569;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+    .cookie-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    
+    /* สไตล์ Switch Toggle ใน Modal */
+    .cookie-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+    .cookie-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute; content: ""; height: 20px; width: 20px;
+        left: 3px; bottom: 3px; background-color: white;
+        transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:disabled + .slider { background-color: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+    input:checked + .slider:before { transform: translateX(24px); }
+    
+    .cookie-option-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 15px 0; border-bottom: 1px dashed #e2e8f0;
+    }
+    .cookie-option-row:last-child { border-bottom: none; }
+    
+    @media (min-width: 768px) {
+        .cookie-banner {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .cookie-text { margin-bottom: 0; margin-right: 20px; }
+    }
+</style>
+
+<div id="cookieConsentBanner" class="cookie-banner d-print-none">
+    <div class="cookie-text">
+        <strong><i class="fas fa-cookie-bite text-warning mr-2"></i> นโยบายคุกกี้ (Cookie Policy)</strong><br>
+        เว็บไซต์นี้ใช้คุกกี้เพื่อเพิ่มประสิทธิภาพและประสบการณ์ที่ดีในการใช้งานเว็บไซต์ คุณสามารถเลือกตั้งค่าความยินยอมการใช้คุกกี้ได้
+    </div>
+    <div class="cookie-buttons">
+        <button type="button" class="btn btn-light rounded-pill px-4 font-weight-bold" onclick="openCookieSettings()" style="border: 1px solid #e2e8f0;">ตั้งค่าคุกกี้</button>
+        <button type="button" class="btn btn-primary rounded-pill px-4 font-weight-bold" onclick="acceptAllCookies()">ยอมรับทั้งหมด</button>
+    </div>
+</div>
+
+<div class="modal fade d-print-none" id="cookieSettingsModal" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 10000;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-cog text-muted mr-2"></i> ตั้งค่าความเป็นส่วนตัว</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body px-4">
+                
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้ที่จำเป็น (Necessary)</h6>
+                        <small class="text-muted">จำเป็นสำหรับการทำงานพื้นฐานของเว็บไซต์ ไม่สามารถปิดการใช้งานได้</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" checked disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้เพื่อการวิเคราะห์ (Analytics)</h6>
+                        <small class="text-muted">ช่วยให้เราเข้าใจพฤติกรรมการใช้งาน เพื่อนำไปพัฒนาเว็บไซต์ให้ดีขึ้น</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="chkAnalytics">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้เพื่อการโฆษณา (Marketing)</h6>
+                        <small class="text-muted">ใช้เพื่อนำเสนอโฆษณาที่เกี่ยวข้องและตรงกับความสนใจของคุณ</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="chkMarketing">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4 justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success rounded-pill px-4 font-weight-bold" onclick="saveCookieSettings()">บันทึกการตั้งค่า</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. ตรวจสอบว่าเคยตั้งค่าคุกกี้หรือยัง
+    function checkCookieConsent() {
+        if (!localStorage.getItem('cookieConsentSet')) {
+            // ดีเลย์ 1 วินาทีเพื่อให้โหลดเว็บเสร็จก่อนโชว์
+            setTimeout(() => {
+                document.getElementById('cookieConsentBanner').classList.add('show');
+            }, 1000);
+        }
+    }
+
+    // 2. เปิดหน้าต่างตั้งค่า
+    function openCookieSettings() {
+        $('#cookieSettingsModal').modal('show');
+    }
+
+    // 3. ฟังก์ชันหลัก: บันทึกค่าลง LocalStorage และส่ง AJAX ไป Database
+    function applyConsent(analytics, marketing) {
+        // ซ่อน Banner และ Modal ทันที
+        document.getElementById('cookieConsentBanner').classList.remove('show');
+        $('#cookieSettingsModal').modal('hide');
+
+        // จำค่าไว้ในเครื่อง (จะได้ไม่ต้องเด้งถามอีก)
+        localStorage.setItem('cookieConsentSet', 'true');
+        localStorage.setItem('cookieAnalytics', analytics);
+        localStorage.setItem('cookieMarketing', marketing);
+
+        // ส่งข้อมูลไปบันทึกลง Database ผ่าน Controller Cookieconsent
+        $.ajax({
+            url: "https://pmua-apptech.com/cookieconsent/save", 
+            type: "POST",
+            dataType: "json",
+            data: {
+                analytics: analytics,
+                marketing: marketing
+            },
+            success: function(response) {
+                if(response.status === 'success') {
+                    console.log(response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Cookie Consent Error: ", error);
+            }
+        });
+    }
+
+    // 4. เมื่อกดยอมรับทั้งหมด (เปิดทุกอย่าง)
+    function acceptAllCookies() {
+        applyConsent(true, true);
+    }
+
+    // 5. เมื่อกดบันทึกการตั้งค่า (เช็คจากสวิตช์)
+    function saveCookieSettings() {
+        let isAnalytics = document.getElementById('chkAnalytics').checked;
+        let isMarketing = document.getElementById('chkMarketing').checked;
+        applyConsent(isAnalytics, isMarketing);
+    }
+
+    // เริ่มทำงานเมื่อ HTML โหลดเสร็จสมบูรณ์
+    document.addEventListener("DOMContentLoaded", function() {
+        checkCookieConsent();
+    });
+</script></body>
+</html>
+
+<script>
+  function scrollTechSlider(direction) {
+    var slider = document.getElementById('tech-slider');
+    if (!slider) return;
+    var amount = 280 * direction;
+    slider.scrollBy({
+      left: amount,
+      behavior: 'smooth'
+    });
+  }
+</script>
+

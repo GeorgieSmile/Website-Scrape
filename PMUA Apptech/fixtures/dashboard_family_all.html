@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard - แผนที่ครัวเรือนเป้าหมาย</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+      
+  
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:300,500,600" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500i" rel="stylesheet">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/themify-icons/0.1.2/css/themify-icons.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/linearicons.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com//temptour/fontawesome/css/all.css" >
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/bootstrap.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/magnific-popup.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/nice-select.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/animate.min.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/owl.carousel.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/main.css">
+	
+	<link rel="stylesheet"  href="https://pmua-apptech.com/slick/slick.css"/>
+	<link rel="stylesheet"  href="https://pmua-apptech.com/slick/slick-theme.css"/>
+	
+	
+	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+	<!-- วางแท็กนี้ในส่วนหัวหรือก่อนแท็กปิดของเนื้อความ -->
+	<script src="https://apis.google.com/js/platform.js" async defer>
+	  {lang: 'th'}
+	</script>
+	
+    
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+  <style>
+    body { background-color: #f8fafc; color: #334155; font-family: 'Prompt', sans-serif; }
+    .dashboard-container { padding: 40px 15px; }
+    
+    /* สไตล์ Banner */
+    .hero-banner { background: linear-gradient(135deg, #047857 0%, #10b981 100%); border-radius: 20px; padding: 50px 20px; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3); position: relative; overflow: hidden; margin-bottom: 30px; }
+    .hero-banner::before { content: ""; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+    .hero-banner::after { content: ""; position: absolute; bottom: -50px; left: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+    .total-box { display: inline-block; background: #ffffff; border-radius: 50px; padding: 15px 40px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border: 3px solid rgba(255,255,255,0.5); position: relative; z-index: 2; }
+
+    /* ฟอร์มคัดกรองข้อมูล */
+    .filter-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 30px; }
+
+    /* สไตล์การ์ดย่อย */
+    .stat-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; height: 100%; margin-bottom: 25px; }
+    .section-label { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+    
+    /* การ์ดมูลค่าเศรษฐกิจ */
+    .eco-card { border-radius: 12px; padding: 20px; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s; }
+    .eco-card:hover { transform: translateY(-3px); }
+    .bg-inc { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+    .bg-red { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+    .bg-net { background: linear-gradient(135deg, #059669, #34d399); }
+
+    .map-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 30px; }
+    .map-container { height: 600px; width: 100%; cursor: pointer; } 
+
+    /* สไตล์ Modal เชิงวิเคราะห์ */
+    .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 50px rgba(0,0,0,0.25); overflow: hidden; }
+    .modal-header { background: linear-gradient(135deg, #047857 0%, #10b981 100%); color: white; border: none; padding: 20px 25px; }
+    .close-btn { color: white; opacity: 0.8; font-size: 1.5rem; text-shadow: none; transition: 0.2s; }
+    .stat-mini-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; text-align: center; height: 100%; }
+    .stat-mini-value { font-size: 1.8rem; font-weight: 800; color: #0f172a; line-height: 1; margin-top: 5px;}
+    .list-header { font-weight: 700; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px; }
+    .progress-list-item { margin-bottom: 15px; }
+    .progress-list-label { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 5px; }
+    .progress-sm { height: 8px; border-radius: 4px; background-color: #f1f5f9; }
+    
+    /* สไตล์ตารางอันดับ */
+    .rank-table { width: 100%; border-collapse: collapse; }
+    .rank-table td { padding: 12px 0; border-bottom: 1px dashed #e2e8f0; vertical-align: middle; }
+    .rank-table tr:last-child td { border-bottom: none; }
+    .rank-number { width: 32px; height: 32px; background: #f1f5f9; color: #64748b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95rem; }
+    .rank-1 { background: #a7f3d0; color: #065f46; }
+    .rank-2 { background: #d1fae5; color: #047857; }
+    .rank-3 { background: #ecfdf5; color: #059669; }
+
+    @media (min-width: 992px) { .modal-custom-lg { max-width: 800px !important; } }
+
+    #preloadOverlay { position: fixed; inset: 0; background: rgba(255,255,255,.9); z-index: 3000; display: none; align-items: center; justify-content: center; }
+    #preloadOverlay .spinner { width: 60px; height: 60px; border-radius: 50%; border: 6px solid #e5e7eb; border-top-color: #10b981; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg) } }
+  </style>
+</head>
+<body>
+
+
+	
+	
+<style>
+/* Modern Dark Navbar */
+.navbar-modern-dark {
+    background: linear-gradient(90deg, #2a4079, #3f5999);
+    box-shadow: 0 4px 20px rgba(42, 64, 121, 0.25);
+    padding: 12px 0;
+    transition: all 0.3s ease;
+}
+
+/* Brand Logo */
+.navbar-brand img {
+    transition: transform 0.2s;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+/* Nav Links (White Text) */
+.nav-modern .nav-item .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+}
+.nav-modern .nav-item .nav-link:hover,
+.nav-modern .nav-item.active .nav-link {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.15);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Dropdown Menu (White Box) */
+.dropdown-menu-modern {
+    border: 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    margin-top: 12px;
+    padding: 8px;
+    background: #fff;
+    min-width: 220px;
+}
+.dropdown-menu-modern .dropdown-item {
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    color: #334155;
+    font-weight: 500;
+}
+.dropdown-menu-modern .dropdown-item:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+.dropdown-menu-modern::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 20px;
+    width: 12px; height: 12px;
+    background: #fff;
+    transform: rotate(45deg);
+    box-shadow: -2px -2px 5px rgba(0,0,0,0.04);
+}
+
+/* Buttons */
+.btn-nav-login {
+    border-radius: 50px;
+    padding: 6px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.btn-nav-search {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: 0.2s;
+}
+.btn-nav-search:hover {
+    background: #fff;
+    color: #2a4079;
+    transform: scale(1.1);
+}
+
+/* Mobile Toggler */
+.navbar-toggler { border: 1px solid rgba(255,255,255,0.3); }
+.navbar-toggler-icon { 
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255, 255, 255, 0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); 
+}
+
+/* Scroll Offset */
+html {
+  scroll-padding-top: 100px; 
+  scroll-behavior: smooth;
+}
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-modern-dark sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://pmua-apptech.com/">
+      <img src="https://pmua-apptech.com/pic/logohead.png" width="100" alt="Logo" />
+    </a>
+
+    <button class="navbar-toggler" type="button" 
+            data-toggle="collapse" data-target="#navbarModern" 
+            data-bs-toggle="collapse" data-bs-target="#navbarModern"
+            aria-controls="navbarModern" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarModern">
+      
+      <ul class="navbar-nav mr-auto nav-modern align-items-center">
+        <li class="nav-item">
+          <a class="nav-link" href="https://pmua-apptech.com/">หน้าแรก</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://pmua-apptech.com/propose">เทคโนโลยีที่เหมาะสม</a>
+        </li>
+        
+        
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dashDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             สถิติ / Dashboard
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="dashDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard"><i class="fa fa-cubes mr-2 text-muted"></i> Dashboard นวัตกรรม</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard/familydashboard"><i class="fa fa-home mr-2 text-muted"></i> Dashboard ครัวเรือน</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard/innovatordashboard"><i class="fa fa-user mr-2 text-muted"></i> Dashboard นวัตกรชุมชน</a></li>
+          </ul>
+        </li>
+		
+		<li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="menuDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             เมนู
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="menuDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/news"><i class="fa fa-newspaper-o mr-2 text-muted"></i> ข่าวสาร</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/news/calendar"><i class="fa fa-calendar-check-o mr-2 text-muted"></i> ปฏิทินกิจกรรม</a></li>
+			<li><a class="dropdown-item" href="https://pmua-apptech.com/video"><i class="fa fa-video mr-2 text-muted"></i> วีดีโอ</a></li>
+            <div class="dropdown-divider"></div>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/problem"><i class="fa fa-exclamation-triangle mr-2 text-muted"></i> กระดานโจทย์ปัญหา</a></li>
+          </ul>
+        </li>
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="aboutDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             เกี่ยวกับเรา
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="aboutDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/about"><i class="fa fa-info-circle mr-2 text-muted"></i> เกี่ยวกับเรา</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/contact"><i class="fa fa-phone mr-2 text-muted"></i> ติดต่อเรา</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="d-flex align-items-center mt-3 mt-lg-0">
+        
+        <a href="https://pmua-apptech.com/search" class="btn-nav-search mr-3" >
+            <i class="fa fa-search"></i>
+        </a>
+
+                    <a href="https://pmua-apptech.com/userlogin/home" class="btn btn-warning btn-nav-login text-dark">
+                <i class="fa fa-user mr-1"></i> เข้าสู่ระบบ
+            </a>
+        
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+function goBack() { window.history.back(); }
+</script>
+	<div id="preloadOverlay"><div class="spinner"></div></div>
+
+<div class="dashboard-container container">
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <div class="hero-banner text-center">
+                <h2 class="font-weight-bold text-white mb-2 text-uppercase" style="position: relative; z-index: 2;">แผนที่แสดงการกระจายตัวของครัวเรือนเป้าหมาย</h2>
+                <p class="mb-4" style="color: #d1fae5; font-size: 1.1rem; position: relative; z-index: 2;"><i class="fas fa-hand-pointer mr-1"></i> คลิกที่พื้นที่จังหวัดบนแผนที่ เพื่อดูรายละเอียดเชิงลึก</p>
+                
+                <div class="total-box mt-2">
+                    <h6 class="mb-1 text-muted font-weight-bold"><i class="fas fa-home text-success mr-1"></i> จำนวนครัวเรือนเป้าหมายทั้งหมด (ทั่วประเทศ)</h6>
+                    <h1 class="display-4 font-weight-bold mb-0" style="color: #047857; line-height: 1;">
+                        22,945 
+                        <span style="font-size: 1.5rem; font-weight: normal; color: #64748b;">ครัวเรือน</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-12">
+            <form class="filter-card" method="GET" action="" id="filterForm">
+                <h6 class="font-weight-bold text-success mb-3"><i class="fa fa-filter mr-1"></i> คัดกรองข้อมูลสารสนเทศ (รายจังหวัด)</h6>
+                <div class="row g-2 align-items-center justify-content-center">
+                    
+                    <div class="col-md-5">
+                        <label class="small font-weight-bold text-muted ml-1">เลือกปีงบประมาณ</label>
+                        <select name="year_filter" class="form-control form-control-lg" style="font-size: 1rem; border-radius: 10px;">
+                            <option value="">-- รวมทุกปีงบประมาณ --</option>
+                                                                                            <option value="2026" >ปี 2569</option>
+                                                                                            <option value="2025" >ปี 2568</option>
+                                                    </select>
+                    </div>
+
+                    <div class="col-md-3 d-grid">
+                        <label class="small font-weight-bold text-white mb-1">&nbsp;</label>
+                        <button type="submit" class="btn btn-success btn-lg w-100 font-weight-bold shadow-sm" style="border-radius: 10px;"><i class="fa fa-search mr-1"></i> แสดงผล</button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-md-4 mb-4">
+            <div class="eco-card bg-red">
+                <div>
+                    <div class="small font-weight-bold text-uppercase mb-1" style="opacity: 0.9;">มูลค่าต้นทุนที่ลดลงรวม</div>
+                    <div class="h3 font-weight-bold mb-0">160,951,488 ฿</div>
+                </div>
+                <i class="fas fa-arrow-circle-down fa-3x" style="opacity: 0.3;"></i>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="eco-card bg-inc">
+                <div>
+                    <div class="small font-weight-bold text-uppercase mb-1" style="opacity: 0.9;">มูลค่ารายได้ที่เพิ่มขึ้นรวม</div>
+                    <div class="h3 font-weight-bold mb-0">836,895,050 ฿</div>
+                </div>
+                <i class="fas fa-arrow-circle-up fa-3x" style="opacity: 0.3;"></i>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="eco-card bg-net">
+                <div>
+                    <div class="small font-weight-bold text-uppercase mb-1" style="opacity: 0.9;">มูลค่ารายได้สุทธิเพิ่มขึ้น (Net)</div>
+                    <div class="h3 font-weight-bold mb-0">997,846,539 ฿</div>
+                </div>
+                <i class="fas fa-hand-holding-usd fa-3x" style="opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <div class="map-card">
+                <div class="map-container" id="geoMapChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5 mb-4">
+            <div class="stat-card">
+                <div class="section-label"><i class="fas fa-users text-success mr-2"></i> สัดส่วนการพัฒนากำลังคนระดับประเทศ</div>
+                <div style="position: relative; height: 280px; width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+                    <canvas id="memberPieChart"></canvas>
+                </div>
+                <div class="text-center mt-3 small text-muted">
+                    รวมสมาชิกครัวเรือนทั้งหมด <strong>17,295</strong> คน
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 mb-4">
+            <div class="stat-card">
+                <div class="section-label"><i class="fas fa-trophy text-warning mr-2"></i> 10 อันดับ จังหวัดที่มีครัวเรือนเป้าหมายสูงสุด</div>
+                <table class="rank-table">
+                    <tbody>
+                                                <tr>
+                            <td width="45"><div class="rank-number rank-1">1</div></td>
+                            <td width="150" class="font-weight-bold text-dark">เชียงใหม่</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 100%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">1,439 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number rank-2">2</div></td>
+                            <td width="150" class="font-weight-bold text-dark">สงขลา</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 95.691452397498%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">1,377 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number rank-3">3</div></td>
+                            <td width="150" class="font-weight-bold text-dark">สกลนคร</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 90.271021542738%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">1,299 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">4</div></td>
+                            <td width="150" class="font-weight-bold text-dark">นครราชสีมา</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 73.940236275191%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">1,064 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">5</div></td>
+                            <td width="150" class="font-weight-bold text-dark">เชียงราย</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 61.014593467686%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">878 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">6</div></td>
+                            <td width="150" class="font-weight-bold text-dark">อุดรธานี</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 52.883947185546%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">761 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">7</div></td>
+                            <td width="150" class="font-weight-bold text-dark">นครศรีธรรมราช</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 51.702571230021%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">744 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">8</div></td>
+                            <td width="150" class="font-weight-bold text-dark">ปัตตานี</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 48.575399583044%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">699 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">9</div></td>
+                            <td width="150" class="font-weight-bold text-dark">นราธิวาส</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 46.977067407922%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">676 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">10</div></td>
+                            <td width="150" class="font-weight-bold text-dark">สตูล</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 46.143154968728%; border-radius: 6px; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-success" style="min-width: 50px; text-align: right;">664 <small class="text-muted">ครัวเรือน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                            </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-12 mb-4">
+            <div class="stat-card">
+                <div class="section-label"><i class="fas fa-chart-bar text-primary mr-2"></i> สัดส่วนครัวเรือน จำแนกตามประเภทธุรกิจ (ระดับประเทศ)</div>
+                <div style="position: relative; height: 350px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="bizBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="provinceDetailModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-custom-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <h5 class="modal-title mb-0" id="modalTitle">
+                        <i class="fas fa-map-marker-alt mr-2"></i> ข้อมูลเชิงลึก: <span id="modalProvinceName"></span>
+                    </h5>
+                    <button type="button" class="close close-btn m-0 p-0" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="stat-mini-card" style="border-left: 4px solid #10b981;">
+                            <div class="stat-mini-title"><i class="fas fa-users text-muted mr-1"></i> จำนวนสมาชิกทั้งหมด</div>
+                            <div class="stat-mini-value text-success" id="md-total-members">0</div>
+                            <small class="text-muted">คน</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="stat-mini-card" style="border-left: 4px solid #f59e0b;">
+                            <div class="stat-mini-title"><i class="fas fa-lightbulb text-warning mr-1"></i> นวัตกรชุมชน</div>
+                            <div class="stat-mini-value text-warning" id="md-inno">0</div>
+                            <small class="text-muted">คน</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-mini-card" style="border-left: 4px solid #64748b;">
+                            <div class="stat-mini-title"><i class="fas fa-user text-secondary mr-1"></i> ผู้ใช้ทั่วไป</div>
+                            <div class="stat-mini-value text-secondary" id="md-gen">0</div>
+                            <small class="text-muted">คน</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4 mb-md-0 pr-md-4">
+                        <div class="list-header"><i class="fas fa-map mr-2 text-info"></i> กระจายตัวตามอำเภอ</div>
+                        <div id="districtListContainer" style="max-height: 300px; overflow-y: auto; padding-right: 10px;"></div>
+                    </div>
+                    <div class="col-md-6 pl-md-4" style="border-left: 1px dashed #e2e8f0;">
+                        <div class="list-header"><i class="fas fa-briefcase mr-2 text-primary"></i> แยกตามประเภทธุรกิจ</div>
+                        <div id="businessListContainer" style="max-height: 300px; overflow-y: auto; padding-right: 10px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light justify-content-between">
+                <span class="font-weight-bold text-success" style="font-size: 1.1rem;">
+                    <i class="fas fa-home mr-1"></i> รวม <span id="md-total-hh">0</span> ครัวเรือน
+                </span>
+                <button type="button" class="btn btn-secondary px-4 rounded-pill font-weight-bold" data-dismiss="modal">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Footer Modern Styles */
+    .footer-modern {
+        /* background: ลบออก เพื่อให้ใช้ bg-primary จาก class html แทน */
+        color: rgba(255, 255, 255, 0.85); /* ปรับสีตัวอักษรให้ขาวจางๆ เพื่อให้อ่านง่ายบนพื้นสีเข้ม */
+        font-size: 0.95rem;
+        padding-top: 60px;
+        position: relative;
+    }
+
+    /* Headings */
+    .footer-widget-title {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 25px;
+        position: relative;
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .footer-widget-title::after {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: rgba(255,255,255,0.5); /* เส้นใต้หัวข้อสีขาวจางๆ */
+        margin-top: 8px;
+        border-radius: 2px;
+    }
+
+    /* Links List */
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .footer-links li {
+        margin-bottom: 12px;
+    }
+    .footer-links a {
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+    .footer-links a:hover {
+        color: #fff; /* Hover แล้วเป็นสีขาวสว่าง */
+        transform: translateX(5px);
+        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+    .footer-links a i {
+        font-size: 0.8rem;
+        margin-right: 8px;
+        opacity: 0.7;
+    }
+
+    /* Images & QR */
+    .sponsor-img {
+        background: #fff;
+        padding: 5px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .qr-box {
+        background: rgba(255,255,255,0.1);
+        padding: 10px;
+        border-radius: 10px;
+        display: inline-block;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Footer Bottom */
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.15);
+        padding: 25px 0;
+        margin-top: 40px;
+    }
+    
+    /* Social Icons */
+    .social-btn {
+        width: 40px; height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border-radius: 50%;
+        margin-left: 8px;
+        transition: 0.3s;
+        text-decoration: none !important;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .social-btn:hover {
+        background: #fff;
+        color: var(--primary); /* ใช้สีหลักของเว็บ (หรือสีน้ำเงิน) เมื่อ hover */
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    /* กรณีไม่มีตัวแปร var(--primary) ให้ fallback เป็นสีดำจางๆ หรือสีธีม */
+    .bg-primary .social-btn:hover { color: #000; } 
+</style>
+
+<footer class="footer-modern bg-primary">
+    <div class="container">
+        <div class="row">
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-widget-title">เกี่ยวกับเรา</h5>
+                <p class="mb-4 text-white-50" style="line-height: 1.6;">
+                    ใช้สำหรับค้นหาข้อมูล นวัตกรรม                </p>
+                
+                <div class="d-flex align-items-start gap-3">
+                                            <div class="mr-3">
+                            <img src="https://pmua-apptech.com/pic/sponcor/1.png" class="img-fluid sponsor-img" width="120" alt="Sponsor">
+                        </div>
+                                        
+                    <div class="qr-box text-center">
+                        <img src="https://quickchart.io/chart?chs=300x300&cht=qr&chl=https://pmua-apptech.com/&choe=UTF-8" class="img-fluid rounded" width="100" alt="QR Website" />
+                        <div class="small mt-1 text-white" style="font-size: 10px; opacity:0.8;">Visit Website</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-widget-title">เมนูลัด</h5>
+                <ul class="footer-links">
+                    <li><a href="https://pmua-apptech.com/"><i class="fa fa-angle-right"></i> หน้าแรก</a></li>
+                    <li><a href="https://pmua-apptech.com/about"><i class="fa fa-angle-right"></i> เกี่ยวกับเรา</a></li>
+                    <li><a href="https://pmua-apptech.com/policy"><i class="fa fa-angle-right"></i> นโยบาย (Policy)</a></li>
+                    <li><a href="https://pmua-apptech.com/contact"><i class="fa fa-angle-right"></i> ติดต่อเรา</a></li>
+                    <li><a href="https://pmua-apptech.com/userlogin/home"><i class="fa fa-angle-right"></i> เข้าสู่ระบบ</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-widget-title">แผนผังเว็บไซต์</h5>
+                <ul class="footer-links">
+                    <li><a href="https://pmua-apptech.com/sitemap.xml"><i class="fa fa-sitemap"></i> XML Sitemap</a></li>
+                    <li><a href="https://pmua-apptech.com/sitemap.html"><i class="fa fa-file-code-o"></i> HTML Sitemap</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-widget-title">ติดต่อสอบถาม</h5>
+                
+                <div class="d-flex align-items-center mb-3 bg-white bg-opacity-10 p-3 rounded border border-light border-opacity-25" style="background: rgba(255,255,255,0.1);">
+                    <div class="mr-3">
+                        <img src="https://pmua-apptech.com/pic/lineoa.png" class="img-fluid rounded shadow-sm" width="80" alt="Line QR">
+                    </div>
+                    <div>
+                        <p class="mb-1 text-primary ">พบปัญหาการใช้งาน?</p>
+                        <a href="https://line.me/ti/p/~@pmua-apptech" target="_blank" class="text-primary font-weight-bold" style="text-decoration:none; font-size:1.1em;">
+                            <i class="fab fa-line mr-1"></i> ID : @pmua-apptech                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    
+
+<center><div class="fb-page" data-href="https://www.facebook.com/InnovativeComm" data-tabs="timeline,messages" data-small-header="false" 
+data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="true" height="300"><blockquote cite="https://www.facebook.com/InnovativeComm" 
+class="fb-xfbml-parse-ignore">
+<a href="https://www.facebook.com/InnovativeComm">Apptech</a></blockquote></div></center>
+<hr>
+
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom row align-items-center">
+            <div class="col-md-8 text-center text-md-left mb-3 mb-md-0">
+                <p class="m-0 text-white-50">
+                    Copyright &copy; <script>document.write(new Date().getFullYear());</script> 
+                    All rights reserved | <span class="text-white font-weight-bold">Apptech</span>
+                </p>
+            </div>
+            <div class="col-md-4 text-center text-md-right">
+                <a href="https://www.facebook.com/InnovativeComm" class="social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="" class="social-btn" title="Youtube"><i class="fab fa-youtube"></i></a>
+                <a href="https://line.me/ti/p/~@pmua-apptech" class="social-btn" title="Line"><i class="fab fa-line"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
+<br><br>
+
+	
+	
+	<script src="https://pmua-apptech.com//templatemulty/vendors/jquery/jquery-3.2.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+	 crossorigin="anonymous"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/vendor/bootstrap.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/easing.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/hoverIntent.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/superfish.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.ajaxchimp.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.magnific-popup.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/owl.carousel.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/owl-carousel-thumb.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.sticky.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.nice-select.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/parallax.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/waypoints.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/wow.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.counterup.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/mail-script.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/main.js"></script>
+  
+	<!-- Modal -->
+	<div class="modal fade" id="processModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content border-0 shadow-lg rounded-4">
+		  <div class="modal-header bg-white border-0 justify-content-center">
+			<img src="https://pmua-apptech.com//pic/logohead.png" width="120" alt="Logo" class="img-fluid">
+		  </div>
+		  <div class="modal-body text-center py-4">
+			<div class="spinner-border text-primary mb-4" style="width: 3rem; height: 3rem;" role="status">
+			  <span class="visually-hidden">Loading...</span>
+			</div>
+			<h5 class="fw-bold text-primary">ระบบกำลังประมวลผล กรุณารอสักครู่...</h5>
+			<p class="text-muted small mt-2">โปรดอย่าปิดหน้าต่างนี้จนกว่าจะเสร็จสิ้น</p>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Bootstrap Spinner (เฉพาะ Bootstrap 4) -->
+<style>
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border .75s linear infinite;
+}
+@keyframes spinner-border {
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+
+
+
+<div class="modal fade" style="padding-top:100px" id="agentprofileModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel"><center><h2></h2></center></h4>
+          </div>
+          <div class="modal-body">
+            
+            
+            <form action="https://pmua-apptech.com/agent/addpic/10" method="post" enctype="multipart/form-data">
+					<center><input type="file" required name="userfile" class="form-control" size="" /><hr>
+					<h6 class="text-primary">ไฟล์รูปเท่านั้น </h6><hr>
+					<input name="picname" type="text" hidden readonly id="modal_news_idAPag"><br>
+					<input name="folpicname" type="text" hidden readonly id="modal_news_idCCag"><br>
+					<input type="submit" class="btn btn-primary btn-lg" value="ตกลง"></center>
+			</form>	
+            
+                
+          <br>
+          </div>
+          <div class="modal-footer">
+            
+            <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            
+            
+          </div>
+        </div>
+      </div>
+    </div>
+	
+	<script type="text/javascript">
+      $(document).ready(function(){
+        $('[data-event=UppicDetailagentprofile]').bind('click', function(e){
+
+			 $("#modal_news_idAPag").val($(this).attr("data-id"));
+			 $("#modal_news_idCCag").val($(this).attr("data-id2"));
+			
+		});
+        
+      });
+    </script>
+	
+	<style>
+    /* สไตล์ Banner แจ้งเตือนด้านล่าง */
+    .cookie-banner {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: #fff;
+        padding: 20px 25px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e2e8f0;
+        transform: translateY(150%);
+        transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .cookie-banner.show {
+        transform: translateY(0);
+    }
+    .cookie-text {
+        font-size: 0.95rem;
+        color: #475569;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+    .cookie-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    
+    /* สไตล์ Switch Toggle ใน Modal */
+    .cookie-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+    .cookie-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute; content: ""; height: 20px; width: 20px;
+        left: 3px; bottom: 3px; background-color: white;
+        transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:disabled + .slider { background-color: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+    input:checked + .slider:before { transform: translateX(24px); }
+    
+    .cookie-option-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 15px 0; border-bottom: 1px dashed #e2e8f0;
+    }
+    .cookie-option-row:last-child { border-bottom: none; }
+    
+    @media (min-width: 768px) {
+        .cookie-banner {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .cookie-text { margin-bottom: 0; margin-right: 20px; }
+    }
+</style>
+
+<div id="cookieConsentBanner" class="cookie-banner d-print-none">
+    <div class="cookie-text">
+        <strong><i class="fas fa-cookie-bite text-warning mr-2"></i> นโยบายคุกกี้ (Cookie Policy)</strong><br>
+        เว็บไซต์นี้ใช้คุกกี้เพื่อเพิ่มประสิทธิภาพและประสบการณ์ที่ดีในการใช้งานเว็บไซต์ คุณสามารถเลือกตั้งค่าความยินยอมการใช้คุกกี้ได้
+    </div>
+    <div class="cookie-buttons">
+        <button type="button" class="btn btn-light rounded-pill px-4 font-weight-bold" onclick="openCookieSettings()" style="border: 1px solid #e2e8f0;">ตั้งค่าคุกกี้</button>
+        <button type="button" class="btn btn-primary rounded-pill px-4 font-weight-bold" onclick="acceptAllCookies()">ยอมรับทั้งหมด</button>
+    </div>
+</div>
+
+<div class="modal fade d-print-none" id="cookieSettingsModal" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 10000;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-cog text-muted mr-2"></i> ตั้งค่าความเป็นส่วนตัว</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body px-4">
+                
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้ที่จำเป็น (Necessary)</h6>
+                        <small class="text-muted">จำเป็นสำหรับการทำงานพื้นฐานของเว็บไซต์ ไม่สามารถปิดการใช้งานได้</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" checked disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้เพื่อการวิเคราะห์ (Analytics)</h6>
+                        <small class="text-muted">ช่วยให้เราเข้าใจพฤติกรรมการใช้งาน เพื่อนำไปพัฒนาเว็บไซต์ให้ดีขึ้น</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="chkAnalytics">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้เพื่อการโฆษณา (Marketing)</h6>
+                        <small class="text-muted">ใช้เพื่อนำเสนอโฆษณาที่เกี่ยวข้องและตรงกับความสนใจของคุณ</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="chkMarketing">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4 justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success rounded-pill px-4 font-weight-bold" onclick="saveCookieSettings()">บันทึกการตั้งค่า</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. ตรวจสอบว่าเคยตั้งค่าคุกกี้หรือยัง
+    function checkCookieConsent() {
+        if (!localStorage.getItem('cookieConsentSet')) {
+            // ดีเลย์ 1 วินาทีเพื่อให้โหลดเว็บเสร็จก่อนโชว์
+            setTimeout(() => {
+                document.getElementById('cookieConsentBanner').classList.add('show');
+            }, 1000);
+        }
+    }
+
+    // 2. เปิดหน้าต่างตั้งค่า
+    function openCookieSettings() {
+        $('#cookieSettingsModal').modal('show');
+    }
+
+    // 3. ฟังก์ชันหลัก: บันทึกค่าลง LocalStorage และส่ง AJAX ไป Database
+    function applyConsent(analytics, marketing) {
+        // ซ่อน Banner และ Modal ทันที
+        document.getElementById('cookieConsentBanner').classList.remove('show');
+        $('#cookieSettingsModal').modal('hide');
+
+        // จำค่าไว้ในเครื่อง (จะได้ไม่ต้องเด้งถามอีก)
+        localStorage.setItem('cookieConsentSet', 'true');
+        localStorage.setItem('cookieAnalytics', analytics);
+        localStorage.setItem('cookieMarketing', marketing);
+
+        // ส่งข้อมูลไปบันทึกลง Database ผ่าน Controller Cookieconsent
+        $.ajax({
+            url: "https://pmua-apptech.com/cookieconsent/save", 
+            type: "POST",
+            dataType: "json",
+            data: {
+                analytics: analytics,
+                marketing: marketing
+            },
+            success: function(response) {
+                if(response.status === 'success') {
+                    console.log(response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Cookie Consent Error: ", error);
+            }
+        });
+    }
+
+    // 4. เมื่อกดยอมรับทั้งหมด (เปิดทุกอย่าง)
+    function acceptAllCookies() {
+        applyConsent(true, true);
+    }
+
+    // 5. เมื่อกดบันทึกการตั้งค่า (เช็คจากสวิตช์)
+    function saveCookieSettings() {
+        let isAnalytics = document.getElementById('chkAnalytics').checked;
+        let isMarketing = document.getElementById('chkMarketing').checked;
+        applyConsent(isAnalytics, isMarketing);
+    }
+
+    // เริ่มทำงานเมื่อ HTML โหลดเสร็จสมบูรณ์
+    document.addEventListener("DOMContentLoaded", function() {
+        checkCookieConsent();
+    });
+</script>
+	
+	
+	<!--<div class="test-footer-fixed fixed-bottom d-lg-none  bg-light"  style="height:70px">
+	
+		<div class="container" style="padding-top:8px">
+		<div class="row">
+		
+		
+		
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+		
+			
+			<a href="https://pmua-apptech.com/"  class="text-dark text-center" size="3px">
+			<div style="font-size:16px"><i class="fa fa-home"></i>
+		
+			</div>
+			<div style="font-size:14px"><small>หน้าแรก</small></div>
+			
+			</a>
+			
+		</div>
+		
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+		
+			
+			<a href="https://pmua-apptech.com/propose"   class="text-dark text-center">
+			<div style="font-size:16px"><i class="fa fa-user-secret"></i></div>
+			<div style="font-size:14px"><small>หาผู้เชี่ยวชาญ</small></div>
+			</a>
+			
+		
+        </div>
+
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+			
+			<a href="https://pmua-apptech.com/seek"  class="text-dark text-center">
+			<div style="font-size:16px"><i class="fa fa-seedling"></i></div>
+			<div style="font-size:14px"><small>หาโจทย์</small></div>
+			</a>
+			
+		</div>
+		
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+			
+			<a  href="https://pmua-apptech.com/news"  class="text-dark text-center">
+			<div style="font-size:16px"><i class="fa fa-newspaper"></i></div>
+			<div style="font-size:14px"><small>ข่าวสาร</small></div>
+			</a>
+			
+        </div>
+		
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+			
+			<a  rel="nofollow" href="#"  class="text-dark text-center">
+			<div style="font-size:16px"><i class="fa fa-envelope"></i></div>
+			<div style="font-size:14px"><small>แชท</small></div>
+			</a>
+			
+        </div>
+		
+		
+		
+        </div>
+        </div>          
+         
+	</div>-->
+	
+	
+<script>
+const provData = {"สุราษฎร์ธานี":{"total_hh":72,"total_members":72,"total_inno":71,"total_gen":1,"districts":{"อำเภอบ้านตาขุน":36,"อำเภอเวียงสระ":10,"อำเภอกาญจนดิษฐ์":10,"อำเภอพุนพิน":4,"อำเภอดอนสัก":3,"อำเภอไชยา":2,"อำเภอเมืองสุราษฎร์ธานี":2,"อำเภอท่าชนะ":2,"อำเภอพระแสง":1,"อำเภอพนม":1,"อำเภอชัยบุรี":1},"business_types":{"แปรรูปผลิตภัณฑ์เครื่องแกงใต้":36,"แปรรูปผลิตภัณฑ์อาหาร":10,"แปรรูปผลิตภัณฑ์กะปิ":10,"บ้านนกแอ่น":4,"ผู้ประกอบการ":4,"เกษตรกรรม":3,"แปรรูปแกงไตปลาแห้ง":1,"หัตถกรรมและงานสร้างสรรค์":1,"เพาะเลี้ยงสัตว์น้ำ":1,"เกษตรกร":1,"แปรรูปผลิตภัณฑ์ไตปลาแห้ง":1}},"สงขลา":{"total_hh":1377,"total_members":1079,"total_inno":779,"total_gen":300,"districts":{"อำเภอสิงหนคร":294,"อำเภอหาดใหญ่":234,"อำเภอเมืองสงขลา":175,"อำเภอสะบ้าย้อย":136,"อำเภอสทิงพระ":135,"อำเภอกระแสสินธุ์":74,"อำเภอบางกล่ำ":60,"อำเภอรัตภูมิ":56,"อำเภอจะนะ":42,"อำเภอนาหม่อม":39,"อำเภอสะเดา":34,"อำเภอคลองหอยโข่ง":31,"อำเภอนาทวี":23,"อำเภอควนเนียง":23,"อำเภอเทพา":20,"อำเภอระโนด":1},"business_types":{"เลี้ยงผึ้งชันโรง":200,"เครื่องแกง":170,"ผึ้งชันโรง":144,"เกษตร":122,"แปรรูปน้ำตาลโตนด":120,"เกษตรกร":106,"ตาลโตนด":98,"หัตถกรรมและงานสร้างสรรค์":77,"เกษตรกรรม":70,"แปรรูปอาหารทะเล":42,"ผู้ประกอบการ":20,"ประมง":18,"สมุนไพร":16,"แม่บ้าน":15,"การเลี้ยงปลากะพง":15,"ขนมพื้นบ้าน":15,"รับจ้าง":11,"บ้านนกแอ่น":11,"การแปรรูปอาหารทะเล":9,"การสกัดสีจากพืชในท้องถิ่น":8,"แปรรูปผลิตภัณฑ์ตาลโตนด":8,"กลุ่มสตรีตำบลบางเขียด":8,"กลุ่มวิสาหกิจชุมชนตาลโตนด โหนด นา เล":8,"กลุ่มดอกไม้จันทร์ตำบลทำนบ":6,"กลุ่มวิสาหกิจชุมชนตำบลรำแดง":5,"รับจ้างทั่วไป":3,"ค้าขาย,ปลูกผัก":3,"ทำสวน":2,"ธุุรกิจส่วนตัว":2,"จำหน่ายตาลโตนดสด":2,"ค้าขาย":2,"รองประธาน":2,"ประธาน":2,"กรีดยาง,เพาะเห็ด":2,"การผลิตเจลสีธรรมชาติ":2,"สกัดน้ำสีจากพืชในท้อถิ่น":2,"เลี้ยงแมลง":1,"ที่ปรึกษา":1,"ฝ่ายส่งเสริมการเลี้ยงผึ้ง":1,"ผู้ใหญ่บ้าน,ปลูกผัก":1,"ฝ่ายทะเบียน":1,"ร้านค้าขาย":1,"วิสาหกิจชุมชนเกษตรพัฒนาบ้านตะโหมด":1,"ฝ่ายผลิตภัณฑ์":1,"ช่างไม้":1,"พนักงานของรัฐ":1,"พนักงานของรัฐ,เกษตรกร":1,"กลุ่มอุดมไอเดีย":1,"โกเมนทร์บาติก":1,"กลุ่มครัวเรือนสัมมาชีพ":1,"กลุ่มวิสาหกิจชุชนบ้านสวนร้อยพันธุ์ สุวรรณมณี":1,"ดอกไม้ประดิษฐ์จากแผ่นกาบกล้วย":1,"ผลิตแผ่นกาบกล้วย":1,"ผ้ามัดย้อมจากพืชในท้องถิ่น":1,"สมนุไพร":1,"พนักงานของรัฐ,ประมง":1,"เกษตรกร\/ค้าขาย":1,"เกษตรกร\/บริษัทเอกชน":1,"ก่อสร้าง,ปลูกผัก":1,"เกษตรกร\/สวนผสมผสาน":1,"ช่างซ่อมบำรุง":1,"สวนมะม่วงเบา\/ปาล์มน้ำมัน":1,"ทำนา\/เลี้ยงวัว\/ปาล์มน้ำมัน":1,"ร้านเสริมสวย":1,"ปาล์มน้ำมัน":1,"พนักงานโรงงาน":1,"ปลูกผักสวนครัว":1}},"นราธิวาส":{"total_hh":676,"total_members":1360,"total_inno":235,"total_gen":1125,"districts":{"อำเภอบาเจาะ":212,"อำเภอตากใบ":184,"อำเภอเมืองนราธิวาส":103,"อำเภอยี่งอ":78,"อำเภอรือเสาะ":65,"อำเภอระแงะ":8,"อำเภอแว้ง":6,"อำเภอสุไหงโก-ลก":5,"อำเภอสุไหงปาดี":4,"อำเภอศรีสาคร":4,"อำเภอเจาะไอร้อง":3,"อำเภอจะแนะ":2,"อำเภอสุคิริน":2},"business_types":{"เกษตรกร":214,"เกษตรกรรม":58,"ประมงพื้นบ้าน":52,"วิสาหกิจน้ำผึงชันโรง":51,"กลุ่มข้าวเกรียบปลาบ้านใหม่ตำบลกะลุวอเหนือ":49,"นวัตกร":47,"-":38,"วิสาหกิจชุมชนกลุ่มแม่บ้านประมงบาเจาะ":30,"รับจ้างทั่วไป":25,"วิสาหกิจชุมชนเกาะหัวใจเกื้อกูล":20,"น้ำผึ้งชันโรง":15,"บรรจุน้ำผึ้ง":11,"การเกษตร":11,"การบรรจุน้ำผึ้ง":7,"กลุ่มอาชีพประมงพื้นบ้านและทำปลารวมเค็ม":6,"เกาตรกร":4,"จำหน่ายสินค้า":4,"เจ้าหน้าที่ภาครัฐ":3,"วิสาหกิจชุมชนเกษตรพัฒนาบ้านตะโหมด":3,"ดูดน้ำผึ้ง":2,"ผึ้งชันโรง":2,"การใช้วัสดุท้องถิ่น":2,"การแยกรัง":2,"อาหารทะเลแปรรูป":2,"การขยายรังผึ้ง":2,"การดูดน้ำผึ้ง\/ขยายรัง":2,"ค้าขาย":1,"Startup SME":1,"การจำหน่ายสินค้า":1,"รับจ้างจากร้านมุสลิมMODERN":1,"ข้าวเกรียบ อบ ไร้น้ำมัน":1,"แปรรูปน้ำผึ้ง":1,"บ้านนกแอ่น":1,"ดูดน้ำผึ้งจากรัง":1,"ขายน้ำผึ้งชันโรง":1,"ผู้ประกอบการ":1,"บขยายรังผึ้ง":1,"แเษตรกร":1,"แยกรัง":1,"ขยายรังผึ้ง":1}},"พิษณุโลก":{"total_hh":400,"total_members":421,"total_inno":168,"total_gen":253,"districts":{"อำเภอวัดโบสถ์":105,"อำเภอวังทอง":72,"อำเภอพรหมพิราม":71,"อำเภอเมืองพิษณุโลก":55,"อำเภอบางระกำ":27,"อำเภอชาติตระการ":21,"อำเภอนครไทย":19,"อำเภอบางกระทุ่ม":19,"อำเภอเนินมะปราง":11},"business_types":{"เกษตรกร":190,"เกษตรกรผู้เลี้ยงไก่พื้นเมือง":101,"ลูกฟาร์ม":37,"เกษตรกรรม":22,"สมาชิกกลุ่มวิสาหกิจชุมชนหนูพุกใหญ่พรหมพิราม":11,"เลี้ยงปลาในกระชัง":6,"ผู้ประกอบการฟาร์มหนู":4,"ผลิตภัณฑ์อาหารและการแปรรูป":4,"รับจ้าง":4,"ผู้ประกอบการฟาร์มหนู กลุ่มวิสาหกิจชุมชนหนูพุกใหญ่พรหมพิราม":3,"เกษตรกร\/ผู้ใหญ่บ้าน":2,"รับราชการ":2,"เกษตรกร\/รับราชการ":2,"เกษตรกร\/พนง.การไฟฟ้า":1,"หมอหนวด":1,"เกษตรกร\/ข้าราชการบำนาญ":1,"เกษตรกร\/รับจ้าง":1,"สูงอายุ":1,"เลี้ยงปลาหมอ":1,"เกษตรกร\/พนง.บริษัท":1,"เกษตรและอาหารแปรรูป":1,"เกษตรกร\/ผช.ผู้ใหญ่บ้าน":1,"ผู้จำหน่าย":1,"การตลาด":1,"ทำสวน":1}},"พิจิตร":{"total_hh":77,"total_members":77,"total_inno":75,"total_gen":2,"districts":{"อำเภอสากเหล็ก":49,"อำเภอบึงนาราง":8,"อำเภอโพธิ์ประทับช้าง":7,"อำเภอสามง่าม":7,"อำเภอวังทรายพูน":2,"อำเภอดงเจริญ":1,"อำเภอโพทะเล":1,"อำเภอเมืองพิจิตร":1,"อำเภอทับคล้อ":1},"business_types":{"เกษตรกรรม":50,"ช่างทอผ้า":19,"ผู้ประกอบการฟาร์มหนู":4,"ช่างตัดเย็บแปรรูป":1,"เลี้ยงไหม":1,"ผลิตภัณฑ์อาหารและการแปรรูป":1,"กลุ่มบริษัทอุตสาหกรรมผลิตปลาส้มครบวงจร":1}},"นครสวรรค์":{"total_hh":181,"total_members":119,"total_inno":79,"total_gen":40,"districts":{"อำเภอแม่วงก์":77,"อำเภอเมืองนครสวรรค์":35,"อำเภอโกรกพระ":30,"อำเภอลาดยาว":14,"อำเภอแม่เปิน":6,"อำเภอชุมแสง":5,"อำเภอตากฟ้า":4,"อำเภอหนองบัว":3,"อำเภอตาคลี":3,"อำเภอชุมตาบง":1,"อำเภอท่าตะโก":1,"อำเภอไพศาลี":1,"อำเภอพยุหะคีรี":1},"business_types":{"เกษตรกรรม":93,"เครื่องปั้นดินเผา":30,"เกษตรอินทรีย์":21,"เกษตรกร":10,"เกษตร":6,"ผู้ประกอบการฟาร์มหนู":3,"การเกษตร":3,"เพาะปลูก":1,"ผลิตผลทางการเกษตร":1,"แปรรูปสมุนไพร":1,"รับจ้างทั่วไป":1,"ร้านอาหารตามสั่ง":1,"งานบริการ":1,"ผลิตและจำหน่ายสมุนไพร":1,"แปรรูปผลผลิตการเกษตร":1,"ปลูกสวนครัว":1,"เกษตรกรผู้ปลูกและจำหน่ายถั่วลายเสือ":1,"เผาถ่าน":1,"ต้นทุนการผลิต":1,"ไม้กวาด":1,"เลี้ยงไหม":1,"กล้วยแดดเดียว":1}},"อุตรดิตถ์":{"total_hh":456,"total_members":330,"total_inno":231,"total_gen":99,"districts":{"อำเภอท่าปลา":124,"อำเภอพิชัย":105,"อำเภอเมืองอุตรดิตถ์":97,"อำเภอฟากท่า":48,"อำเภอลับแล":41,"อำเภอตรอน":19,"อำเภอน้ำปาด":12,"อำเภอทองแสนขัน":10},"business_types":{"เกษตรอินทรีย์":136,"เกษตรกร":97,"วัตถุดิบและเกษตรพื้นฐาน":48,"รับจ้าง":31,"ผลิตภัณฑ์อาหารและการแปรรูป":24,"เลี้ยงปลาในกระชัง":23,"ผู้ประกอบการฟาร์มหนู กลุ่มวิสาหกิจชุมชนเอกชัยฟาร์มหนูนาพิชัย":17,"กลุ่มวิสาหกิจชุมชนเกษตรทฤษฎีใหม่ หัวใจพอเพียง":15,"ลูกฟาร์ม":14,"ผู้จำหน่าย":9,"ทำนา":9,"รับจ้างทั่วไป":4,"ค้าขาย":4,"ชาวสวน":3,"อิสระ":3,"นักขายชุมชน":3,"ผู้ประกอบการฟาร์มหนู":2,"ขายลูกมะกรูด ตะไคร้ ขมิ้นเป็นวัตถุดิบ":1,"ขายหอมแดงเป็นวัตถุดิบ":1,"ขนส่ง":1,"ขนส่งสินค้า":1,"ขายใบมะกรูดเป็นวัตถุดิบ":1,"ก๊ก":1,"ควบคุมสต๊อกสินค้า":1,"เลี้ยงไหม":1,"ทำนา\/ ทำไร่":1,"ทำนา\/ทำไร่":1,"หลักการเกษตร":1,"รับจ้าง\/ทำสวน":1,"รับจ้าง\/เกษตรกร":1,"ผู้ประกอบการ":1}},"สุโขทัย":{"total_hh":61,"total_members":42,"total_inno":24,"total_gen":18,"districts":{"อำเภอศรีสัชนาลัย":20,"อำเภอทุ่งเสลี่ยม":18,"อำเภอกงไกรลาศ":14,"อำเภอเมืองสุโขทัย":6,"อำเภอศรีนคร":1,"อำเภอสวรรคโลก":1,"อำเภอคีรีมาศ":1},"business_types":{"เกษตรกร":18,"เลี้ยงปลาหมอ":17,"กลุ่มอาชีพผลิตเม็ดมะม่วงหิมพานต์":17,"ผู้ประกอบการฟาร์มหนู":6,"รับราชการ\/เกษตรกร":1,"นักเรียน\/นักศึกษา":1,"รับจ้าง":1}},"หนองบัวลำภู":{"total_hh":259,"total_members":235,"total_inno":127,"total_gen":108,"districts":{"อำเภอโนนสัง":129,"อำเภอนากลาง":85,"อำเภอนาวัง":35,"อำเภอเมืองหนองบัวลำภู":7,"อำเภอศรีบุญเรือง":2,"อำเภอสุวรรณคูหา":1},"business_types":{"แปรรูปผลิตภัณฑ์จากปลา":100,"กสิกรรม":61,"เกษตร":48,"เกษตรกรผู้เลี้ยงโคนม":13,"เลี้ยงปศุสัตว์":12,"เลี้ยงแพะ":9,"เลี้ยงโค":6,"เลี้ยงจิ้งหรีด":6,"เลี้ยงโค,เลี้ยงแพะ":1,"เลี้ยงกระบือ":1,"ผลิตภัณฑ์กาแฟ":1,"เกษตรอินทรีย์":1}},"ชุมพร":{"total_hh":653,"total_members":449,"total_inno":373,"total_gen":76,"districts":{"อำเภอเมืองชุมพร":302,"อำเภอท่าแซะ":152,"อำเภอปะทิว":94,"อำเภอพะโต๊ะ":53,"อำเภอสวี":47,"อำเภอหลังสวน":3,"อำเภอละแม":2},"business_types":{"ผลิตภัณฑ์กาแฟ":175,"เกษตรอินทรีย์":143,"เกษตรกรรม":134,"เกษตรกรผู้ปลูกมังคุด":118,"เกษตรกร":46,"เกษตรกรผู้ปลูกกาแฟ":17,"ร้านกาแฟ":7,"ผู้ประกอบการ":7,"เกษตรกรผู้แปรรูปกาแฟ":2,"ผลิตภัณฑ์":1,"Phusang Coffee":1,"ร้านณัฐชา Nat – Cha":1,"สวนบายใจ ชุมพร":1}},"เพชรบูรณ์":{"total_hh":457,"total_members":193,"total_inno":116,"total_gen":77,"districts":{"อำเภอหล่มเก่า":203,"อำเภอวังโป่ง":84,"อำเภอเมืองเพชรบูรณ์":70,"อำเภอหนองไผ่":38,"อำเภอหล่มสัก":33,"อำเภอเขาค้อ":12,"อำเภอศรีเทพ":7,"อำเภอวิเชียรบุรี":5,"อำเภอชนแดน":3,"อำเภอบึงสามพัน":1,"อำเภอน้ำหนาว":1},"business_types":{"เกษตรและอาหารแปรรูป":118,"กลุ่มบริษัทอุตสาหกรรมผลิตปลาส้มครบวงจร":57,"วิสาหกิจชุมชนแปลงใหญ่ผักหล่มพารวย":55,"กลุ่มมะขามแช่อิ่มอำเภอหนองไผ่":44,"กลุ่มวิสาหกิจผลิตปลาส้ม":40,"เลี้ยงไหม":24,"บริษัทไบโอ ออร์แกนิค แฟมิรี่ จำกัด":17,"ช่างย้อมสีเส้นด้าย":16,"ช่างตัดเย็บแปรรูป":14,"ช่างทอผ้า":10,"กลุ่มแปลงใหญ่มะขาม":9,"เกษตรกรรม":8,"มะขามผลสด":8,"กลุ่มแปลงใหญ่มะขามตำบลนาซำ":7,"มะขาม":7,"แปรรูปเป็นผลิตภัณฑ์":5,"รับจ้างสาวไหมจากรังไหม":3,"ช่างย้อมเส้นด้าย":3,"ทอผ้าไหม":2,"วัตถุดิบและเกษตรพื้นฐาน":2,"ตัวแทนขาย":2,"มะขามแปรรูป":1,"มะขามผลสาด":1,"Startup SME":1,"ช่างย้อมเส้นด้าย, ช่างทอผ้า, ช่างย้อมเส้นด้าย":1,"เกษตรปลูกฝ้าย":1,"ผู้ประกอบการฟาร์มหนู":1}},"ตาก":{"total_hh":29,"total_members":28,"total_inno":27,"total_gen":1,"districts":{"อำเภอพบพระ":28,"อำเภอเมืองตาก":1},"business_types":{"วิสาหกิจชุมชน":18,"อุสหกรรมสิ่งทอ":7,"เกษตรกรรม":2,"ผู้ประกอบการฟาร์มหนู":1,"เลี้ยงปลาในกระชัง":1}},"เลย":{"total_hh":190,"total_members":190,"total_inno":175,"total_gen":15,"districts":{"อำเภอปากชม":101,"อำเภอผาขาว":34,"อำเภอหนองหิน":19,"อำเภอเชียงคาน":14,"อำเภอนาด้วง":11,"อำเภอวังสะพุง":8,"อำเภอเอราวัณ":1,"อำเภอท่าลี่":1,"อำเภอด่านซ้าย":1},"business_types":{"กาแฟ":100,"เลี้ยงไหม":60,"เลี้ยงจิ้งหรีด":13,"เกษตรกรผู้เลี้ยงโคนม":12,"ผู้ประกอบการฟาร์มหนู":1,"บริษัท ราชาฟาร์มการเกษตร จำกัด":1,"บริษัทไบโอ ออร์แกนิค แฟมิรี่ จำกัด":1,"กลุ่มวิสาหกิจผลิตปลาส้ม":1,"แปรรูปผลิตภัณฑ์จากปลา":1}},"ลำพูน":{"total_hh":198,"total_members":195,"total_inno":119,"total_gen":76,"districts":{"อำเภอลี้":137,"อำเภอบ้านธิ":25,"อำเภอแม่ทา":22,"อำเภอเมืองลำพูน":12,"อำเภอเวียงหนองล่อง":2},"business_types":{"วิสาหกิจชุมชนเกษตรข้าวบุญล้านนา":41,"เกษตรผู้เลี้ยงโคนม":21,"กลุ่มวิสาหกิจชุมชน คนฮักบ้านเกิด: ผ้ามัดย้อมทรายแดง":20,"วิสาหกิจชุมชนอินลี้":20,"กลุ่มวิสาหกิจชุมชนคนฮักบ้านเกิด":17,"ผลิตเครื่องประดับ":12,"วิสาหกิจชุมชนแปรรูป":10,"ศูนย์หัตถกรรมบ้านงานฝีมือบ้านผาหนาม":10,"กลุ่มอาชีพตีมีด":9,"ปลูกข้าวล้านนาคุณภาพสูง":7,"กลุ่มผ้าทอกะเหรี่ยงย้อมสีธรรมชาติบ้านฮ้อมนอก":5,"กลุ่มอาชีพข้าวควบข้าวแคบ":5,"กลุ่มอาชีพหน่อไม้ลอยฟ้า":3,"กลุ่มวิสาหกิจชุมชนคนฮักบ้านเกิด ผ้ามัดย้อมทรายแดง":3,"กลุ่มอาชีพย้อมผ้าบ้านห้วยต้ม":3,"กลุ่มอาชีพเผาถ่าน":2,"เย็บผ้า":2,"กลุ่มอาชีพต้มหน่อไม้":2,"ผู้ประกอบอาชีพเผาถ่าน":2,"กลุ่มอาชีพย้อมผ้าบ้านห้วยต้ม ผ้าย้อมบ้านห้วยต้ม":2,"พืชผักสมุนไพร":1,"ผลิตเครื่องเงิน":1}},"สกลนคร":{"total_hh":1299,"total_members":955,"total_inno":695,"total_gen":260,"districts":{"อำเภอพรรณานิคม":184,"อำเภอวานรนิวาส":181,"อำเภออากาศอำนวย":120,"อำเภอกุสุมาลย์":114,"อำเภอพังโคน":106,"อำเภอเมืองสกลนคร":104,"อำเภอนิคมน้ำอูน":86,"อำเภอโพนนาแก้ว":83,"อำเภอบ้านม่วง":62,"อำเภอคำตากล้า":54,"อำเภอภูพาน":51,"อำเภอสว่างแดนดิน":45,"อำเภอวาริชภูมิ":33,"อำเภอกุดบาก":29,"อำเภอส่องดาว":29,"อำเภอโคกศรีสุพรรณ":12,"อำเภอเต่างอย":4,"อำเภอเจริญศิลป์":2},"business_types":{"เกษตรกรรม":316,"เกษตรกร":131,"เกษตรกรรรม":117,"การประมง":102,"ผู้ปลูกพริก":100,"ฟาร์มกบ":90,"แปรรูปพริก":80,"เกษตรอินทรีย์":60,"ปลูกคราม":33,"เกษตรกร\/ปลูกคราม":21,"เกษตร":20,"แปรรูปปลา":20,"เกษตรผสมผสาน\/แปรรูปการเกษตร":18,"ปลูกข้าวโพด":15,"ปลูกคราม\/เกษตรกร":14,"เกษตรกร\/ผู้ผลิตคราม":12,"ปลูกคราม เกษตรกร":11,"ผู้ปลูกคราม":10,"เลี้ยงแพะ":9,"ผลิตผ้า\/เกษตรกร":8,"เกษตรผสมผสาน":6,"ปลูกคราม เกษตรกร ผลิตผ้า":4,"เกษตกร\/ผู้ผลิตผ้า":4,"ค้าขาย":4,"ผู้ผลิตผ้าคราม":4,"เลี้ยงปศุสัตว์":3,"ผู้ปลูกคราม\/เกษตรกรรมอื่นๆ":3,"เกษตกร\/ปลูกผ้าคราม":3,"ผู้ผลิตผ้ามัดย้อมคราม\/เกษตรกรรมอื่นๆ":3,"ปลูกคราม ขายเนื้อคราม":3,"ปลูกคราม\/ขายเนื้อคราม":3," เกษตรกร":3,"ผู้ผลิตผ้า\/เกษตรกรรมอื่นๆ":3,"เลี้ยงโค":3,"เกษตรกรรมอื่นๆ":3,"รับจ้าง":2,"รายเดี่ยว (บุคคลธรรมดา)":2,"ขายข้าวเม่าแลัผลผลิิตทางการเกษตร":2,"ผลิตผ้า":2,"เกษตรกรผู้เลี้ยงโคนม":2,"เกตษกร\/ผู้ผลิตผ้าคราม":2,"ปลูกคราม เกษตรกร ผู้ผลิตผ้า":2,"เลี้ยงกบ":2,"ปลูกคราม\/ผู้ผลิตผ้า":2,"ปลูกคราม\/เกษตรกร\/ผู้ผลิตผ้าย้อมคราม\/ผู้ประกอบการค้าคราม":2,"ผู้ผลิตผ้า":2,"ผู้ผลิตผ้าย้อมคราม\/เกษตรกร":2,"เกษตรกร\/ผู้ผลิตผ้าคราม":1,"ผู้ปลูกคราม\/ผู้ประกอบการค้าคราม":1,"ผู้ปลูกคราม\/ผู้ผลิตคราม":1,"กำจัดขยะอินทรีย์":1,"ค้าขายผลิตภัณฑ์อาหารแปรรูป":1,"ผู้ผลิตผ้าคราม\/เกษตรกร":1,"ผู้ผลิตผ้า\/เกษตรกร":1,"รับราชการ\/ผู้ประกอบการค้าคราม":1,"ผู้ผลิตผ้ามัดย้อมคราม\/ผู้ประกอบการค้าคราม":1,"เลี้ยงโค,เลี้ยงแพะ":1,"เกษตกร \/ ผู้ผลิตผ้า":1,"การเกษตร":1,"ปลูกคราม\/เกษตรกร\/ผู้ปนะกอบการค้าคราม ภครามภูสะไนย์":1,"โคขุนนิลพรีเมี่ยม 18 เดือน":1,"ปลูกคราม ขายคราม":1,"ธุรกิจการผลิต":1,"ปลูกคราม\/เกรษตร\/ผู้ผลิตผ้า\/ผู้ค้าคราม":1,"พนักงานราชการ\/ผู้ประกอบการค้าคราม":1,"ผลิตผ้าคราม\/เกษตรกร":1,"ผู้ผลิตผ้าคราม ปลูกคราม":1,"เกษตรกร\/ผู้ปลูกคราม":1,"ผู้ผลิตผ้าคราม\/ทำนา":1,"ทำนา\/ผู้ผลิตผ้าคราม":1,"ปลูคราม\/ทำนา":1,"ปลูกคราม ทำนา":1,"เกษตกร":1,"เกษตกร\/ปลูกคราม\/ผลิตผ้าคราม":1,"ปลูกคราม\/ทอผ้าคลุมไหล่":1,"ปลูกคราม ขายคราม ผลิตผ้า เกษตรกร":1,"ผลิตผ้า\/ปลูกคราม\/เกษตรกร\/ผู้ประกอบการคราม":1,"เกษตกร\/ผลิตผ้าคราม":1,"เกษตรกร\/ผู้ผลิตผ้าย้อมคราม\/ผู้ประกอบการค้าคราม":1,"ปลูกคราม ผลิตผ้า":1,"ปลูกคราม ผู้ผลิตผ้า เกษตรกร":1,"เกษตรกร\/ผู้ผลิตผ้าย้อมคราม":1,"ปลูกคราม\/ขายเนื้อคราม\/ผ้าพันคอ":1}},"เชียงใหม่":{"total_hh":1439,"total_members":690,"total_inno":563,"total_gen":127,"districts":{"อำเภอดอยสะเก็ด":227,"อำเภอสารภี":201,"อำเภอแม่ออน":167,"อำเภอแม่แตง":144,"อำเภอจอมทอง":122,"อำเภอไชยปราการ":108,"อำเภอแม่ริม":93,"อำเภอดอยเต่า":60,"อำเภอพร้าว":41,"อำเภอสันกำแพง":38,"อำเภอสันทราย":36,"อำเภอสันป่าตอง":33,"อำเภอเมืองเชียงใหม่":28,"อำเภอแม่อาย":28,"อำเภอดอยหล่อ":26,"อำเภอแม่แจ่ม":22,"อำเภอแม่วาง":18,"อำเภอฝาง":16,"อำเภอเชียงดาว":13,"อำเภอหางดง":9,"อำเภอสะเมิง":8,"อำเภอเวียงแหง":1},"business_types":{"เกษตรกรรม":180,"เกษตรกรผู้เลี้ยงโคนม":161,"การจัดการป่าผลัดใบ":150,"เกษตรกร":129,"วิสาหกิจชุมชน":70,"เกษตรผู้เลี้ยงโคนม":53,"รับจ้างทอผ้า":51,"ค้าขาย":46,"รับจ้าง":45,"ผลิตเครื่องเงิน":40,"ข้าราชการบำนาญ":36,"ปลูกข้าวล้านนาคุณภาพสูง":27,"รับจ้างทั่วไป":22,"กลุ่มอาชีพย้อมผ้า":22,"ข้าวก่ำม่วง ถั่วเหลืองอินทรีย์":20,"วิสาหกิจชุมชนสมุนไพรอีฟเฮิร์บเพื่อสุขภาพ":20,"แม่บ้าน":20,"กลุ่มการเรียนรู้ทักษะอาชีพเกษตรและอาหารชุมชน":19,"ทอผ้า":16,"ถั่วเหลืออินทรีย์":15,"ผลผลิตเกษตรอินทรีย์":14,"ว่างงาน":13,"กลุ่มวิสาหกิจจักสานทุ่งยั๊วะ":13,"เย็บผ้า":12,"อาหาร (กลุ่มอาชีพแปรรูปอาหาร)":12,"เกษตรอินทรีย์":11,"ฟาร์มเห็ดโคนน้อย":10,"กล้วยแปรรูป":10,"ท่องเที่ยว":10,"ผักอินทรีย์":10,"ข้าวโพดสด":10,"แปรรูปผลไม้":10,"ทำนาข้าว GI":10,"อุสหกรรมสิ่งทอ":10,"ผลิตเครื่องประดับ":9,"อาหาร (กลุ่มอาชีพผลิตกล้วยฉาบ)":9,"พืชผักสมุนไพร":8,"ผลไม้อินทรีย์":8,"อาหาร (กลุ่มอาชีพถั่วเน่า)":8,"เกษตรกรรม\/อุสหกรรมสิ่งทอ":7,"กลุ่มอาชีพถั่วเน่า":7,"ราชการบำนาญ":7,"กลุ่มอาชีพผลิตถ่านไม้":7,"กลุ่มอาชีพตีมีด":7,"รับจ้างทอผ้า, ย้อมสีเส้นด้าย":5,"เกษตรกรผู้ปลูกโกโก่้":4,"ผลิตเครื่องประดับและของที่ระลึก":4,"ผลิตภัณฑ์สมุนไพร":4,"เกษตรกรผู้ปลูกและแปรรูปเมล็ดโกโก้แห้ง":4,"เกษตร (ผลิต-แปรรูป)":3,"แปรรูปผลิตภัณฑ์โกโก้":3,"แปรรูปนมถั่วแระญี่ปุ่น":3,"ไม่มีอาชีพ":3,"ย้อมผ้า":2,"ปั่นฝ้าย":2,"ตัดผ้า":2,"ปักผ้า":2,"รับจ้างแปรรูปนมถั่วแระญี่ปุ่น\/รับจ้าง":2,"รับเหมา":1,"ผลิตเครื่องประดับเงิน":1,"รับจาง":1,"เกษตกร":1,"ขึ้นลวดลายเครื่องประดับ":1,"ผู้จำหน่าย":1,"อิสระ":1,"ผู้ประกอบการอาชีพถั่วเน่า":1,"ผู้ประกอบการตีมีด":1,"รับจ้างทอผ้า, ย้อมสีเส้นด้าย, ปั่นเส้นใยฝ้าย":1,"กาแฟ":1,"ตัดเย็บ":1,"รับจ้างทอผ้า, ปั่นเส้นใยฝ้าย":1,"ขับรถรับจ้าง":1,"เกษตรกรผู้ปลูกและจำหน่ายถั่วลายเสือ":1,"รับจ้างทอผ้า, เก็บเมล็ดฝ้าย, อีดเมล็ดฝ้าย":1,"ย้อมเส้นฝ้าย":1,"ธรุกิจส่วนตัว":1,"วิสาหกิจชุมชนเกษตรข้าวบุญล้านนา":1,"อาหาร (ผู้ประกอบการน้ำตาลอ้อย)":1,"รับจ้างม้วนฝ้าย":1,"เกษตรกรรทม":1}},"ฉะเชิงเทรา":{"total_hh":387,"total_members":391,"total_inno":251,"total_gen":140,"districts":{"อำเภอสนามชัยเขต":141,"อำเภอเมืองฉะเชิงเทรา":113,"อำเภอบางคล้า":54,"อำเภอบางปะกง":34,"อำเภอคลองเขื่อน":23,"อำเภอท่าตะเกียบ":8,"อำเภอแปลงยาว":5,"อำเภอบางน้ำเปรี้ยว":4,"อำเภอบ้านโพธิ์":4,"อำเภอพนมสารคาม":1},"business_types":{"ทุเรียนหมอนทอง":139,"เกษตรกรรม":83,"แปรรูปอาหาร":52,"ผลิตภัณฑ์จากผักตบและกาบกล้วย":15,"ค้าขาย":14,"Starup SME":11,"แปรรูปการเกษตรจากงานวิจัย":10,"เกษตกรผู้ปลูกไผ่":8,"เกษตรกร":6,"ธุรกิจการผลิต":3,"Startup SME":3,"ผลิตเครื่องเงิน":2,"รับจ้าง":2,"ร้านค้า":2,"ผู้ประกอบการฟาร์มหนู":1,"ขนมกุ่ยฉ่าย  ขนมจีบ ซาลาเปา":1,"เบเกอรี่":1,"ผ้ามัดย้อม":1,"เครื่องดื่ม":1,"ขายอาหาร":1,"ขายของ":1,"บูทศิลปะ สอนศิลปะ":1,"ผลิตภัณท์ในท้องถิ่น":1,"อาหารพร้อมรับประทาน":1,"ของเล่น ของขวัญ ของฝาก":1,"อาหาร":1,"วิสาหกิจชุมชน":1,"ชาบู":1,"ร้านอาหาร":1,"ผ้ามัดย้อมสีธรรมชาติ":1,"เครื่องสำอางค์เครื่องสำอางค์จากสมุนไพร":1,"สมุนไพร":1,"ถักงานโครเชตฺ":1,"ทำสวนมะพร้าว":1,"เกษตรผู้ปลูกกล้วยหอมทอง":1,"สมุนไพรและนวดเพื่อสุขภาพ":1,"ค้าขายอาหาร":1,"รับจ้าง และค้าขาย":1,"ร้านเสื้อผ้า":1,"ผู้ประกอบการโอทอป":1,"แม่บ้าน  เย็บปักถักร้อย":1,"ทำสมุนไพร":1,"สมุนไพรภูมันตรา,นวด":1,"ผู้ประกอบการ":1,"ขายน้ำปั่น":1,"งานผ้ามัดย้อม\/งานผ้าปักมือ":1,"ขายขนม":1,"เป็นร้านของเล่น ของฝาก ของขวัญ":1,"อาหารแปรรูป":1,"เสื้อผ้า\/กระเป๋า":1,"อาหารพื้นบ้านอาหารพื้นถิ่น":1}},"สุพรรณบุรี":{"total_hh":306,"total_members":188,"total_inno":163,"total_gen":25,"districts":{"อำเภอสามชุก":143,"อำเภอสองพี่น้อง":120,"อำเภออู่ทอง":24,"อำเภอเดิมบางนางบวช":12,"อำเภอศรีประจันต์":6,"อำเภอเมืองสุพรรณบุรี":1},"business_types":{"เกษตรกร":123,"ข้าวและถั่วเขียว":69,"ข้าว":52,"แปรรูปการเกษตรจากงานวิจัย":18,"ค้าขาย":7,"ทำนา":6,"ปลูกข้าว":2,"ขายผักสด":1,"ทำนา เผาถ่าน":1,"ขายข้าวแล้วผัก":1,"ขายของเกษตร":1,"ช่าง":1,"แรงงาน":1,"แปรรูปผลผลิตเกษตร":1,"ขนมสาเกทอด":1,"รับจ้าง":1,"รับจ้างทั่วไป เกษตรกร":1,"เกษตรกร ทำนา":1,"ทำนา ปลูกผักอินทรีย์":1,"เกษตร":1,"ผลิตภัณฑ์แปรรูปขนม":1,"ทำขนม":1,"จักรสาน":1,"ขายขนม":1,"ทำขนมขาย":1,"ทำนา รับจ้างทั่วไป":1,"ขายผลผลิต":1,"ทำพันธุ์ข้าว":1,"ปลูกผักสวนครัว":1,"เลี้ยงวัว":1,"ขายผัก ขายข้าว":1,"ทำการเกษตร":1,"สมุนไพรอบแห้ง":1,"กลุ่มมะขามแช่อิ่มอำเภอหนองไผ่":1,"ปลูกแห้ว":1,"ปอกแห้ว":1}},"อ่างทอง":{"total_hh":16,"total_members":16,"total_inno":6,"total_gen":10,"districts":{"อำเภอป่าโมก":12,"อำเภอเมืองอ่างทอง":3,"อำเภอวิเศษชัยชาญ":1},"business_types":{"เกษตรกร":10,"เกษตรกร ทำนา":2,"ผู้ประกอบการฟาร์มหนู":1,"เกษตรกร ปลูกข้าว":1,"เกษตรกร ทำไร่":1,"เกษตรกร ทำสวน":1}},"พระนครศรีอยุธยา":{"total_hh":51,"total_members":34,"total_inno":28,"total_gen":6,"districts":{"อำเภอเสนา":30,"อำเภอบางไทร":19,"อำเภอนครหลวง":1,"อำเภอท่าเรือ":1},"business_types":{"ทำนาข้าว":38,"เกษตรกรรม":4,"ครัวเรือน":2,"ผู้ประกอบการฟาร์มหนู":1,"เกษตรชาวนา":1,"ผักสลัด":1,"ขายน้ำพริก":1,"ปลูกข้าว":1,"เกษตรกร":1,"เกษตร":1}},"ตรัง":{"total_hh":376,"total_members":188,"total_inno":159,"total_gen":29,"districts":{"อำเภอกันตัง":139,"อำเภอห้วยยอด":122,"อำเภอเมืองตรัง":49,"อำเภอย่านตาขาว":18,"อำเภอรัษฎา":15,"อำเภอวังวิเศษ":13,"อำเภอสิเกา":10,"อำเภอปะเหลียน":7,"อำเภอหาดสำราญ":2,"อำเภอนาโยง":1},"business_types":{"จำหน่ายผลิตภัณฑ์จากต้นจาก":128,"สวนปาล์มน้ำมัน":97,"เกษตรกร\/รับจ้าง":50,"ปศุสัตว์":40,"เกษตรกรรม":24,"ข้าราชการ":9,"บ้านนกแอ่น":7,"พนักงานบริษัท":6,"ผ้ามัดย้อม":5,"รับจ้าง":2,"สวนยางพารา":2,"ค้าขาย":2,"ธุรกิจส่วนตัว":1,"รับจ้างทั่วไป":1,"พนักงานเทศบาล":1,"รัฐวิสาหกิจ":1}},"พัทลุง":{"total_hh":372,"total_members":218,"total_inno":207,"total_gen":11,"districts":{"อำเภอป่าพะยอม":139,"อำเภอป่าบอน":99,"อำเภอตะโหมด":42,"อำเภอศรีนครินทร์":31,"อำเภอเขาชัยสน":15,"อำเภอปากพะยูน":14,"อำเภอควนขนุน":11,"อำเภอเมืองพัทลุง":10,"อำเภอกงหรา":8,"อำเภอบางแก้ว":3},"business_types":{"เกษตรกรเลี้ยงปลา เกษตรกร":79,"ปศุสัตว์":50,"แปรรูปปลาดุกร้า":47,"เกษตรกร\/รับจ้าง":40,"จำหน่ายโกโก้":35,"เกษตรกรรม":33,"วิสาหกิจชุมชนเกษตรพัฒนาบ้านตะโหมด":26,"วิสาหกิจชุมชนผลผลิตทางการเกษตรม.13":20,"จำหน่ายถั่วหรั่งสด":14,"เกษตรกรผู้ปลูกโกโก้":9,"แม่บ้าน":8,"เพาะปลูกและจำหน่ายถั่วหรั่ง":4,"บ้านนกแอ่น":3,"ตาลโตนด":2,"เลี้ยงปลา":1,"รับจ้าง":1}},"อุดรธานี":{"total_hh":761,"total_members":553,"total_inno":486,"total_gen":67,"districts":{"อำเภอประจักษ์ศิลปาคม":151,"อำเภอหนองหาน":112,"อำเภอกุมภวาปี":85,"อำเภอพิบูลย์รักษ์":85,"อำเภอศรีธาตุ":65,"อำเภอโนนสะอาด":37,"อำเภอเมืองอุดรธานี":36,"อำเภอหนองวัวซอ":35,"อำเภอน้ำโสม":34,"อำเภอไชยวาน":25,"อำเภอเพ็ญ":23,"อำเภอบ้านดุง":23,"อำเภอทุ่งฝน":18,"อำเภอสร้างคอม":17,"อำเภอกุดจับ":11,"อำเภอหนองแสง":2,"อำเภอวังสามหมอ":1,"อำเภอบ้านผือ":1},"business_types":{"เกษตรกรรม":263,"เกษตรอินทรีย์":119,"เลี้ยงโค":93,"เกษตรกรผู้เลี้ยงโคนม":77,"เลี้ยงกระบือ":55,"เกษตร":48,"ปลูกข้าวโพด":43,"แปรรูปการเกษตรจากงานวิจัย":16,"เลี้ยงปศุสัตว์":9,"เลี้ยงโค กระบือ":8,"บริษัท  ราชาฟาร์มการเกษตร จำกัด":6,"กลุ่มบ้านหนองลาดศูนย์เครือข่าย ศพก.ปศุสัตว์":4,"เลี้ยงโค - กระบือ":4,"กลุ่มวิสาหกิจชุมชนบ้านหนองลาด":3,"เลี้ยงโค และ สัตว์ (ไก่บ้าน ไก่ไข่ เป็ด)":3,"เลี้ยงสุกร":2,"เลี้ยงไก่ไข่":2,"เลี้ยงเป็ด - ไก่":1,"เลี้ยงโค และ สัตว์ปีก (ไก่บ้าน ไก่ไข่ เป็ด)":1,"เลี้ยงแพะ":1,"แปรรูปการเกษตรจากกล้วย":1,"เลี้ยงแมลง":1,"แปรรูปผลิตภัณฑ์จากปลา":1}},"นครราชสีมา":{"total_hh":1064,"total_members":570,"total_inno":527,"total_gen":43,"districts":{"อำเภอวังน้ำเขียว":142,"อำเภอเสิงสาง":134,"อำเภอด่านขุนทด":112,"อำเภอเมืองนครราชสีมา":66,"อำเภอแก้งสนามนาง":63,"อำเภอสูงเนิน":54,"อำเภอจักราช":54,"อำเภอสีคิ้ว":49,"อำเภอปากช่อง":46,"อำเภอบ้านเหลื่อม":42,"อำเภอโชคชัย":34,"อำเภอโนนไทย":32,"อำเภอโนนสูง":32,"อำเภอเฉลิมพระเกียรติ":31,"อำเภอพิมาย":30,"อำเภอครบุรี":26,"อำเภอประทาย":19,"อำเภอขามสะแกแสง":14,"อำเภอห้วยแถลง":13,"อำเภอปักธงชัย":12,"อำเภอเทพารักษ์":11,"อำเภอคง":10,"อำเภอพระทองคำ":10,"อำเภอขามทะเลสอ":9,"อำเภอเมืองยาง":6,"อำเภอบัวใหญ่":4,"อำเภอบัวลาย":3,"อำเภอหนองบุญมาก":2,"อำเภอชุมพวง":1,"อำเภอโนนแดง":1,"อำเภอลำทะเมนชัย":1,"อำเภอสีดา":1},"business_types":{"ธุรกิจการเกษตร":138,"เกษตรผู้ปลูกกล้วยหอมทอง":126,"เกษตรกร":120,"ปศุสัตว์":81,"เกษตรกรรม":76,"ผลิต ตลาด (50 ตร.ม.)":51,"กลุ่มวิสาหกิจชุมชนโคดำบ้านดอน":49,"รับจ้าง":33,"กลุ่มโคเนื้อคุณภาพแองกัส 100% อ.จักราช จ.นครราชสีมา":30,"รายเดี่ยว (บุคคลธรรมดา)":28,"เลี้ยงจิ้งหรีด":28,"แปรรูปอาหาร":26,"ปลูกหม่อน เลี้ยงไหม":25,"วิสาหกิจชุมชนกลุ่มทอเสื่อกกยกลายบ้านโนนมะนาว":20,"แปรรูปเศษไหม":16,"วิสาหกิจชุมชนกลุ่มสิ่งทอและแปรรูปผลิตภัณฑ์ท่าช้างเอนซีส":15,"กลุ่มลำพันแปรรูป":15,"กลุ่มอาชีพทอเสื่อบ้านดอนทอง":15,"กลุ่มอาชีพทอเสื่อบ้านเหลื่อม":15,"ปลูกหม่อน":14,"กลุ่มโคไทยสูงเนินซิกเนเจอร์":14,"เกษตรและอาหารแปรรูป":11,"เกษตรอินทรีย์":10,"กลุ่มอาชีพทอเสื่อบ้านหนองใหญ่":10,"กลุ่มผลิตภัณฑ์จากเส้นไหลบ้านหนองแสง":10,"ผลิต ตลาด (เพิ่งเริ่มเลี้ยง 50 ตร.ม.)":7,"ทำการเกษตร":5,"เจ้าหน้าที่ส่งเสริม":4,"ฟาร์มโคนม":4,"สัตวแพทย์":3,"ผลิต ตลาด (เพิ่งเริ่มทำ 50 ตร.ม.)":3,"Startup SME":3,"เกษตรผสมผสาน":3,"กำจัดขยะอินทรีย์":3,"รับจ้างแรงงานฟาร์ม":2,"ผลิต แปรรูป ตลาด (30 ตร.ม.)":2,"เกษตร":2,"ปลูกหม่อน\/เลี้ยงไหม":2,"การเกษตร":2,"วัตถุดิบและเกษตรพื้นฐาน":2,"ผลิต แปรรูป ตลาด SIFIA Farm (110 ตร.ม.)":1,"ผลิต ตลาด (ผำแคร่ 18 ตร.ม.)":1,"ผลิต ตลาด (0 ตร.ม.)":1,"ผลิต ตลาด (บ่อปูน,ผ้าใบ 50 ตร.ม.)":1,"รับจ้าง - ผจก.การตลาด Kreen Wolffia":1,"ผลิต แปรรูป ตลาด Super Wolffia Farm (100 ตร.ม.)":1,"ผลิตผำแห้ง (บ่อปูน 100 ตร.ม.)":1,"ปลูกหม่อน  เลี้ยงไหม":1,"ผลิตผำสด จำหน่ายปุ่ย  AB (บ่อปูน 100 ตร.ม.)":1,"ธุรกิจการผลิต":1,"แปรรูปผลิตภัณฑ์จากปลา":1,"ทอผ้าไหม":1,"ปลูกหม่อน เลี้ยงไหม ทอผ้า":1,"บ่อผำ 50 ตร.ม.":1,"ผลิตเครื่องเงิน":1,"ผลิต ตลาด (บ่อปูน 40 ตร.ม.)":1,"ผลิต แปรรูป ตลาด (ผำแคร่ 20 ตร.ม.)":1,"ผลิต แปรรูป ตลาด วิภาฟาร์ม (792 ตร.ม.)":1,"ผลิต แปรรูป ตลาด ปัจจัย สีไฟลกรีน (48 ตร.ม.)":1,"ผลิต (50 ตร.ม.)":1,"ผลิต แปรรูป ตลาด (Wolff Grow 240 ตร.ม.)":1,"ผลิต (396 ตร.ม.) แปรรูป (รับจ้างอบ บด) ตลาด (ผำผงพร้อมใช้) - กรีนฟิลล์":1,"ผลิต แปรรูป ตลาด ไข่ผำบ้านแม่ส้ม (68 ตร.ม.)":1,"ผลิต - 89 wolffia farm":1,"ผลิต ตลาด (52.45 ตร.ม.)":1,"ผลิต แปรรูป ตลาด ฟาร์มขุนนาง (240 ตร.ม.)":1,"ผลิต แปรรูป ตลาด (30 ตร.ม)":1,"ผลิต ตลาด ทองดีฟาร์ม (540 ตร.ม.)":1,"ผลิต แปรรูป ตลาด (48 ตร.ม.)":1,"ผลิต เริ่มเลี้ยง (ผำบ่อกระเบื้อง 54.72 ตร.ม.)":1,"ผลิต ตลาด (80 ตร.ม.)":1,"ผลิต แปรรูป ตลาด (50 ตร.ม.)":1,"ผลิต ตลาด (42 ตร.ม.)":1,"ผลิต แปรรูป ตลาด  โรงเรียนปลูกปัญญา (50 ตร.ม.)":1,"ผลิต แปรรูป ตลาด Perfect Wolffia Farm (54 ตร.ม.)":1,"ผลิต แปรรูป ตลาด กรีนโกรท ฟาร์ม (204 ตร.ม.)":1,"ผลิต ตลาด สัญญาฟาร์ม (204.6 ตร.ม.)":1,"ผลิต ตลาด เค ที ฟาร์ม (200 ตร.ม.)":1,"ผลิต ตลาด (50 ตร.่ม.)":1,"ผลิต ตลาด (64 ตร.ม.)":1,"ผลิต ตลาด (ผำแนวตั้ง 51.8 ตร.ม.)":1}},"ขอนแก่น":{"total_hh":537,"total_members":390,"total_inno":285,"total_gen":105,"districts":{"อำเภอเมืองขอนแก่น":115,"อำเภอโนนศิลา":83,"อำเภออุบลรัตน์":77,"อำเภอภูเวียง":61,"อำเภอน้ำพอง":47,"อำเภอชุมแพ":45,"อำเภอชนบท":34,"อำเภอบ้านแฮด":27,"อำเภอซำสูง":15,"อำเภอพล":11,"อำเภอหนองสองห้อง":9,"อำเภอแวงใหญ่":6,"อำเภอหนองเรือ":2,"อำเภอแวงน้อย":2,"อำเภอเปือยน้อย":2,"อำเภอบ้านไผ่":1},"business_types":{"ธุรกิจการผลิตผักและจัดจำหน่าย":154,"ปศุสัตว์และแมลงเศรษฐกิจ":85,"ปศุสัตว์":80,"ผลิตพืชผักปลอดภัย":44,"เกษตรกร":33,"เกษตรกรผู้เลี้ยงโคนม":33,"เกษตรกรรม":28,"รายเดี่ยว (บุคคลธรรมดา)":19,"เลี้ยงจิ้งหรีด":18,"ปลูกสมุนไพร":15,"แปรรูปผลิตภัณฑ์จากปลา":14,"วิสาหกิจชุมขน\/แปลงใหญ่(สมาชิกกลุ่ม)":11,"ห้างหุ้นส่วนจำกัด":1,"บริษัทไบโอ ออร์แกนิค แฟมิรี่ จำกัด":1,"รับจ้าง":1}},"กาฬสินธุ์":{"total_hh":610,"total_members":454,"total_inno":251,"total_gen":203,"districts":{"อำเภอยางตลาด":175,"อำเภอกุฉินารายณ์":103,"อำเภอนามน":73,"อำเภอเมืองกาฬสินธุ์":65,"อำเภอกมลาไสย":62,"อำเภอสมเด็จ":50,"อำเภอดอนจาน":41,"อำเภอฆ้องชัย":23,"อำเภอสหัสขันธ์":18},"business_types":{"ปศุสัตว์":129,"เลี้ยงโคเนื้อ":120,"การเลี้ยงสัตว์":119,"ปลูกสมุนไพร":112,"ผลิตพืชผักปลอดภัย":50,"สวนป่า เลี้ยงผึ้งตามธรรมชาติ เพื่อเพิ่มผลผลิตทางการเกษตร เกษตรอินทรีย์":50,"ปลูกและแปรรูปสมุนไพร":9,"ปลูกและจำหน่ายสมุนไพร":9,"ปลูกสมุนไพร แปรรูป":4,"วิสาหกิจชุมขน\/แปลงใหญ่(สมาชิกกลุ่ม)":3,"แปรรูป และจำหน่ายสมุนไพร":2,"จำหน่ายสมุนไพร":1,"รายเดี่ยว (บุคคลธรรมดา)":1,"เกษตรกรรม":1}},"ชัยนาท":{"total_hh":401,"total_members":331,"total_inno":219,"total_gen":112,"districts":{"อำเภอเนินขาม":117,"อำเภอหันคา":109,"อำเภอสรรพยา":80,"อำเภอสรรคบุรี":36,"อำเภอหนองมะโมง":32,"อำเภอวัดสิงห์":26,"อำเภอเมืองชัยนาท":1},"business_types":{"เกษตรกร":132,"เกษตรกรรม":127,"เกษตรชาวนา":119,"แปรรูปการเกษตรจากงานวิจัย":21,"เผาถ่าน":1,"เลี้ยงสัตว์ ทำปุ๋ย":1}},"ตราด":{"total_hh":133,"total_members":133,"total_inno":133,"total_gen":0,"districts":{"อำเภอเขาสมิง":133},"business_types":{"เกษตรกรผู้ปลูกทุเรียน":99,"กลุ่มอาชีพเกษตรกรทุเรียนคุณภาพ":33,"เกษตรกรทุเรียน":1}},"หนองคาย":{"total_hh":73,"total_members":46,"total_inno":43,"total_gen":3,"districts":{"อำเภอเมืองหนองคาย":67,"อำเภอเฝ้าไร่":4,"อำเภอท่าบ่อ":1,"อำเภอโพนพิสัย":1},"business_types":{"เลี้ยงโค":40,"เกษตร":24,"เลี้ยงแพะ":2,"เลี้ยงเเพะ เเละเลี้ยงโค":2,"เลี้ยงปศุสัตว์":1,"เลี้ยงกระบือ":1,"เลี้ยงโค เลี้ยงกระบือ":1,"เลี้ยงโค กระบือ":1,"เกษตรกรรม":1}},"ราชบุรี":{"total_hh":156,"total_members":140,"total_inno":134,"total_gen":6,"districts":{"อำเภอโพธาราม":62,"อำเภอจอมบึง":44,"อำเภอบ้านโป่ง":20,"อำเภอดำเนินสะดวก":13,"อำเภอบ้านคา":11,"อำเภอเมืองราชบุรี":4,"อำเภอสวนผึ้ง":1,"อำเภอบางแพ":1},"business_types":{"ปลูกอ้อย":99,"เกษตรอินทรีย์":21,"เกษตรกรรม":13,"อาหาร":11,"เลี้ยงแมลง":4,"เกษตกรผู้ปลูกกล้วย":3,"รับจ้าง":2,"บ้านนกแอ่น":2,"กลุ่มอาชีพ\/กลุ่มแปรรูปสินค้าในชุมชน":1}},"มหาสารคาม":{"total_hh":32,"total_members":39,"total_inno":19,"total_gen":20,"districts":{"อำเภอแกดำ":21,"อำเภอนาเชือก":3,"อำเภอโกสุมพิสัย":3,"อำเภอบรบือ":2,"อำเภอกันทรวิชัย":1,"อำเภอเมืองมหาสารคาม":1,"อำเภอพยัคฆภูมิพิสัย":1},"business_types":{"เกษตรกรรม,รับจ้าง":19,"เกษตรกรรม\/ค้าขาย":2,"รายเดี่ยว (บุคคลธรรมดา)":2,"วิสาหกิจชุมขน\/แปลงใหญ่(สมาชิกกลุ่ม)":2,"ผู้ประกอบการฟาร์มหนู":1,"เกษตรและอาหารแปรรูป":1,"สมุนไพรอบแห้ง":1,"สมุนไพรสด":1,"สมุนไพร":1,"แปรรูปข้าวงอก":1,"เกษตรอินทรีย์":1}},"แม่ฮ่องสอน":{"total_hh":401,"total_members":473,"total_inno":227,"total_gen":246,"districts":{"อำเภอเมืองแม่ฮ่องสอน":251,"อำเภอขุนยวม":139,"อำเภอแม่สะเรียง":7,"อำเภอปางมะผ้า":4},"business_types":{"เกษตรกรรม":156,"เกษตรกรผู้ปลูกและจำหน่ายถั่วลายเสือ":115,"เกษตรกร":83,"เกษตรกรผู้ปลูกโกโก่้":11,"ธุรกิจส่วนตัว":8,"พนักงานองค์การบริหารส่วนตำบล (อบต.)":6,"จากครอบครัว":4,"ผลิตเครื่องเงิน":3,"ผู้ช่วยผู้ใหญ่บ้าน":3,"เกษตรกรผู้ปลูกและจำหน่ายข้าว":2,"เกษตรกรผู้ปลูก":2,"อาสาสมัครสาธารณสุขประจำหมู่บ้าน (อสม.)":2,"รับจ้างทั่วไป":2,"ผู้ใหญ่บ้าน":1,"เกษตรกรผู้ปลูกและจำหน่ายส้ม":1,"ตำรวจ":1,"เกษตรกรผู้ปลูกและแปรรูปเมล็ดโกโก้แห้ง":1}},"บุรีรัมย์":{"total_hh":418,"total_members":263,"total_inno":251,"total_gen":12,"districts":{"อำเภอนางรอง":110,"อำเภอนาโพธิ์":58,"อำเภอพุทไธสง":57,"อำเภอพลับพลาชัย":49,"อำเภอเมืองบุรีรัมย์":24,"อำเภอโนนสุวรรณ":21,"อำเภอลำปลายมาศ":18,"อำเภอกระสัง":17,"อำเภอปะคำ":14,"อำเภอหนองกี่":12,"อำเภอหนองหงส์":8,"อำเภอโนนดินแดง":6,"อำเภอคูเมือง":6,"อำเภอห้วยราช":5,"อำเภอบ้านด่าน":4,"อำเภอแคนดง":3,"อำเภอประโคนชัย":2,"อำเภอละหานทราย":2,"อำเภอสตึก":1,"อำเภอชำนิ":1},"business_types":{"คัดแยกเมล็ดพันธุ์ข้าวเปลือกขาย":89,"เกษตรกร":60,"เกษตรกรรม":59,"ผ้าไหมทอมือ":55,"กลุ่มทอผ้า":55,"วิสาหกิจชุมขน\/แปลงใหญ่(สมาชิกกลุ่ม)":11,"คัดแยกเมล็ดพันธุ์ข้าวเปลือกขาย, เลี้ยงหมูขาย":11,"เกษตรผู้ปลูกกล้วยหอมทอง":9,"ทำการเกษตร":6,"การเกษตร":5,"เกษตร":5,"ทำเกษตร":4,"รายเดี่ยว (บุคคลธรรมดา)":4,"รับจ้างทั่วไป":3,"ธุรกิจการผลิต":3,"ปศุสัตว์":3,"รับจ้าง":3,"รับราชการ":2,"ขนส่ง":1,"รับส่งนักเรียน":1,"ทำนา":1,"ครอบครัว":1,"สมุนไพร นวดแก้อาการพอได้เล็กน้อย":1,"ว่างงาน":1,"ห้างหุ้นส่วนจำกัด":1,"พนักงานประจำ":1,"พนักงานส่วนตำบล":1,"ขายถ่าน":1,"ไม่มี":1,"เกษตรผสมผสาน":1,"ช่างทั่วไป":1,"เกษตรกร300":1,"เกษตรกรมม":1,"ช่างไม้เกษตรกรรม":1,"ด้านการเกษตร":1,"ด้านบัญชี":1,"อกม":1,"แปลงพัฒนาพื้นที่ต้นแบบโคกหนองนาโมเดล":1,"ช่างเชื่อม":1,"ปรับปรุงดิน":1,"ช่างก่สร้าง":1,"ช่างก่อสร้าง":1,"เผาถ่าน":1,"ทางการเกษตร":1,"เกษตรผสมผสาน,เกษตรทฤษฎีใหม่":1,"เกษตรทฤษฎีใหม่":1,"ด้านเกษตร":1,"เป็นช่าง":1,"ค้าขาย":1}},"เชียงราย":{"total_hh":878,"total_members":567,"total_inno":450,"total_gen":117,"districts":{"อำเภอเชียงแสน":147,"อำเภอพาน":143,"อำเภอเมืองเชียงราย":142,"อำเภอเทิง":119,"อำเภอพญาเม็งราย":80,"อำเภอแม่สรวย":68,"อำเภอแม่จัน":42,"อำเภอแม่ลาว":38,"อำเภอป่าแดด":32,"อำเภอเวียงป่าเป้า":29,"อำเภอแม่ฟ้าหลวง":20,"อำเภอแม่สาย":8,"อำเภอเชียงของ":5,"อำเภอเวียงชัย":2,"อำเภอเวียงแก่น":2,"อำเภอดอยหลวง":1},"business_types":{"-":167,"เกษตรกรรม":113,"ขายส่ง":101,"กสิกรรม":54,"เลี้ยงปลานิล":45,"เกษตรกร":32,"ผลิตภัณฑ์วัฒนธรรมชุมชน":24,"ผ้าทอ":22,"ทำนา ทำสวน":19,"วิสาหกิจชุมชน":19,"ปลูกข้าวล้านนาคุณภาพสูง":19,"เกษตรกรผู้เลี้ยงโค":19,"ปศุสัตว์และแมลงเศรษฐกิจ":18,"ผ้าไหมทอมือ":16,"บริการสินค้าทางวัฒนธรรม":16,"เลี้ยงปลา":16,"Startup SME":12,"เกษตรกรปลูกข้าว":11,"ผลิตภัณฑ์แปรรูปจากภูมิปัญญา":11,"พืชสวน\/พืชไร่":10,"เลี้ยงไหมอีรี":10,"ปลูกข้าว\/พืชสวน\/พืชไร่":9,"บริการจัดกิจกรรมทางวัฒนธรรม":9,"ผลิตของใช้จากผ้า, แปรรูปอาหารและสมุนไพร":8,"อาหารทางวัฒนธรรม":8,"บริการท่องเที่ยวทางวัฒนธรรม":6,"ทำนา":6,"เกษตรอินทรีย์,รับจ้าง":5,"เกษตรอินทรีย์":5,"เกษตรอินทรีย์, รับจ้าง":4,"รับจ้างรายวัน, ปลูกข้าว\/พืชสวน\/พืชไร่":4,"ผลิตเครื่องเงิน":4,"สวนสมุนไพร":3,"ไม่มี":3,"ค้าขาย, ปลูกข้าว\/พืชสวน\/พืชไร่":3,"ปลานิล":2,"ปลูกสมุนไพร":2,"รับจ้างรายวัน":2,"ผู้ประกอบการ เช่น กิจการส่วนตัว ค้าขาย มีผลิตภัณฑ์จำหน่าย":2,"ค้าขาย":2,"เกษตรกร, รับจ้าง":2,"ขายปลา":1,"รับจ้าง ทำนา":1,"ปลูกสมุนไพรในระดับครัวเรือน":1,"ผลิตเครื่องประดับ":1,"เลี้ยงปลนิล และปลาดุก":1,"ตัวแทนประกัน":1,"สุรากลั่นชุมชน":1,"ทำสวนยาง":1,"ผู้ประกอบการ":1,"สับปะรดภูแล":1,"พนักงานบริษัท":1,"เลี้นงช่อน ปลานิล":1,"ช่างเย็บผ้า":1,"ข้าราชการบำนาญ":1,"ไม่มีอาชีพ":1,"ทำสวนลำไยและสมุนไพร และประกอบอาชีพรับจ้าง":1,"พืชสวน\/พืชไร่, ปศุศัตว์":1,"เลี้ยงปลาผสม":1,"แปรรูปสินค้าเกษตร":1,"ลูกจ้างหน่วยงานรัฐ, สวนผลไม้":1,"แปรรูปและจำหน่ายพืชผลทางเกษตร สมุนไพรอบแห้ง":1,"สวนสมุนไพรอินทรีย์, แปรรูปสินค้าเกษตร":1,"เลี้ยงปลานิลสด":1,"รับจ้างรายวัน, ค้าขาย,เกษตรอินทรีย์":1,"ทำนา ทำสวน และสมาชิก อบต.":1,"รับจ้างรายวัน, สวนสมุนไพรอินทรีย์":1,"เลี้ยงปลาดุก":1,"สวนสมุนไพรอินทรีย์":1,"เกษตรอินทรีย์, แปรรูปผลผลิตเกษตร, ค้าขาย":1,"เกษตรอินทรีย์,แปรรูปและจำหน่ายสมุนไพร,ผลิตและจำหน่ายเครื่องสำอางจากสมุนไพร":1,"เกษตรอินทรีย์, ค้าขาย":1,"เกษตรอินทรีย์, ปลูกข้าว\/พืชสวน\/พืชไร่, ปศุสัตว์":1,"พนักงานสาธารณะสุข":1,"เกษตรกร, ผู้ประกอบการ เช่น กิจการส่วนตัว ค้าขาย มีผลิตภัณฑ์จำหน่าย, ผลิตและจำหน่ายผลิตภัณฑ์จากสมุนไพร":1,"เกษตรกร, รับจ้าง, เกษตรอินทรีย์":1}},"พะเยา":{"total_hh":474,"total_members":433,"total_inno":426,"total_gen":7,"districts":{"อำเภอเมืองพะเยา":169,"อำเภอเชียงคำ":100,"อำเภอปง":62,"อำเภอแม่ใจ":39,"อำเภอดอกคำใต้":32,"อำเภอจุน":24,"อำเภอภูซาง":24,"อำเภอเชียงม่วน":16,"อำเภอภูกามยาว":8},"business_types":{"เลี้ยงกบ":120,"เกษตรกร":81,"เกษตรกรผู้เลี้ยงโค":77,"ทอผ้า":40,"เกษตรกรเลี้ยงโคเนื้อ":39,"ผ้าพิมพ์ลาย":21,"แปรรูป":14,"งานปัก":14,"เกษตรกรผู้เลี้ยงสุกร":13,"การเกษตร":8,"ย้อมผ้า":7,"เกษตรกรปลูกข้าวโพด":6,"เกษตรอินทรีย์":6,"ย้อมผ้า,ทอผ้า":5,"งานตัดเย็บ":2,"ย้อม, ตัดเย็บ,พิมพ์ลาย":2,"ตัดเย็บ,พิมพ์ลาย":2,"ปศุสัตว์และแมลงเศรษฐกิจ":1,"ผลิตเครื่องเงิน":1,"เกษตรกรปลูกข้าว":1,"ย้อมผ้า,ทอผ้า,งานปัก":1,"งานเย็บ,งานปัก":1,"งานปัก,งานถัก":1,"ย้อมผ้า,ทอผ้า,งานตัดเย็บ":1,"งานตัดเย็บ,งานถัก":1,"ย้อมผ้า,งานตัดเย็บ":1,"ทอผ้า,ตัดเย็บ,งานปัก":1,"งานปัก,พิมพ์ลาย":1,"ย้อม, งานปัก,พิมพ์ลาย":1,"ทอผ้า, ตัดเย็บ":1,"ตัดเย็บผ้าพิมพ์ลาย":1,"ย้อมผ้า, งานตัดเย็บ":1,"งานถัก":1,"ทอผ้า, งานปัก":1}},"ลำปาง":{"total_hh":522,"total_members":248,"total_inno":182,"total_gen":66,"districts":{"อำเภอเมืองลำปาง":191,"อำเภอแม่ทะ":88,"อำเภองาว":50,"อำเภอห้างฉัตร":45,"อำเภอวังเหนือ":35,"อำเภอแจ้ห่ม":33,"อำเภอเสริมงาม":26,"อำเภอเถิน":23,"อำเภอแม่พริก":18,"อำเภอเมืองปาน":6,"อำเภอสบปราบ":5,"อำเภอเกาะคา":1,"อำเภอแม่เมาะ":1},"business_types":{"เกษตรอินทรีย์":200,"เกษตรกร":101,"เกษตร":67,"แปรรูปหน่อไม้":48,"เกษตรกรรม":27,"กลุ่มอาชีพผ้ามัดย้อม":16,"ปลูกข้าวล้านนาคุณภาพสูง":11,"เกษตรกรปลูกข้าวโพด":10,"เกษตร\/รับจ้าง":9,"เกษตร (ผลิต-แปรรูป)":8,"เกษตร (ผลิต-แปรรูปข้าว\/ผัก ข้าวเกรียบ)":5,"เกษตร (ผลิต-แปรรูปข้าว)":4,"เกษตร (ผลิต-แปรรูปถั่วเหลือง พืชผัก)":2,"เกษตร (ผลิต-แปรรูปกล้วย พืชผัก)":1,"เกษตร (สวนลำไย ไม้ผล พืชผัก)":1,"เกษตร (ผลิต-แปรรูปพืชผัก ข้าวเกรียบ)":1,"เกษตร (ผลิต-แปรรูป)\/รับจ้าง":1,"เกษตร (ผลิต-แปรรูปข้าวแพคถุง)":1,"ปลูกและแปรรูปหน่อไม้":1,"รับจ้างภาคเกษตร":1,"รับจ้าง":1,"เกษตรกรผู้เลี้ยงโค":1,"เกษตร (ข้าราชการเกษียณ)":1,"ผลิต-แปรรูปนมถั่วถั่วเหลือง พืชผัก":1,"แปรรูปผลิตภัณฑ์โกโก้":1,"เกษตร (ผลิต-รับจ้างแปรรูปข้าว)":1,"ผลิต-แปรรูปถั่วเหลืองหมัก":1}},"นครศรีธรรมราช":{"total_hh":744,"total_members":415,"total_inno":187,"total_gen":228,"districts":{"เมือง":214,"อำเภอปากพนัง":78,"อำเภอฉวาง":71,"อำเภอหัวไทร":56,"อำเภอลานสกา":51,"อำเภอพรหมคีรี":44,"อำเภอจุฬาภรณ์":42,"อำเภอทุ่งสง":33,"อำเภอท่าศาลา":31,"อำเภอสิชล":30,"อำเภอร่อนพิบูลย์":25,"อำเภอชะอวด":19,"อำเภอบางขัน":17,"อำเภอทุ่งใหญ่":11,"อำเภอเชียรใหญ่":11,"อำเภอขนอม":11},"business_types":{"เกษตรกรรม":212,"แปรรูปมังคุด":141,"ผู้เลี้ยงปูขาวไซส์ตลาด":104,"เกษตรกร\/รับจ้าง":30,"ปศุสัตว์":30,"วิสาหกิจชุมชนเพาะเห็ดเพื่อการแปรรูป":30,"เกษตรกรผู้ปลูกโกโก้":23,"แปรรูปผลิตภัณฑ์กะปิและอาหารทะเล":21,"วิสาหกิจชุมชนบ้านไส้ฝ้าย":21,"วิสาหกิจชุมชนฟาร์มเห็ดกับผักบ้านขอนทอง":19,"ผู้อนุบาลลูกพันธุ์ปูขาวขนาดใหญ่ 5 cm ผู้เลี้ยงปูขาวไซส์ตลาด":14,"เกษตรกร":12,"แปรรูปผลิตผลทางการเกษตร":10,"แปรรูปผลิตภัณฑ์น้ำพริกและผลิตภัณฑ์อาหารทะเล":10,"เพาะปลูกและขายผักอินทรีย์":10,"ทำยาง\/ปาล์ม\/ขมิ้น":7,"Startup SME":7,"ทำยาง\/ปาล์ม":6,"บ้านนกแอ่น":5,"แปรรูปเมล็ดโกโก้":5,"รับจ้าง\/เกษตรกร":3,"ผู้แปรรูป":3,"เกษตร":2,"ทำยาง\/ปาล์ม\/ค้าขาย":2,"แปรรูปเมล็ดโกโก้แห้ง":2,"รับจ้างผลิต":2,"แปรรูปผลิตภัณฑ์มังคุด":2,"ผู้อนุบาลลูกพันธุ์ปูขาวขนาดใหญ่ 5 cm ผู้เลี้ยงปูขาวไซส์ตลาด และผู้รวบรวมในพื้นที่":1,"จำหน่ายโกโก้":1,"เลี้ยงแมลง":1,"ปลูกขมิ้น\/กรีดยาง":1,"ทำผลิตภัณฑ์จากโกโก้เป็นพืชเสริมรายได้":1,"รับซื้อผลโกโก้สดเพื่อการแปรรูป":1,"นักศึกษา\/เกษตรกร":1,"รับจ้างตัดยาง\/ปลูกขมิ้น":1,"นักวิชาการการยางแห่งประเทศไทย":1,"แปรรูป":1,"กลุ่มเกษตรกร\/ชาวประมงผู้จับสัตว์น้ำ":1}},"กำแพงเพชร":{"total_hh":207,"total_members":211,"total_inno":154,"total_gen":57,"districts":{"อำเภอบึงสามัคคี":45,"อำเภอเมืองกำแพงเพชร":28,"อำเภอไทรงาม":27,"อำเภอขาณุวรลักษบุรี":25,"อำเภอปางศิลาทอง":19,"อำเภอโกสัมพีนคร":19,"อำเภอพรานกระต่าย":16,"อำเภอคลองขลุง":15,"อำเภอคลองลาน":12,"อำเภอทรายทองวัฒนา":1},"business_types":{"ไม้กวาด":148,"เกษตรกรรม":50,"เกษตรกร":7,"เกษตรกร\/รับราชการ":1,"เกษตรกร\/ข้าราชการบำนาญ":1}},"ปัตตานี":{"total_hh":699,"total_members":410,"total_inno":290,"total_gen":120,"districts":{"อำเภอยะหริ่ง":159,"อำเภอยะรัง":139,"อำเภอสายบุรี":90,"อำเภอโคกโพธิ์":86,"อำเภอหนองจิก":61,"อำเภอปะนาเระ":53,"อำเภอเมืองปัตตานี":47,"อำเภอแม่ลาน":30,"อำเภอทุ่งยางแดง":17,"อำเภอมายอ":12,"อำเภอไม้แก่น":5},"business_types":{"เกษตรกรรม":213,"รับจ้าง":143,"แม่บ้าน":61,"-":37,"ประมง":31,"ค้าขาย":25,"น้ำผึ้งชันโรง":23,"รับจ้างทั่วไป":21,"ผลิตแกงเหลือง":21,"ว่างงาน":16,"โรตีกรอบ และจำหน่าย":15,"เกษตรกร":11,"รับจ้างจากร้านมุสลิม MODERN":9,"กรีดยาง":6,"ขายน้ำผึ้งชันโรง":5,"ลูกจ้าง":5,"รับจ้างจากร้านมุสลิมMODERN":4,"การแปรรูปน้ำพริกสมุนไพร":4," ขายน้ำผึ้งชันโรง":3,"นวัตกร":3,"ผึ้งชันโรง":3,"นักศึกษา":2,"โรตีกรอบ":2,"ครู":2,"แปรรูปน้ำพริกสมุนไพร":2,"อิสระ":2,"แปรรูปผลิตภัณฑ์น้ำพริกสมุนไพร":2,"บ้านนกแอ่น":2,"ผู้ประกอบการ":2,"ทำปลาแห้ง":1,"รับจ้างทำปลาแห้ง":1,"ช่างตัดเสื้อ":1,"รับเหมาก่อสร้าง":1,"พนักงานบัญชี":1,"ธุรกิจส่วนตัว":1,"เจ้าหน้าที่มัสยิด":1,"พนักงานรับจ้าง":1,"นักการภารโรง":1,"ก่อสร้าง":1,"รับเลี้ยงเด็ก":1,"สอนกุรอาน":1,"ผู้ช่วยผู้ใหญ่บ้าน":1,"แม่ครัวร้านอาหาร":1,"กรรมการ":1,"ขายปลา":1,"นักแปล":1,"ทำผ้าบาติก":1,"ผรส.หมู่บ้าน":1,"งานหัตถกรรม":1,"แปรรู)น้ำพริกสมุนไพร":1,"ขายน้ำพริกสด":1,"แปรรูปผลิตภัณฑ์อาหาร":1,"ผู้ประกอบการร้านมุสลิม MODERN":1}},"ระนอง":{"total_hh":184,"total_members":184,"total_inno":184,"total_gen":0,"districts":{"อำเภอกะเปอร์":60,"อำเภอกระบุรี":50,"อำเภอเมืองระนอง":27,"อำเภอสุขสำราญ":26,"อำเภอละอุ่น":21},"business_types":{"เกษตรกรรม":165,"ผึ้งโพรง":6,"เกษตร, ผึ้งโพรง":6,"ผู้ประกอบการ":3,"เกษตรกรผู้ปลูกมังคุด":2,"นักวิชาการเกษตร, ผึ้งโพรง":1,"ประธานกลุ่มแปลงใหญ่ผึ้งโพรง":1}},"มุกดาหาร":{"total_hh":2,"total_members":2,"total_inno":1,"total_gen":1,"districts":{"อำเภอคำชะอี":2},"business_types":{"ผลิตภัณฑ์กาแฟ":1,"เกษตรกร":1}},"Bangkok":{"total_hh":20,"total_members":15,"total_inno":11,"total_gen":4,"districts":{"เขตคลองสามวา":4,"เขตหนองแขม":3,"เขตบางนา":2,"เขตหนองจอก":2,"เขตจอมทอง":1,"เขตบึงกุ่ม":1,"เขตหลักสี่":1,"เขตบางแค":1,"เขตสายไหม":1,"เขตบางเขน":1,"เขตจตุจักร":1,"เขตคลองเตย":1,"เขตพระนคร":1},"business_types":{"แปรรูปผลิตภัณฑ์จากปลา":3,"ธุรกิจการผลิต":2,"เกษตร":2,"ผู้ประกอบการ":2,"กลุ่มมะขามแช่อิ่มอำเภอหนองไผ่":2,"ผลิตภัณฑ์กาแฟ":1,"ตัวแทนขาย":1,"รับจ้าง":1,"เลี้ยงไหม":1,"เมี่ยงคำ":1,"แปรรูป":1,"ผลิตภัณฑ์แปรรูปสมุนไพร":1,"ผลิตเครื่องเงิน":1,"เกษตรกรรม":1}},"กาญจนบุรี":{"total_hh":60,"total_members":59,"total_inno":58,"total_gen":1,"districts":{"อำเภอไทรโยค":33,"อำเภอด่านมะขามเตี้ย":15,"อำเภอท่าม่วง":10,"อำเภอเลาขวัญ":1,"อำเภอเมืองกาญจนบุรี":1},"business_types":{"แปรรูปการเกษตรจากงานวิจัย":31,"ปลูกอ้อย":15,"เกษตรอินทรีย์":10,"แปรรูปการเกษตร":2,"รับทำของว่าง":1,"ผลิตเครื่องเงิน":1}},"น่าน":{"total_hh":171,"total_members":119,"total_inno":93,"total_gen":26,"districts":{"อำเภอเวียงสา":48,"อำเภอเมืองน่าน":46,"อำเภอนาน้อย":40,"อำเภอภูเพียง":20,"อำเภอทุ่งช้าง":10,"อำเภอเชียงกลาง":5,"อำเภอนาหมื่น":1,"อำเภอบ้านหลวง":1},"business_types":{"เกษตรอินทรีย์":95,"เกษตรและอาหารแปรรูป":40,"เกษตรกรผู้เลี้ยงสุกร":17,"ผลไม้แปรรูป":10,"เกษตรกรรม":6,"Startup SME":2,"ผลิตเครื่องประดับ":1}},"แพร่":{"total_hh":360,"total_members":324,"total_inno":310,"total_gen":14,"districts":{"อำเภอสอง":140,"อำเภอหนองม่วงไข่":53,"อำเภอเด่นชัย":51,"อำเภอวังชิ้น":45,"อำเภอเมืองแพร่":36,"อำเภอร้องกวาง":24,"อำเภอลอง":7,"อำเภอสูงเม่น":4},"business_types":{"เกษตรกรผู้เลี้ยงสุกร":195,"เกษตรกร":56,"เกษตรกรผู้เลี้ยงโค":49,"เกษตรอินทรีย์":42,"เกษตรกรเลี้ยงโคเนื้อ":4,"ค้าขาย":3,"ปลูกข้าวล้านนาคุณภาพสูง":2,"แม่บ้าน":2,"ผลิตเครื่องประดับ":2,"ผลิตเครื่องเงิน":2,"ผู้ช่วยผู้ใหญ่บ้าน":1,"หมอยาแผนโบราณ":1,"เกษตรกรรม":1}},"สตูล":{"total_hh":664,"total_members":869,"total_inno":234,"total_gen":635,"districts":{"อำเภอเมืองสตูล":190,"อำเภอทุ่งหว้า":177,"อำเภอละงู":118,"อำเภอควนกาหลง":103,"อำเภอควนโดน":64,"อำเภอท่าแพ":9,"อำเภอมะนัง":3},"business_types":{"กลุ่มผลิตภัณฑ์อาหารแปรรูปชาวเกาะสาหร่าย":87,"เพาะเลี้ยงสัตว์น้ำ":75,"เพาะเลี้ยงสัตว์น้ำและประมงพื้นบ้าน":71,"เกษตร":63,"กลุ่มแปรรูปวิสาหกิจชุมชนเตาะหมากบ้านทุ่งพัก":60,"แปรรูปอาหารทะเล":56,"กลุ่มอาชีพแปรรูปอาหารทะเลข้าวเกรียบปูขอนคลาน":41,"เกษตรกรรม":40,"อาหารทะเลแปรรูป":30,"จำหน่ายผลิตภัณฑ์จากต้นจาก":27,"กลุ่มอาชีพวิสาหกิจชุมชนข้าวเกรียบควนโพธิ์":25,"เกษตรกร":19,"ทำสวน":13,"รับจ้างทั่วไป":8,"หัตถกรรมและงานสร้างสรรค์":6,"จำหน่ายโกโก้":5,"ผู้ประกอบการ":4,"แม่บ้าน":3,"กรีดยาง":3,"ลูกจ้างหน่วยงานรัฐ":2,"เกษตรกรรม และการตัดเย็บ":2,"ปลากุเลาแดดเดียว":2,"ธุจกิจส่วนตัว":2,"ทำสวน,ค้าขาย":1,"เพาะเห็ด":1,"ลูกจ้างหน่วยงานของรัฐ":1,"เลี้ยงปลา":1,"รับจ้าง":1,"กลุ่มผลิตภัณฑ์อาหารแปรรูปชาวเกาะสาหร่ายอำเภอเมือง":1,"สวัสดิการ":1,"รับราชการ":1,"พนักงานของรัฐ":1,"ลูกจ้าง":1,"พนักงาน อบต.":1,"รองประธาน":1,"ประธาน":1,"บ้านนกแอ่น":1,"ค้าขาย":1,"เศรษฐกิจพอเพียง":1,"ฟาร์มไก่เนื้อ":1,"ค้าขาย,ปลูกผัก":1,"กรีดยาง,เกษตรผสมสาร":1,"ผู้ใหญ่บ้าน,ปลูกผัก":1}},"เพชรบุรี":{"total_hh":30,"total_members":30,"total_inno":30,"total_gen":0,"districts":{"อำเภอท่ายาง":18,"อำเภอหนองหญ้าปล้อง":7,"อำเภอเมืองเพชรบุรี":3,"อำเภอแก่งกระจาน":1,"อำเภอบ้านลาด":1},"business_types":{"เกษตรอินทรีย์":18,"ปลูกอ้อย":6,"ผู้อนุบาลลูกพันธุ์ปูขาวขนาดใหญ่ 5 cm ผู้เลี้ยงปูขาวไซส์ตลาด":1,"อุทยาน":1,"ธุรกิจการผลิต":1,"การเกษตร เผาถ่าน":1,"บ้านนกแอ่น":1,"รับจ้าง":1}},"นครพนม":{"total_hh":338,"total_members":190,"total_inno":140,"total_gen":50,"districts":{"อำเภอธาตุพนม":259,"อำเภอเมืองนครพนม":52,"อำเภอนาแก":12,"อำเภอท่าอุเทน":7,"อำเภอเรณูนคร":6,"อำเภอวังยาง":1,"อำเภอศรีสงคราม":1},"business_types":{"เกษตรกรรม":180,"การเกษตร":99,"เกษตรผสมผสาน":52,"เกษตรอินทรีย์":4,"รายเดี่ยว (บุคคลธรรมดา)":2,"วิสาหกิจชุมขน\/แปลงใหญ่(สมาชิกกลุ่ม)":1}},"ปราจีนบุรี":{"total_hh":108,"total_members":108,"total_inno":92,"total_gen":16,"districts":{"อำเภอกบินทร์บุรี":78,"อำเภอนาดี":22,"อำเภอประจันตคาม":7,"อำเภอเมืองปราจีนบุรี":1},"business_types":{"เกษตรกร":25,"เกษตร":24,"ปลูกและแปรรูปหน่อไม้":19,"เกษตรกรรม":15,"ปลูก\/แปรรูปหน่อไม้":7,"รับจ้าง":3,"เผาถ่าน":2,"รับจ้างทั่วไป":1,"ลูกจ้างทั่วไป":1,"เกษตรผสมผสาน":1,"ทำการเกษตร":1,"้เกษตร":1,"เกศตร":1,"สัตวบาล":1,"เผาถ่าน สวนพลู":1,"ด้านเกษตรกรรม":1,"ดูแลผู้สูงอายุ ผู้ป่วยติดเตียง":1,"เกษตร ช่างทำผม":1,"รับจ้างดูแลสัตว์เจ็บป่วย":1,"แปรรูปหน่อไม้":1}},"สระแก้ว":{"total_hh":111,"total_members":111,"total_inno":102,"total_gen":9,"districts":{"อำเภอตาพระยา":71,"อำเภอวังน้ำเย็น":19,"อำเภอเมืองสระแก้ว":10,"อำเภออรัญประเทศ":10,"อำเภอโคกสูง":1},"business_types":{"เกษตรกร":26,"เผาถ่าน":15,"เกษตร":11,"เกษตรกรรม":10,"ทำนา":9,"เกษตรผสมผสาน":5,"ไม่มี":4,"งานช่าง":3,"ทำเกษตร":3,"ทำการเกษตร":2,"ก่อสร้าง":2,"ทำถ่าน":2,"มีความเชี่ยวชาญเผาถ่าน":1,"ช่างเชื่อม เกษตรกร":1,"สารพัดช่าง":1,"เกษตรแปรรูป":1,"เผาถ่าน รับจ้าง":1,"ช่างไฟฟ้า":1,"เลี้ยงสัตว์":1,"เกษตรเชิงเดี่ยว":1,"ช่างทั่วไป":1,"รับจ้าง ชาวนา":1,"งานเกษตร":1,"มีความเชี่ยวชาญ":1,"พนักงานโรงงานแป้ง":1,"เกษตร \/วิทยากร":1,"เกษตรกร รับจ้าง":1,"ทำนา เพาะปลูกพืชอายุสั้น":1,"ชาวนา รับจ้าง อสม":1,"พนักงานโรงงานน้ำตาล เชื่อมโลหะ":1,"เผาถ่านไร้ควัน":1}},"พังงา":{"total_hh":90,"total_members":128,"total_inno":61,"total_gen":67,"districts":{"อำเภอเกาะยาว":47,"อำเภอตะกั่วทุ่ง":23,"อำเภอตะกั่วป่า":10,"อำเภอเมืองพังงา":5,"อำเภอท้ายเหมือง":3,"อำเภอกะปง":1,"อำเภอทับปุด":1},"business_types":{"เพาะเลี้ยงสัตว์น้ำ":44,"เกษตรกรรม":27,"การทำผ้าบาติกสีธรรมชาติ":4,"บ้านนกแอ่น":4,"ผ้าพิมพ์ลายจากพืช ผ้าบาติก ผ้ามัดย้อมคราม":3,"การทำผ้ามัดย้อม และการแปรรูปผลิตภัณฑ์":2,"ผลิตผ้าบาติก ผ้ามัดย้อมคราม ย้อมสีธรรมชาติ และการแปรรูปผลิตภัณฑ์":1,"แปรรูปผลิตภัณฑ์ ตัดเย็บ":1,"แปรรูป และตัดเย็บผลิตภัณฑ์":1,"ลงสีผ้า ทำผ้าพิมพ์ลายพฤกษา":1,"ผ้าบาติกสีธรรมชาติ":1,"เลี้ยงแมลง":1}},"ร้อยเอ็ด":{"total_hh":472,"total_members":287,"total_inno":185,"total_gen":102,"districts":{"อำเภอเสลภูมิ":138,"อำเภอสุวรรณภูมิ":109,"อำเภอธวัชบุรี":54,"อำเภอเชียงขวัญ":41,"อำเภอเกษตรวิสัย":37,"อำเภออาจสามารถ":17,"อำเภอปทุมรัตต์":17,"อำเภอศรีสมเด็จ":15,"อำเภอหนองฮี":14,"อำเภอจตุรพักตรพิมาน":11,"อำเภอโพนทราย":10,"อำเภอเมืองร้อยเอ็ด":4,"อำเภอจังหาร":3,"อำเภอทุ่งเขาหลวง":1,"อำเภอพนมไพร":1},"business_types":{"เกษตรกรรม\/โคเนื้อ":160,"เกษตรกร":125,"เกษตรกรรม,รับจ้าง":71,"ปลูกสมุนไพร\/แปรรูป":43,"ปลูกสมุนไพร":24,"เลี้ยงจิ้งหรีด":14,"วิสาหกิจชุมขน\/แปลงใหญ่(สมาชิกกลุ่ม)":10,"เกษตรกรรม":7,"รายเดี่ยว (บุคคลธรรมดา)":6,"เกษตรกรรม\/ค้าขาย":4,"รับจ้าง":3,"เกษตรกรรม,รับจ้างทั่วไป":2,"เจ้าของกิจการ":1,"ข้าราชการเกษียณ":1,"เกษตรและอาหารแปรรูป":1}},"ภูเก็ต":{"total_hh":61,"total_members":61,"total_inno":59,"total_gen":2,"districts":{"อำเภอเมืองภูเก็ต":51,"อำเภอถลาง":9,"อำเภอกะทู้":1},"business_types":{"การทำผ้ามัดย้อม และการแปรรูปผลิตภัณฑ์":16,"ผ้ามัดย้อม":6,"ผ้าพิมพ์ลายจากพืช ผ้าบาติก ผ้ามัดย้อมคราม":4,"การทำผ้ามัดย้อม และการแปรรูป":4,"มัดย้อม บาติก":3,"ทำผ้ามัดย้อม":2,"ผลิตภัณฑ์กาแฟ":2,"เกษตรกร":2,"งานโครเชต์ งานเย็บผ้าประดิษฐ์":1,"ออกแบบ และวางลายผ้า":1,"ผ้าบาติก และแปรรูปผลิตภัณฑ์":1,"มัดย้อม \/เพ้นผ้าปาเต๊ะ":1,"ตัดเย็บเสื้อผ้า เพ้นท์ผ้า มัดย้อม":1,"การทำบาติก ผ้ามัดย้อม":1,"ปราชญ์ชาวบ้าน ทำผ้าบาติก มัดย้อม":1,"ผ้าพิมพ์ลายจากพืช":1,"ผลิตผ้าบาติก":1,"เพ้นท์ผ้า ปักผ้า จัดดอกไม้ เขียนป้าย":1,"ตัดเย็บชิ้นงานผลิตภัณฑ์จากผ้า และงานประดิษฐ์ DIY":1,"เย็บผ้า การพิมพ์ การย้อมสี":1,"ตัดเย็บเสื้อผ้า":1,"ทำผ้าอีโค้ปริ๊น":1,"การทำผ้ามัดย้อมสีจากดอกดาวเรือง และการแปรรูปผลิตภัณฑ์":1,"ผลิตผ้ามัดย้อมคราม Eco Print และการแปรรูปผลิตภัณฑ์":1,"ปั้ม พิมพ์ลายผ้า":1,"ปั๊มลายผ้า":1,"การตัดเย็บ":1,"การทำผ้าผ้าบาติก":1,"ผลิตผ้าบาติก และผ้ามัดย้อมสี":1,"สกัดสีธรรมชาติ":1}},"ประจวบคีรีขันธ์":{"total_hh":121,"total_members":92,"total_inno":92,"total_gen":0,"districts":{"อำเภอกุยบุรี":59,"อำเภอบางสะพาน":55,"อำเภอทับสะแก":3,"อำเภอหัวหิน":1,"อำเภอบางสะพานน้อย":1,"อำเภอสามร้อยยอด":1,"อำเภอปราณบุรี":1},"business_types":{"เกษตรกร":55,"รับจ้าง":14,"-":6,"เลี้ยงผึ้งโพรงและชันโรง":4,"เลี้ยงผึ้ง":4,"เลี้ยงผึ้งโพรง":2,"บ้านนกแอ่น":2,"ปอกมะละกอ":2,"ทำไร่ยาง":1,"ปลูกมะม่วง วัว":1,"สมาชิก ผึ้ง":1,"ค้าขาย ผัก ไก่ย่าง":1,"ทำไร่สับปะรด มะม่วง":1,"รับจ้างทั่วไป":1,"รับจ้้าง":1,"ปลูกมะพร้าว":1,"บริการท่องเที่ยวอุทยาน":1,"นวด":1,"กรีดยาง ผึ้ง":1,"เกษตรอินทรีย์":1,"ธุรกิจการผลิต":1,"รับจ้าง เลี้ยงวัว":1,"รับจ้างเก็บมะละกอ":1,"ทำไร่่สับปะรด":1,"ทำไร่มะม่วง ฝรั่ง เลี้ยงผึ้ง":1,"รับจ้างทำไร่":1,"ผึ้งและผ้ามัดย้อม":1,"ไร่สับปะรด":1,"อุทยาน":1,"ปลูกมะนาว":1,"ทำไร่สับปะรด ยาง มะม่วง ผึ้ง":1,"สมาชิก เลี้ยงผึ้งโพรง ชันโรง":1,"ผึ้ง":1,"ก่อสร้าง":1,"ค่าขาย":1,"ทำไร่ ผึ้งยาง กรีดยาง":1,"ทำสวนมะม่วงและพริก":1,"ค้าขาย":1,"ทำไร่มะม่วง ค้าขาย":1,"เกษตรกรรม":1}},"ระยอง":{"total_hh":8,"total_members":9,"total_inno":9,"total_gen":0,"districts":{"อำเภอแกลง":8},"business_types":{"เกษตกรผู้ปลูกไผ่":8}},"สมุทรสงคราม":{"total_hh":169,"total_members":47,"total_inno":47,"total_gen":0,"districts":{"อำเภอบางคนที":123,"อำเภออัมพวา":38,"อำเภอเมืองสมุทรสงคราม":8},"business_types":{"เกษตรกร":85,"รับจ้าง":43,"แปรรูปการเกษตรจากงานวิจัย":19,"ย้อมผ้า":9,"เกษตรกรรม":6,"เกษตรกรนาเกลือ":2,"แปรรูปการเกษตร":2,"ค้าขาย":1,"เลี้ยงแมลง":1,"เกษตรกรสวนมะพร้าว ไม้ดอกไม้ประดับ":1}},"ลพบุรี":{"total_hh":219,"total_members":219,"total_inno":156,"total_gen":63,"districts":{"อำเภอท่าวุ้ง":95,"อำเภอชัยบาดาล":79,"อำเภอท่าหลวง":32,"อำเภอบ้านหมี่":5,"อำเภอลำสนธิ":5,"อำเภอเมืองลพบุรี":2,"อำเภอพัฒนานิคม":1},"business_types":{"จัดหาวัตถุดิบชีวมวลสำหรับการเป็นพลังงาน เพื่ออุตสาหกรรมชุมชน":61,"เกษตร":49,"ทำการเกษตร":36,"การเกษตร":29,"จัดหาวัตถุดิบชีวมวลสำหรับการสับเป็นพลังงาน เพื่ออุตสาหกรรมชุมชน":18,"ลูกจ้างในธุรกิจแปรรูปไม้เป็นเชื้อเพลิงชีวมวล":15,"ฟาร์มโคนม":4,"สมาชิกวิสาหกิจชุมชน":3,"สมาชิกวิสาหกิจ":2,"นวัตกรชุมชน":1,"รองประธานวิสาหกิจชุมชน":1}},"สิงห์บุรี":{"total_hh":2,"total_members":2,"total_inno":2,"total_gen":0,"districts":{"อำเภอเมืองสิงห์บุรี":1,"อำเภอพรหมบุรี":1},"business_types":{"จัดหาวัตถุดิบชีวมวลสำหรับการสับเป็นพลังงาน เพื่ออุตสาหกรรมชุมชน":1,"ผลิตและจำหน่าย":1}},"นครปฐม":{"total_hh":171,"total_members":54,"total_inno":54,"total_gen":0,"districts":{"อำเภอสามพราน":55,"อำเภอนครชัยศรี":53,"อำเภอเมืองนครปฐม":46,"อำเภอดอนตูม":10,"อำเภอกำแพงแสน":5,"อำเภอพุทธมณฑล":2},"business_types":{"เกษตรกรรม":57,"แก้วถัก":55,"เกษตกรผู้ปลูกกล้วย":29,"กลุ่มอาชีพ\/กลุ่มแปรรูปสินค้าในชุมชน":15,"ผู้ประกอบการชุมชน":4,"เกษียณราชการ":2,"เกษตรอินทรีย์":1,"เลี้ยงแมลง":1,"วิสาหกิจชุม":1,"รับราชการ\/กลุ่มอาชีพ":1,"ข้าราชการ และเกษตรกรปลูกกล้วย":1,"ข้าราชการบำนาญและปลูกกล้วย":1,"ลูกจ้างเอกชน":1,"เกษตกรผู้ปลูกกล้วย ในจังหวัดนครปฐม":1,"รับจ้าง":1}},"ชัยภูมิ":{"total_hh":445,"total_members":189,"total_inno":159,"total_gen":30,"districts":{"อำเภอเกษตรสมบูรณ์":122,"อำเภอภักดีชุมพล":108,"อำเภอหนองบัวแดง":89,"อำเภอเนินสง่า":72,"อำเภอเทพสถิต":23,"อำเภอเมืองชัยภูมิ":14,"อำเภอบำเหน็จณรงค์":5,"อำเภอจัตุรัส":5,"อำเภอหนองบัวระเหว":3,"อำเภอซับใหญ่":2,"อำเภอบ้านเขว้า":1,"อำเภอแก้งคร้อ":1},"business_types":{"ตลาดกลางมะขามหวานบ้านซับประสิทธิ์":104,"ปลูกหม่อน เลี้ยงไหม เพื่อจำหน่ายให้กับ บ.จุลไหมไทย จำกัด":92,"วิสาหกิจชุมชนปลูกกล้วยหอมทองเพื่อการส่งออก":70,"เกษตรกรรม":52,"วิสาหกิจชุมชนกล้วยหอมทองแปลงใหญ่":49,"เลี้ยงจิ้งหรีด":28,"ปลูกหม่อน เลี้ยงไหม":20,"เกษตรกร":17,"ปลูกหม่อน\/เลี้ยงไหม":8,"รับจ้าง":3,"ทำการเกษตร":1,"ผลิตเครื่องเงิน":1}},"กระบี่":{"total_hh":42,"total_members":33,"total_inno":33,"total_gen":0,"districts":{"อำเภอคลองท่อม":23,"อำเภอเมืองกระบี่":9,"อำเภอเหนือคลอง":8,"อำเภอเขาพนม":2},"business_types":{"แปรรูปผลิตภัณฑ์เครื่องแกงปักษ์ใต้":10,"เกษตรกรผู้ปลูกโกโก้":9,"เพาะเลี้ยงสัตว์น้ำและประมงพื้นบ้าน":9,"การทำผ้ามัดย้อม และการแปรรูปผลิตภัณฑ์":5,"เกษตรกรรม":4,"การทำผ้ามัดย้อม บาติก และการแปรรูป":2,"การแปรรูปและจำหน่ายผลิตภัณฑ์ผ่านช่องทางของตนเอง":1,"มัดย้อม บาติก สกัดสี สกรีน":1,"มัดย้อม,บาติก,สกัดสี,สกรีน, ลายอัตลักษณ์":1}},"สมุทรสาคร":{"total_hh":145,"total_members":19,"total_inno":19,"total_gen":0,"districts":{"อำเภอบ้านแพ้ว":144,"อำเภอกระทุ่มแบน":1},"business_types":{"เกษตรกรรม":130,"ทำสวนมะพร้าว":5,"รับจ้าง":2,"เกษตรกร":2,"เลี้ยงแพะ":2,"ขายมะพร้าวน้ำหอม":1,"ทำไม้":1,"ค้าขาย":1,"เผาถ่าน เลี้ยงแพะ":1}},"สระบุรี":{"total_hh":42,"total_members":42,"total_inno":24,"total_gen":18,"districts":{"อำเภอมวกเหล็ก":37,"อำเภอบ้านหมอ":2,"อำเภอเมืองสระบุรี":2,"อำเภอวิหารแดง":1},"business_types":{"ฟาร์มโคนม":34,"เจ้าหน้าที่ส่งเสริม":3,"ธุรกิจการผลิต":2,"เลี้ยงแมลง":1,"กลุ่มมะขามแช่อิ่มอำเภอหนองไผ่":1,"ผู้ประกอบการ":1}},"ชลบุรี":{"total_hh":30,"total_members":30,"total_inno":30,"total_gen":0,"districts":{"อำเภอเกาะจันทร์":19,"อำเภอเมืองชลบุรี":5,"อำเภอบ่อทอง":4,"อำเภอสัตหีบ":2},"business_types":{"แปรรูปอาหาร":18,"ธุรกิจการผลิต":4,"ธุรกิจการผลิตและบริการ":3,"เลี้ยงแมลง":3,"ขายออนไลน์":1,"ผลิตเครื่องเงิน":1}},"สมุทรปราการ":{"total_hh":182,"total_members":143,"total_inno":143,"total_gen":0,"districts":{"อำเภอบางพลี":74,"อำเภอพระประแดง":63,"อำเภอบางบ่อ":23,"อำเภอเมืองสมุทรปราการ":13,"อำเภอบางเสาธง":9},"business_types":{"ขายมะม่วงน้ำดอกไม้ GI ผลสดและกิ่งพันธุ์":59,"เกษตรกรผู้เลี้ยงเป็ดปากน้ำ":53,"ค้าขาย\/สินค้าเกษตร":28,"ผลิตภัณฑ์แปรรูปอาหาร":13,"ผลิตภัณฑ์แปรรูปสมุนไพร":7,"ผู้เพาะพันธุ์เป็ดปากน้ำ ผู้เลี้ยงเป็ดปากน้ำ":6,"ผลิตภัณฑ์ทางการเกษตร":2,"ผลิตภัณฑ์การเกษตร":2,"ธุรกิจการผลิต":2,"ไข่ ลูกเป็ด เนื้อเป็ด":1,"ปลูกมะม่วงน้ำดอกไม้":1,"ผลิตภัณฑ์รองเท้าหนัง":1,"เลี้ยงแมลง":1,"เลี้ยงปลา":1,"ผลิตภัณฑ์การเกษตรผักเคลและแปรรูปผักเคล":1,"ผลิตภัณฑ์การเกษตรและแปรรูปผลิตภัณฑ์":1,"ผลิตภัณฑ์ทางการเกษตร การแปรรูปผักเคล":1,"เกษตรและอาหารแปรรูป":1,"ผลิตภัณฑ์แปรรูปอาหารและผลิตภัณฑ์แปรรูปสมุนไพร":1}},"ยะลา":{"total_hh":339,"total_members":235,"total_inno":170,"total_gen":65,"districts":{"อำเภอรามัน":134,"อำเภอยะหา":70,"อำเภอกรงปินัง":62,"อำเภอเบตง":42,"อำเภอเมืองยะลา":27,"อำเภอบันนังสตา":2,"อำเภอกาบัง":2},"business_types":{"เกษตรกรรม":116,"ขายน้ำผึ้งชันโรง":68,"-":55,"ผึ้งชันโรง":46,"น้ำผึ้งชันโรง":12,"รับจ้าง":7,"ลูกจ้าง":6,"ผู้ประกอบการ":6,"ผลิตแกงมัสมันเนื้อ":5," ขายน้ำผึ้งชันโรง":5,"ขนมBUKO":2,"ธุรกิจส่วนตัว":2,"ปลูกกาแฟ":2,"น้ำผึ้งชันโรงสด":1,"ข้าราชการ\/เกษตร":1,"เกษตร":1,"ปลูกกาแฟโรบัสต้า":1,"การปลูกกาแฟ":1,"ประธานกลุ่ม":1,"เจ้าของฟาร์มกาแฟบันนังสาเรง":1}},"บึงกาฬ":{"total_hh":56,"total_members":56,"total_inno":56,"total_gen":0,"districts":{"อำเภอเซกา":28,"อำเภอศรีวิไล":19,"อำเภอเมืองบึงกาฬ":4,"อำเภอโซ่พิสัย":3,"อำเภอบึงโขงหลง":1,"อำเภอพรเจริญ":1},"business_types":{"เลี้ยงโค":15,"เลี้ยงกระบือ":13,"เลี้ยงโคเนื้อ":12,"เลี้ยงแพะ":7,"เลี้ยงโคและกระบือ":3,"เลี้ยงกระบือและไก่":1,"เลี้ยงกระบือและไก่ไข่":1,"เลี้ยงสุกรและกระบือ":1,"เกษตรกรรม":1,"เลี้ยงแพะและแกะ":1,"เลี้ยงแกะ":1}},"อำนาจเจริญ":{"total_hh":91,"total_members":50,"total_inno":25,"total_gen":25,"districts":{"อำเภอเมืองอำนาจเจริญ":39,"อำเภอเสนางคนิคม":13,"อำเภอพนา":11,"อำเภอชานุมาน":9,"อำเภอลืออำนาจ":7,"อำเภอปทุมราชวงศา":7,"อำเภอหัวตะพาน":5},"business_types":{"เกษตรกรรม":15,"กลุ่มวิสาหกิจชุมชนแปรรูปผลผลิตทางการเกษตรตำบลหนองสามสี":7,"กลุ่มสหกรณ์ส่งเสริมเกษตรพนา จำกัด":6,"กลุ่มปลาส้มเมืองพนา":6,"กลุ่มวิสาหกิจชุมชนกลุ่มผู้ปลูกตะไคร้":6,"รับจ้าง":5,"กลุ่มวุ้นเส้นนาผาง":5,"กลุ่มวิสาหกิจชุมชนศูนย์จัดการดินปุ๋ยชุมชนและเพาะเห็ด ม.4":5,"กลุ่มวิสาหกิจชุมชนเพิ่มพลังเสนางคนิคม":4,"กลุ่มวิสาหกิจชุมชนกลุ่มแปรรูปผลิตภัณฑ์จากผึ้ง":3,"กลุ่มวิสาหกิจชุมชนผลิตภัณฑ์อาหารและสมุนไพรตำบลน้ำปลีก":3,"กลุ่มวิสาหกิจชุมชนแปรรูปอาหารและเครื่องดื่มโพนขวาว":3,"กลุ่มข้าวอินทรีย์นาหนองพี่โมเดล":2,"กลุ่มวิสาหกิจชุมชนเกษตร 4.0 ป่าก่อ ม.1":2,"ค้าขาย":2,"กลุ่มนานาเพื่อนสมุนไพร":2,"ข้าราชการตำรวจ(บำนาญ)":1,"ทำนา และ รับจ้างทั่วไป":1,"ทำนา":1,"พนักงงานมหาวิทยาลัย":1,"ช่างซ่อมรถยนต์ \/จักรยานยนต์\/จักรยาน":1,"รับจ้างทั่วไป":1,"กลุ่มวิสาหกิจชุมชนกลุ่มส่งเสริมอาชีพสมุนไพรไทยบ้านคำน้อย":1,"พนักงานมหาวิทยาลัย":1,"กลุ่มอมรฟาร์ม":1,"กลุ่มผู้ปลูกกาแฟ":1,"กลุ่มแปลงใหญ่โคเนื้อกลุ่มอนุรักษ์ฯ บ้านหวาย":1,"แปรรูป":1,"กลุ่มปลาร้าปลาส้มบ้านฟ้าห่วน":1,"กลุ่มผู้ปลุกกาแฟบ้านคำแก้วเมืองเก่า":1,"รับราชการ":1}},"ศรีสะเกษ":{"total_hh":209,"total_members":132,"total_inno":113,"total_gen":19,"districts":{"อำเภอขุนหาญ":177,"อำเภออุทุมพรพิสัย":12,"อำเภอห้วยทับทัน":9,"อำเภอศรีรัตนะ":3,"อำเภอวังหิน":2,"อำเภอกันทรลักษ์":2,"อำเภอโพธิ์ศรีสุวรรณ":2,"อำเภอขุขันธ์":1,"อำเภอภูสิงห์":1},"business_types":{"เกษตรสวนทุเรียน":182,"ทำนา":4,"เกษตร":3,"ส.อบต.":3,"รับจ้างทั่วไป":3,"เกษตกร":2,"เกษตรกร":2,"เกษตรกรรม":2,"เกษตรและอาหารแปรรูป":1,"บริษัท ราชาฟาร์มการเกษตร จำกัด":1,"เลี้ยงไหม":1,"นายก อบต.กล้วยกว้าง":1,"รับราชการ":1,"ลูกจ้างรัฐ":1,"รับจ้าง":1,"Startup SME":1}},"ยโสธร":{"total_hh":4,"total_members":1,"total_inno":1,"total_gen":0,"districts":{"อำเภอกุดชุม":2,"อำเภอไทยเจริญ":1,"อำเภอค้อวัง":1},"business_types":{"ผลิตเครื่องเงิน":2,"รับจ้าง":1,"เกษตรกรรม":1}},"อุทัยธานี":{"total_hh":87,"total_members":6,"total_inno":3,"total_gen":3,"districts":{"อำเภอบ้านไร่":81,"อำเภอหนองฉาง":2,"อำเภอห้วยคต":1,"อำเภอทัพทัน":1,"อำเภอหนองขาหย่าง":1,"อำเภอลานสัก":1},"business_types":{"โรงงานผลิตน้ำตาล":81,"เลี้ยงไหม":1,"ขายอาหารแปรรูปจากแปลงเกษตร":1,"โฮมสเตย์\/ไร่นาสวนผสม":1,"เกษตรกรและแม่ค้า":1,"ส่วนตัว":1,"ครอบครัว":1}},"นนทบุรี":{"total_hh":9,"total_members":6,"total_inno":5,"total_gen":1,"districts":{"อำเภอเมืองนนทบุรี":6,"อำเภอบางกรวย":2,"อำเภอปากเกร็ด":1},"business_types":{"เลี้ยงแมลง":3,"กลุ่มมะขามแช่อิ่มอำเภอหนองไผ่":3,"ผู้ประกอบการ":2,"ค้าขาย":1}},"ปทุมธานี":{"total_hh":77,"total_members":74,"total_inno":27,"total_gen":47,"districts":{"อำเภอคลองหลวง":52,"อำเภอลาดหลุมแก้ว":10,"อำเภอธัญบุรี":6,"อำเภอหนองเสือ":5,"อำเภอเมืองปทุมธานี":2,"อำเภอสามโคก":1,"อำเภอลำลูกกา":1},"business_types":{"เกษตรอินทรีย์":31,"ค้าขาย":10,"ปลาส้ม":5,"เกษตรกร":4,"เกษตรกรรม":4,"อาหาร":2,"ทำนา":2,"ธุรกิจเกษตร":1,"ทำการเกษตร":1,"อาหารและเครื่องดื่ม ,งานCraft":1,"ขายน้ำพริก ไส้กรอก":1,"การเกษตร":1,"รายเดียว,วิสาหกิจชุมชน":1,"วิสาหกิจชุมชน":1,"โรงเรียนกีฬาไก่ชน":1,"สวนมะพร้าว":1,"สถานศึกษา":1,"รับทำอาหาร":1,"สวนมะม่วง":1,"ฟาร์มชันโรง":1,"ปลาแดดเดียว":1,"ปลูกข้าว ทำนา":1,"ค้าขาย ปลาแดดดียว":1,"พัฒนาไก่ชนสวยงาม":1,"อาหารและเครื่องดื่ม":1,"นวัตกรชุมชน":1}},"อุบลราชธานี":{"total_hh":367,"total_members":218,"total_inno":192,"total_gen":26,"districts":{"อำเภอตระการพืชผล":98,"อำเภอดอนมดแดง":36,"อำเภอสว่างวีระวงศ์":34,"อำเภอเดชอุดม":33,"อำเภอบุณฑริก":24,"อำเภอเมืองอุบลราชธานี":22,"อำเภอวารินชำราบ":19,"อำเภอม่วงสามสิบ":19,"อำเภอพิบูลมังสาหาร":13,"อำเภอน้ำขุ่น":12,"อำเภอนาจะหลวย":12,"อำเภอกุดข้าวปุ้น":11,"อำเภอเขื่องใน":7,"อำเภอสิรินธร":5,"อำเภอน้ำยืน":4,"อำเภอทุ่งศรีอุดม":4,"อำเภอนาเยีย":3,"อำเภอสำโรง":3,"อำเภอเขมราฐ":2,"อำเภอนาตาล":2,"อำเภอตาลสุม":2,"อำเภอศรีเมืองใหม่":1,"อำเภอโพธิ์ไทร":1},"business_types":{"ผลิตโคเนื้อ":147,"เกษตรกรรม":126,"เกษตรกร":20,"เกษตรอินทรีย์":16,"แปรรูปอาหาร":4,"เลี้ยงโคต้นน้ำ":2,"เกษตร":2,"เลี้ยงโคนิล ทำนา":2,"เลี้ยงโคนิล":2,"เลี้ยงวัว":2,"เกษตรกร ค้าขาย":2,"เลี้ยงโค":2,"ข้าว":1,"ผู้เลี้ยงโคนิล และมีความสนใจจะขายสินค้าแปรรูปจากเนื้อโค":1,"เลี้ยงโคขาย":1,"แปรรูปเพิมมุลค่าเกษตร":1,"อาหาร":1,"ผู้แปรรูปเนื้อโค":1,"การเลี้ยงโค":1,"ตัดแต่งและชำแหละเนื้อโคจำหน่าย":1,"วิสาหกิจชุมชน เครือข่าย":1,"เลี้ยงวัวทั้งพันธุ์พื้นเมือง และโคนิลอุบล":1,"แปรรูป":1,"เกษตรกรและค้าขาย":1,"รับจ้างทั่วไป":1,"ข้าราชการเกษียณ":1,"ผลิตเครื่องเงิน":1,"ค้าขาย":1,"แปรรูปกล้วย":1,"วิสาหกิจชุมชน":1,"ทำนา เลี้ยงวัว ขายวัว":1,"แม่รัตน์แจ่วบองท่าช้างน้อย":1,"รับซื้ออาหารแปรรูปจากชุมชนและจำหน่าย":1,"แปรรูปกล้วยและแปรรูปผลิตภัณฑ์จากเนื้อ":1,"แปรรูปสินค้าเกษตรและจำหน่าย":1,"เลี้ยงโค แปรรูป ขาย":1,"ผู้เลี้ยงโคขุนบรามันส์":1,"แปรรูปผลิตภัณฑ์เนื้อ":1,"ผู้เลี้ยงโคนิล และบรามัน":1,"เลี้ยงโคนิล ปุ๋ยโคนิล ทำไร่ ทำสวน รับจ้างผลิตผลิตภัณฑ์เนื้อโคนิล":1,"ผู้เลี้ยงโคนิล":1,"เลี้ยงวัว แปรรูป":1,"เลี้ยงแม่พันธุ์ และขุนโคนิล":1,"เกษตรกรเลี้ยงแม่พันธุ์โคขุน":1,"เลี้ยงแม่พันธ์ุ และโคขุน":1,"เลี้ยงวัว ทำนา ปลูกข้าวโพด":1,"เลี้ยงวัวแม่พันธุ์":1,"แปรรูปเนื้อ":1,"เลี้ยงโคนิลอุบล":1,"ปลารากกล้วยตากแห้ง ปลาขาวตากแห้ง ปลาแก้วตากแห้ง":1,"เลี้ยงโคขุนนิล":1,"แปรรูปโคนิล ขาย":1}},"สุรินทร์":{"total_hh":17,"total_members":5,"total_inno":5,"total_gen":0,"districts":{"อำเภอเมืองสุรินทร์":5,"อำเภอศีขรภูมิ":3,"อำเภอท่าตูม":2,"อำเภอชุมพลบุรี":2,"อำเภอลำดวน":2,"อำเภอจอมพระ":1,"อำเภอบัวเชด":1,"อำเภอสังขะ":1},"business_types":{"เกษตรกร":15,"เกษตรกรรม":1,"ผู้นำชุมชน":1}}};
+
+function createProgressItem(label, count, maxVal, colorClass) {
+    let pct = maxVal > 0 ? (count / maxVal) * 100 : 0;
+    return `
+        <div class="progress-list-item">
+            <div class="progress-list-label">
+                <span>${label}</span>
+                <span class="text-dark">${count.toLocaleString()} <small class="text-muted font-weight-normal">รายการ</small></span>
+            </div>
+            <div class="progress progress-sm">
+                <div class="progress-bar progress-bar-custom bg-${colorClass}" style="width: ${pct}%"></div>
+            </div>
+        </div>
+    `;
+}
+
+function showFamilyDetails(provinceName) {
+    let pNameTH = provinceName;
+    if (provinceName === 'Bangkok') { pNameTH = 'กรุงเทพมหานคร'; }
+    document.getElementById('modalProvinceName').innerText = 'จ.' + pNameTH;
+    
+    const data = provData[provinceName];
+    const distContainer = document.getElementById('districtListContainer');
+    const bizContainer = document.getElementById('businessListContainer');
+
+    if (data) {
+        document.getElementById('md-total-hh').innerText = data.total_hh.toLocaleString();
+        document.getElementById('md-total-members').innerText = data.total_members.toLocaleString();
+        document.getElementById('md-inno').innerText = data.total_inno.toLocaleString();
+        document.getElementById('md-gen').innerText = data.total_gen.toLocaleString();
+
+        distContainer.innerHTML = '';
+        let maxDist = 0;
+        for(let d in data.districts) { if(data.districts[d] > maxDist) maxDist = data.districts[d]; }
+        for(let d in data.districts) { distContainer.innerHTML += createProgressItem(d, data.districts[d], maxDist, 'info'); }
+
+        bizContainer.innerHTML = '';
+        let maxBiz = 0;
+        for(let b in data.business_types) { if(data.business_types[b] > maxBiz) maxBiz = data.business_types[b]; }
+        for(let b in data.business_types) { bizContainer.innerHTML += createProgressItem(b, data.business_types[b], maxBiz, 'primary'); }
+
+    } else {
+        document.getElementById('md-total-hh').innerText = '0';
+        document.getElementById('md-total-members').innerText = '0';
+        document.getElementById('md-inno').innerText = '0';
+        document.getElementById('md-gen').innerText = '0';
+        distContainer.innerHTML = '<div class="text-center text-muted mt-4">ไม่พบข้อมูล</div>';
+        bizContainer.innerHTML = '<div class="text-center text-muted mt-4">ไม่พบข้อมูล</div>';
+    }
+
+    $('#provinceDetailModal').modal('show');
+}
+
+// 1. โหลดแผนที่ Google GeoChart
+    google.charts.load('current', { 'packages':['geochart'], 'language': 'th' });
+    google.charts.setOnLoadCallback(drawRegionsMap);
+
+    function drawRegionsMap() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'จังหวัด');
+        data.addColumn('number', 'จำนวนครัวเรือน');
+
+        data.addRows([
+            ['เชียงใหม่', 1439],['สงขลา', 1377],['สกลนคร', 1299],['นครราชสีมา', 1064],['เชียงราย', 878],['อุดรธานี', 761],['นครศรีธรรมราช', 744],['ปัตตานี', 699],['นราธิวาส', 676],['สตูล', 664],['ชุมพร', 653],['กาฬสินธุ์', 610],['ขอนแก่น', 537],['ลำปาง', 522],['พะเยา', 474],['ร้อยเอ็ด', 472],['เพชรบูรณ์', 457],['อุตรดิตถ์', 456],['ชัยภูมิ', 445],['บุรีรัมย์', 418],['แม่ฮ่องสอน', 401],['ชัยนาท', 401],['พิษณุโลก', 400],['ฉะเชิงเทรา', 387],['ตรัง', 376],['พัทลุง', 372],['อุบลราชธานี', 367],['แพร่', 360],['ยะลา', 339],['นครพนม', 338],['สุพรรณบุรี', 306],['หนองบัวลำภู', 259],['ลพบุรี', 219],['ศรีสะเกษ', 209],['กำแพงเพชร', 207],['ลำพูน', 198],['เลย', 190],['ระนอง', 184],['สมุทรปราการ', 182],['นครสวรรค์', 181],['นครปฐม', 171],['น่าน', 171],['สมุทรสงคราม', 169],['ราชบุรี', 156],['สมุทรสาคร', 145],['ตราด', 133],['ประจวบคีรีขันธ์', 121],['สระแก้ว', 111],['ปราจีนบุรี', 108],['อำนาจเจริญ', 91],['พังงา', 90],['อุทัยธานี', 87],['ปทุมธานี', 77],['พิจิตร', 77],['หนองคาย', 73],['สุราษฎร์ธานี', 72],['ภูเก็ต', 61],['สุโขทัย', 61],['กาญจนบุรี', 60],['บึงกาฬ', 56],['พระนครศรีอยุธยา', 51],['กระบี่', 42],['สระบุรี', 42],['มหาสารคาม', 32],['เพชรบุรี', 30],['ชลบุรี', 30],['ตาก', 29],['Bangkok', 20],['สุรินทร์', 17],['อ่างทอง', 16],['นนทบุรี', 9],['ระยอง', 8],['ยโสธร', 4],['สิงห์บุรี', 2],['มุกดาหาร', 2],        ]);
+
+        var options = {
+            region: 'TH', displayMode: 'regions', resolution: 'provinces',  
+            colorAxis: {colors: ['#a7f3d0', '#10b981', '#047857']}, 
+            backgroundColor: 'transparent', datalessRegionColor: '#f1f5f9', defaultColor: '#f1f5f9',
+            tooltip: { textStyle: { fontName: 'Prompt', fontSize: 14 } }
+        };
+
+        var chart = new google.visualization.GeoChart(document.getElementById('geoMapChart'));
+        google.visualization.events.addListener(chart, 'select', function() {
+            var selection = chart.getSelection();
+            if (selection.length > 0) {
+                var row = selection[0].row;
+                showFamilyDetails(data.getValue(row, 0)); 
+            }
+        });
+        chart.draw(data, options);
+    }
+
+document.addEventListener("DOMContentLoaded", function() {
+    Chart.register(ChartDataLabels);
+
+    // 2. กราฟโดนัท สัดส่วนกำลังคน
+    const ctxPie = document.getElementById('memberPieChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: ['นวัตกรชุมชน', 'ผู้ใช้ทั่วไป'],
+            datasets: [{
+                data: [11860, 5435],
+                backgroundColor: ['#f59e0b', '#cbd5e1'],
+                borderWidth: 2, borderColor: '#fff', hoverOffset: 5
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '60%',
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 13 }, padding: 15 } },
+                datalabels: {
+                    color: '#fff', font: { family: 'Prompt', weight: 'bold', size: 16 },
+                    formatter: (value, ctx) => {
+                        let sum = 17295;
+                        return sum > 0 ? (value*100 / sum).toFixed(1) + "%" : '';
+                    }
+                }
+            }
+        }
+    });
+
+    // 3. กราฟแท่ง ประเภทธุรกิจ
+    const ctxBiz = document.getElementById('bizBarChart').getContext('2d');
+    const bizLabels = []; const bizData = [];
+            bizLabels.push("เกษตรกรรม"); bizData.push(3387);
+            bizLabels.push("เกษตรกร"); bizData.push(2208);
+            bizLabels.push("เกษตรอินทรีย์"); bizData.push(952);
+            bizLabels.push("เกษตร"); bizData.push(501);
+            bizLabels.push("ปศุสัตว์"); bizData.push(413);
+            bizLabels.push("รับจ้าง"); bizData.push(369);
+            bizLabels.push("-"); bizData.push(303);
+            bizLabels.push("เกษตรกรผู้เลี้ยงโคนม"); bizData.push(298);
+            bizLabels.push("เกษตรกรผู้เลี้ยงสุกร"); bizData.push(225);
+            bizLabels.push("เลี้ยงผึ้งชันโรง"); bizData.push(200);
+            bizLabels.push("ผึ้งชันโรง"); bizData.push(195);
+            bizLabels.push("เกษตรสวนทุเรียน"); bizData.push(182);
+            bizLabels.push("ผลิตภัณฑ์กาแฟ"); bizData.push(180);
+            bizLabels.push("เกษตรและอาหารแปรรูป"); bizData.push(174);
+            bizLabels.push("เครื่องแกง"); bizData.push(170);
+    
+    new Chart(ctxBiz, {
+        type: 'bar',
+        data: {
+            labels: bizLabels,
+            datasets: [{
+                label: 'จำนวนครัวเรือน',
+                data: bizData,
+                backgroundColor: '#3b82f6', borderRadius: 4, barPercentage: 0.6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            layout: { padding: { top: 25 } },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    anchor: 'end', align: 'top', color: '#0f172a',
+                    font: { family: 'Prompt', weight: 'bold', size: 12 },
+                    formatter: function(value) { return value > 0 ? value.toLocaleString() : ''; }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { font: { family: 'Prompt' } } },
+                x: { ticks: { font: { family: 'Prompt', size: 12 }, maxRotation: 45, minRotation: 45 } }
+            }
+        }
+    });
+});
+
+$('#filterForm').on('submit', function() { $('#preloadOverlay').css('display', 'flex'); });
+window.addEventListener('pageshow', function(){ document.getElementById('preloadOverlay').style.display = 'none'; });
+</script>
+
+</body>
+</html>

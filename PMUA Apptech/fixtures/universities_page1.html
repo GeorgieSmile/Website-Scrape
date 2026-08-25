@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="th" class="no-js">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>เครือข่ายมหาวิทยาลัย | PMUA App Tech – ยื่นข้อเสนอโครงการ · นวัตกรรมพร้อมใช้ · ข้อมูลพื้นที่ · Dashboard · ข่าวสาร</title>
+	<link rel="shortcut icon" href="https://pmua-apptech.com//pic/logohead.png">
+	    
+  
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:300,500,600" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500i" rel="stylesheet">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/themify-icons/0.1.2/css/themify-icons.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/linearicons.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com//temptour/fontawesome/css/all.css" >
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/bootstrap.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/magnific-popup.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/nice-select.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/animate.min.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/owl.carousel.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/main.css">
+	
+	<link rel="stylesheet"  href="https://pmua-apptech.com/slick/slick.css"/>
+	<link rel="stylesheet"  href="https://pmua-apptech.com/slick/slick-theme.css"/>
+	
+	
+	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+	<!-- วางแท็กนี้ในส่วนหัวหรือก่อนแท็กปิดของเนื้อความ -->
+	<script src="https://apis.google.com/js/platform.js" async defer>
+	  {lang: 'th'}
+	</script>
+	
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+	
+	<style>
+		/* Global Background */
+		body { 
+            background: linear-gradient(to bottom, #f0f7ff, #f8fafc);
+            font-family: 'Prompt', sans-serif; 
+            color: #334155; 
+        }
+		
+		/* --- Page Header Modern Style --- */
+        .page-header-modern { 
+            background: #fff; 
+            padding: 50px 0; 
+            border-bottom: 1px solid #e2e8f0; 
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+        /* ลายกราฟิกจางๆ ด้านหลัง Header */
+        .page-header-modern::before {
+            content: "";
+            position: absolute; top: -50%; right: -10%;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(59,130,246,0.05) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        /* --- Search Box --- */
+		.search-box { position: relative; max-width: 500px; margin-left: auto; z-index: 1; }
+		.search-box input {
+			padding-left: 55px; border-radius: 12px; height: 55px;
+			border: 1px solid #cbd5e1; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            font-size: 1rem; transition: all 0.3s;
+		}
+        .search-box input:focus { 
+            outline: none; 
+            border-color: #3b82f6; 
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); 
+        }
+		.search-box i { 
+            position: absolute; left: 25px; top: 50%; transform: translateY(-50%); 
+            color: #94a3b8; font-size: 1.2rem; 
+        }
+
+        /* --- University Card Modern --- */
+		.univ-card {
+			background: #fff;
+			border: none;
+			border-radius: 20px;
+			padding: 30px 20px;
+			text-align: center;
+			height: 100%;
+			transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+            justify-content: flex-start;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); /* เงานุ่ม */
+		}
+        
+        /* แถบสีด้านบน */
+        .univ-card::before {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+            background: linear-gradient(90deg, #e2e8f0, #cbd5e1);
+            transition: 0.3s;
+        }
+
+        /* Hover Actions */
+        .univ-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.12);
+            text-decoration: none;
+        }
+        .univ-card:hover::before {
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+        }
+
+        /* Logo Box */
+        .univ-logo-box {
+            width: 100px; height: 100px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px;
+            background: #fff;
+            border-radius: 50%;
+            font-size: 3rem; color: #cbd5e1;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            border: 1px solid #f1f5f9;
+            transition: 0.3s;
+        }
+        .univ-card:hover .univ-logo-box {
+            color: #3b82f6;
+            border-color: #e0f2fe;
+            background: #f0f9ff;
+            transform: scale(1.05);
+        }
+
+        /* Typography */
+        .univ-name { 
+            font-weight: 700; font-size: 1.15rem; color: #1e293b; 
+            margin-bottom: 20px; line-height: 1.4;
+            display: flex; align-items: center; justify-content: center;
+            min-height: 50px; /* กันข้อความกระโดด */
+        }
+        .univ-card:hover .univ-name { color: #2563eb; }
+        
+        /* Stats Container */
+        .univ-stats-box {
+            width: 100%;
+            margin-top: auto;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #64748b;
+            border: 1px solid #f1f5f9;
+        }
+        
+        .univ-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 48%;
+            position: relative;
+        }
+        
+        .univ-stat-val {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #1e293b;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+        .univ-stat-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        /* Divider Line */
+        .univ-divider {
+            width: 1px; height: 30px; background: #e2e8f0;
+        }
+        
+        /* Pagination Modern */
+		.pagination { margin-top: 20px; }
+		.pagination .page-link { 
+            border: none; color: #64748b; margin: 0 5px; 
+            border-radius: 12px; font-weight: 600; font-size: 0.95rem; 
+            background: transparent; width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .pagination .page-link:hover { background: #f1f5f9; color: #3b82f6; }
+		.pagination .page-item.active .page-link { 
+            background-color: #3b82f6; color: #fff; 
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); 
+        }
+	</style>
+</head>
+<body>
+
+	
+	
+	
+<style>
+/* Modern Dark Navbar */
+.navbar-modern-dark {
+    background: linear-gradient(90deg, #2a4079, #3f5999);
+    box-shadow: 0 4px 20px rgba(42, 64, 121, 0.25);
+    padding: 12px 0;
+    transition: all 0.3s ease;
+}
+
+/* Brand Logo */
+.navbar-brand img {
+    transition: transform 0.2s;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+/* Nav Links (White Text) */
+.nav-modern .nav-item .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+}
+.nav-modern .nav-item .nav-link:hover,
+.nav-modern .nav-item.active .nav-link {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.15);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Dropdown Menu (White Box) */
+.dropdown-menu-modern {
+    border: 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    margin-top: 12px;
+    padding: 8px;
+    background: #fff;
+    min-width: 220px;
+}
+.dropdown-menu-modern .dropdown-item {
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    color: #334155;
+    font-weight: 500;
+}
+.dropdown-menu-modern .dropdown-item:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+.dropdown-menu-modern::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 20px;
+    width: 12px; height: 12px;
+    background: #fff;
+    transform: rotate(45deg);
+    box-shadow: -2px -2px 5px rgba(0,0,0,0.04);
+}
+
+/* Buttons */
+.btn-nav-login {
+    border-radius: 50px;
+    padding: 6px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.btn-nav-search {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: 0.2s;
+}
+.btn-nav-search:hover {
+    background: #fff;
+    color: #2a4079;
+    transform: scale(1.1);
+}
+
+/* Mobile Toggler */
+.navbar-toggler { border: 1px solid rgba(255,255,255,0.3); }
+.navbar-toggler-icon { 
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255, 255, 255, 0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); 
+}
+
+/* Scroll Offset */
+html {
+  scroll-padding-top: 100px; 
+  scroll-behavior: smooth;
+}
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-modern-dark sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://pmua-apptech.com/">
+      <img src="https://pmua-apptech.com/pic/logohead.png" width="100" alt="Logo" />
+    </a>
+
+    <button class="navbar-toggler" type="button" 
+            data-toggle="collapse" data-target="#navbarModern" 
+            data-bs-toggle="collapse" data-bs-target="#navbarModern"
+            aria-controls="navbarModern" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarModern">
+      
+      <ul class="navbar-nav mr-auto nav-modern align-items-center">
+        <li class="nav-item">
+          <a class="nav-link" href="https://pmua-apptech.com/">หน้าแรก</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://pmua-apptech.com/propose">เทคโนโลยีที่เหมาะสม</a>
+        </li>
+        
+        
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dashDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             สถิติ / Dashboard
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="dashDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard"><i class="fa fa-cubes mr-2 text-muted"></i> Dashboard นวัตกรรม</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard/familydashboard"><i class="fa fa-home mr-2 text-muted"></i> Dashboard ครัวเรือน</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard/innovatordashboard"><i class="fa fa-user mr-2 text-muted"></i> Dashboard นวัตกรชุมชน</a></li>
+          </ul>
+        </li>
+		
+		<li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="menuDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             เมนู
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="menuDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/news"><i class="fa fa-newspaper-o mr-2 text-muted"></i> ข่าวสาร</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/news/calendar"><i class="fa fa-calendar-check-o mr-2 text-muted"></i> ปฏิทินกิจกรรม</a></li>
+			<li><a class="dropdown-item" href="https://pmua-apptech.com/video"><i class="fa fa-video mr-2 text-muted"></i> วีดีโอ</a></li>
+            <div class="dropdown-divider"></div>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/problem"><i class="fa fa-exclamation-triangle mr-2 text-muted"></i> กระดานโจทย์ปัญหา</a></li>
+          </ul>
+        </li>
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="aboutDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             เกี่ยวกับเรา
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="aboutDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/about"><i class="fa fa-info-circle mr-2 text-muted"></i> เกี่ยวกับเรา</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/contact"><i class="fa fa-phone mr-2 text-muted"></i> ติดต่อเรา</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="d-flex align-items-center mt-3 mt-lg-0">
+        
+        <a href="https://pmua-apptech.com/search" class="btn-nav-search mr-3" >
+            <i class="fa fa-search"></i>
+        </a>
+
+                    <a href="https://pmua-apptech.com/userlogin/home" class="btn btn-warning btn-nav-login text-dark">
+                <i class="fa fa-user mr-1"></i> เข้าสู่ระบบ
+            </a>
+        
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+function goBack() { window.history.back(); }
+</script>
+	
+	<div class="page-header-modern">
+		<div class="container position-relative" style="z-index: 1;">
+			<div class="row align-items-center">
+				<div class="col-lg-6 mb-4 mb-lg-0">
+					<h2 class="font-weight-bold text-dark m-0">
+                        <i class="fas fa-network-wired text-primary mr-2"></i> เครือข่ายมหาวิทยาลัย
+                    </h2>
+					<p class="text-muted mt-2 mb-0" style="font-size: 1.1rem;">
+                        แหล่งรวมองค์ความรู้จาก <b>66</b> สถาบันชั้นนำในไทย
+                        <span class="badge badge-light border text-secondary ml-2 font-weight-normal">
+                            <i class="fas fa-filter mr-1"></i> 
+                        </span>
+                    </p>
+				</div>
+				<div class="col-lg-6">
+					<form action="https://pmua-apptech.com/welcome/universities" method="get">
+						<div class="search-box">
+							<i class="fas fa-search"></i>
+							<input type="text" name="q" class="form-control" placeholder="ค้นหาชื่อมหาวิทยาลัย หรือ สถาบัน..." value="">
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="container pb-5">
+					<div class="row g-4">
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/49" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">63</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">72</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/48" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยเทคโนโลยีราชมงคลล้านนา                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">46</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">68</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/51" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยเทคโนโลยีราชมงคลอีสาน                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">43</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">53</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/41" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยราชภัฏอุดรธานี                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">20</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">20</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/5" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยเชียงใหม่                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">20</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">13</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/12" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยแม่ฟ้าหลวง                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">19</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">9</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/6" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยขอนแก่น                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">15</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">13</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/24" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยนครพนม                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">15</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">9</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/38" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยราชภัฏหมู่บ้านจอมบึง                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">15</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">31</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/44" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยเทคโนโลยีราชมงคลกรุงเทพ                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">14</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">18</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/13" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยแม่โจ้                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">14</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">18</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+								<div class="col-12 col-md-6 col-lg-3 mb-4">
+					<a href="https://pmua-apptech.com/university/index/42" class="univ-card">
+                        
+                        <div class="univ-logo-box">
+                            <i class="fas fa-university"></i>
+                            </div>
+
+                        <div class="univ-name text-truncate-2">
+                            มหาวิทยาลัยราชภัฏอุตรดิตถ์                        </div>
+						
+                        <div class="univ-stats-box">
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val">13</span>
+                                <span class="univ-stat-label">นักวิจัย</span>
+                            </div>
+                            
+                            <div class="univ-divider"></div>
+                            
+                            <div class="univ-stat-item">
+                                <span class="univ-stat-val text-primary">109</span>
+                                <span class="univ-stat-label">นวัตกรรม</span>
+                            </div>
+                        </div>
+                        
+					</a>
+				</div>
+							</div>
+
+			<div class="row mt-5">
+				<div class="col-12">
+					<nav aria-label="Page navigation" class="d-flex justify-content-center">
+						<ul class="pagination justify-content-center"><li class="page-item active"><a href="#" class="page-link">1</a></li><li class="page-item"><a href="https://pmua-apptech.com/welcome/universities?per_page=12" class="page-link" data-ci-pagination-page="2">2</a></li><li class="page-item"><a href="https://pmua-apptech.com/welcome/universities?per_page=24" class="page-link" data-ci-pagination-page="3">3</a></li><li class="page-item"><a href="https://pmua-apptech.com/welcome/universities?per_page=12" class="page-link" data-ci-pagination-page="2" rel="next">&gt;</a></li><li class="page-item"><a href="https://pmua-apptech.com/welcome/universities?per_page=60" class="page-link" data-ci-pagination-page="6">Last &rsaquo;</a></li></ul>					</nav>
+				</div>
+			</div>
+			</div>
+
+	<style>
+    /* Footer Modern Styles */
+    .footer-modern {
+        /* background: ลบออก เพื่อให้ใช้ bg-primary จาก class html แทน */
+        color: rgba(255, 255, 255, 0.85); /* ปรับสีตัวอักษรให้ขาวจางๆ เพื่อให้อ่านง่ายบนพื้นสีเข้ม */
+        font-size: 0.95rem;
+        padding-top: 60px;
+        position: relative;
+    }
+
+    /* Headings */
+    .footer-widget-title {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 25px;
+        position: relative;
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .footer-widget-title::after {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: rgba(255,255,255,0.5); /* เส้นใต้หัวข้อสีขาวจางๆ */
+        margin-top: 8px;
+        border-radius: 2px;
+    }
+
+    /* Links List */
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .footer-links li {
+        margin-bottom: 12px;
+    }
+    .footer-links a {
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+    .footer-links a:hover {
+        color: #fff; /* Hover แล้วเป็นสีขาวสว่าง */
+        transform: translateX(5px);
+        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+    .footer-links a i {
+        font-size: 0.8rem;
+        margin-right: 8px;
+        opacity: 0.7;
+    }
+
+    /* Images & QR */
+    .sponsor-img {
+        background: #fff;
+        padding: 5px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .qr-box {
+        background: rgba(255,255,255,0.1);
+        padding: 10px;
+        border-radius: 10px;
+        display: inline-block;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Footer Bottom */
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.15);
+        padding: 25px 0;
+        margin-top: 40px;
+    }
+    
+    /* Social Icons */
+    .social-btn {
+        width: 40px; height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border-radius: 50%;
+        margin-left: 8px;
+        transition: 0.3s;
+        text-decoration: none !important;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .social-btn:hover {
+        background: #fff;
+        color: var(--primary); /* ใช้สีหลักของเว็บ (หรือสีน้ำเงิน) เมื่อ hover */
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    /* กรณีไม่มีตัวแปร var(--primary) ให้ fallback เป็นสีดำจางๆ หรือสีธีม */
+    .bg-primary .social-btn:hover { color: #000; } 
+</style>
+
+<footer class="footer-modern bg-primary">
+    <div class="container">
+        <div class="row">
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-widget-title">เกี่ยวกับเรา</h5>
+                <p class="mb-4 text-white-50" style="line-height: 1.6;">
+                    ใช้สำหรับค้นหาข้อมูล นวัตกรรม                </p>
+                
+                <div class="d-flex align-items-start gap-3">
+                                            <div class="mr-3">
+                            <img src="https://pmua-apptech.com/pic/sponcor/1.png" class="img-fluid sponsor-img" width="120" alt="Sponsor">
+                        </div>
+                                        
+                    <div class="qr-box text-center">
+                        <img src="https://quickchart.io/chart?chs=300x300&cht=qr&chl=https://pmua-apptech.com/&choe=UTF-8" class="img-fluid rounded" width="100" alt="QR Website" />
+                        <div class="small mt-1 text-white" style="font-size: 10px; opacity:0.8;">Visit Website</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-widget-title">เมนูลัด</h5>
+                <ul class="footer-links">
+                    <li><a href="https://pmua-apptech.com/"><i class="fa fa-angle-right"></i> หน้าแรก</a></li>
+                    <li><a href="https://pmua-apptech.com/about"><i class="fa fa-angle-right"></i> เกี่ยวกับเรา</a></li>
+                    <li><a href="https://pmua-apptech.com/policy"><i class="fa fa-angle-right"></i> นโยบาย (Policy)</a></li>
+                    <li><a href="https://pmua-apptech.com/contact"><i class="fa fa-angle-right"></i> ติดต่อเรา</a></li>
+                    <li><a href="https://pmua-apptech.com/userlogin/home"><i class="fa fa-angle-right"></i> เข้าสู่ระบบ</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-widget-title">แผนผังเว็บไซต์</h5>
+                <ul class="footer-links">
+                    <li><a href="https://pmua-apptech.com/sitemap.xml"><i class="fa fa-sitemap"></i> XML Sitemap</a></li>
+                    <li><a href="https://pmua-apptech.com/sitemap.html"><i class="fa fa-file-code-o"></i> HTML Sitemap</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-widget-title">ติดต่อสอบถาม</h5>
+                
+                <div class="d-flex align-items-center mb-3 bg-white bg-opacity-10 p-3 rounded border border-light border-opacity-25" style="background: rgba(255,255,255,0.1);">
+                    <div class="mr-3">
+                        <img src="https://pmua-apptech.com/pic/lineoa.png" class="img-fluid rounded shadow-sm" width="80" alt="Line QR">
+                    </div>
+                    <div>
+                        <p class="mb-1 text-primary ">พบปัญหาการใช้งาน?</p>
+                        <a href="https://line.me/ti/p/~@pmua-apptech" target="_blank" class="text-primary font-weight-bold" style="text-decoration:none; font-size:1.1em;">
+                            <i class="fab fa-line mr-1"></i> ID : @pmua-apptech                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    
+
+<center><div class="fb-page" data-href="https://www.facebook.com/InnovativeComm" data-tabs="timeline,messages" data-small-header="false" 
+data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="true" height="300"><blockquote cite="https://www.facebook.com/InnovativeComm" 
+class="fb-xfbml-parse-ignore">
+<a href="https://www.facebook.com/InnovativeComm">Apptech</a></blockquote></div></center>
+<hr>
+
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom row align-items-center">
+            <div class="col-md-8 text-center text-md-left mb-3 mb-md-0">
+                <p class="m-0 text-white-50">
+                    Copyright &copy; <script>document.write(new Date().getFullYear());</script> 
+                    All rights reserved | <span class="text-white font-weight-bold">Apptech</span>
+                </p>
+            </div>
+            <div class="col-md-4 text-center text-md-right">
+                <a href="https://www.facebook.com/InnovativeComm" class="social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="" class="social-btn" title="Youtube"><i class="fab fa-youtube"></i></a>
+                <a href="https://line.me/ti/p/~@pmua-apptech" class="social-btn" title="Line"><i class="fab fa-line"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
+<br><br>
+
+	
+	
+	<script src="https://pmua-apptech.com//templatemulty/vendors/jquery/jquery-3.2.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+	 crossorigin="anonymous"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/vendor/bootstrap.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/easing.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/hoverIntent.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/superfish.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.ajaxchimp.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.magnific-popup.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/owl.carousel.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/owl-carousel-thumb.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.sticky.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.nice-select.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/parallax.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/waypoints.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/wow.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.counterup.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/mail-script.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/main.js"></script>
+  
+	<!-- Modal -->
+	<div class="modal fade" id="processModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content border-0 shadow-lg rounded-4">
+		  <div class="modal-header bg-white border-0 justify-content-center">
+			<img src="https://pmua-apptech.com//pic/logohead.png" width="120" alt="Logo" class="img-fluid">
+		  </div>
+		  <div class="modal-body text-center py-4">
+			<div class="spinner-border text-primary mb-4" style="width: 3rem; height: 3rem;" role="status">
+			  <span class="visually-hidden">Loading...</span>
+			</div>
+			<h5 class="fw-bold text-primary">ระบบกำลังประมวลผล กรุณารอสักครู่...</h5>
+			<p class="text-muted small mt-2">โปรดอย่าปิดหน้าต่างนี้จนกว่าจะเสร็จสิ้น</p>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Bootstrap Spinner (เฉพาะ Bootstrap 4) -->
+<style>
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border .75s linear infinite;
+}
+@keyframes spinner-border {
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+
+
+
+<div class="modal fade" style="padding-top:100px" id="agentprofileModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel"><center><h2></h2></center></h4>
+          </div>
+          <div class="modal-body">
+            
+            
+            <form action="https://pmua-apptech.com/agent/addpic/10" method="post" enctype="multipart/form-data">
+					<center><input type="file" required name="userfile" class="form-control" size="" /><hr>
+					<h6 class="text-primary">ไฟล์รูปเท่านั้น </h6><hr>
+					<input name="picname" type="text" hidden readonly id="modal_news_idAPag"><br>
+					<input name="folpicname" type="text" hidden readonly id="modal_news_idCCag"><br>
+					<input type="submit" class="btn btn-primary btn-lg" value="ตกลง"></center>
+			</form>	
+            
+                
+          <br>
+          </div>
+          <div class="modal-footer">
+            
+            <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            
+            
+          </div>
+        </div>
+      </div>
+    </div>
+	
+	<script type="text/javascript">
+      $(document).ready(function(){
+        $('[data-event=UppicDetailagentprofile]').bind('click', function(e){
+
+			 $("#modal_news_idAPag").val($(this).attr("data-id"));
+			 $("#modal_news_idCCag").val($(this).attr("data-id2"));
+			
+		});
+        
+      });
+    </script>
+	
+	<style>
+    /* สไตล์ Banner แจ้งเตือนด้านล่าง */
+    .cookie-banner {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: #fff;
+        padding: 20px 25px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e2e8f0;
+        transform: translateY(150%);
+        transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .cookie-banner.show {
+        transform: translateY(0);
+    }
+    .cookie-text {
+        font-size: 0.95rem;
+        color: #475569;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+    .cookie-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    
+    /* สไตล์ Switch Toggle ใน Modal */
+    .cookie-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+    .cookie-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute; content: ""; height: 20px; width: 20px;
+        left: 3px; bottom: 3px; background-color: white;
+        transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:disabled + .slider { background-color: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+    input:checked + .slider:before { transform: translateX(24px); }
+    
+    .cookie-option-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 15px 0; border-bottom: 1px dashed #e2e8f0;
+    }
+    .cookie-option-row:last-child { border-bottom: none; }
+    
+    @media (min-width: 768px) {
+        .cookie-banner {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .cookie-text { margin-bottom: 0; margin-right: 20px; }
+    }
+</style>
+
+<div id="cookieConsentBanner" class="cookie-banner d-print-none">
+    <div class="cookie-text">
+        <strong><i class="fas fa-cookie-bite text-warning mr-2"></i> นโยบายคุกกี้ (Cookie Policy)</strong><br>
+        เว็บไซต์นี้ใช้คุกกี้เพื่อเพิ่มประสิทธิภาพและประสบการณ์ที่ดีในการใช้งานเว็บไซต์ คุณสามารถเลือกตั้งค่าความยินยอมการใช้คุกกี้ได้
+    </div>
+    <div class="cookie-buttons">
+        <button type="button" class="btn btn-light rounded-pill px-4 font-weight-bold" onclick="openCookieSettings()" style="border: 1px solid #e2e8f0;">ตั้งค่าคุกกี้</button>
+        <button type="button" class="btn btn-primary rounded-pill px-4 font-weight-bold" onclick="acceptAllCookies()">ยอมรับทั้งหมด</button>
+    </div>
+</div>
+
+<div class="modal fade d-print-none" id="cookieSettingsModal" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 10000;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-cog text-muted mr-2"></i> ตั้งค่าความเป็นส่วนตัว</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body px-4">
+                
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้ที่จำเป็น (Necessary)</h6>
+                        <small class="text-muted">จำเป็นสำหรับการทำงานพื้นฐานของเว็บไซต์ ไม่สามารถปิดการใช้งานได้</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" checked disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้เพื่อการวิเคราะห์ (Analytics)</h6>
+                        <small class="text-muted">ช่วยให้เราเข้าใจพฤติกรรมการใช้งาน เพื่อนำไปพัฒนาเว็บไซต์ให้ดีขึ้น</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="chkAnalytics">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้เพื่อการโฆษณา (Marketing)</h6>
+                        <small class="text-muted">ใช้เพื่อนำเสนอโฆษณาที่เกี่ยวข้องและตรงกับความสนใจของคุณ</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="chkMarketing">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4 justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success rounded-pill px-4 font-weight-bold" onclick="saveCookieSettings()">บันทึกการตั้งค่า</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. ตรวจสอบว่าเคยตั้งค่าคุกกี้หรือยัง
+    function checkCookieConsent() {
+        if (!localStorage.getItem('cookieConsentSet')) {
+            // ดีเลย์ 1 วินาทีเพื่อให้โหลดเว็บเสร็จก่อนโชว์
+            setTimeout(() => {
+                document.getElementById('cookieConsentBanner').classList.add('show');
+            }, 1000);
+        }
+    }
+
+    // 2. เปิดหน้าต่างตั้งค่า
+    function openCookieSettings() {
+        $('#cookieSettingsModal').modal('show');
+    }
+
+    // 3. ฟังก์ชันหลัก: บันทึกค่าลง LocalStorage และส่ง AJAX ไป Database
+    function applyConsent(analytics, marketing) {
+        // ซ่อน Banner และ Modal ทันที
+        document.getElementById('cookieConsentBanner').classList.remove('show');
+        $('#cookieSettingsModal').modal('hide');
+
+        // จำค่าไว้ในเครื่อง (จะได้ไม่ต้องเด้งถามอีก)
+        localStorage.setItem('cookieConsentSet', 'true');
+        localStorage.setItem('cookieAnalytics', analytics);
+        localStorage.setItem('cookieMarketing', marketing);
+
+        // ส่งข้อมูลไปบันทึกลง Database ผ่าน Controller Cookieconsent
+        $.ajax({
+            url: "https://pmua-apptech.com/cookieconsent/save", 
+            type: "POST",
+            dataType: "json",
+            data: {
+                analytics: analytics,
+                marketing: marketing
+            },
+            success: function(response) {
+                if(response.status === 'success') {
+                    console.log(response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Cookie Consent Error: ", error);
+            }
+        });
+    }
+
+    // 4. เมื่อกดยอมรับทั้งหมด (เปิดทุกอย่าง)
+    function acceptAllCookies() {
+        applyConsent(true, true);
+    }
+
+    // 5. เมื่อกดบันทึกการตั้งค่า (เช็คจากสวิตช์)
+    function saveCookieSettings() {
+        let isAnalytics = document.getElementById('chkAnalytics').checked;
+        let isMarketing = document.getElementById('chkMarketing').checked;
+        applyConsent(isAnalytics, isMarketing);
+    }
+
+    // เริ่มทำงานเมื่อ HTML โหลดเสร็จสมบูรณ์
+    document.addEventListener("DOMContentLoaded", function() {
+        checkCookieConsent();
+    });
+</script>	
+</body>
+</html>

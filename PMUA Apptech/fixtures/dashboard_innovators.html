@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard - แผนที่นวัตกรชุมชน</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+      
+  
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:300,500,600" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500i" rel="stylesheet">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/themify-icons/0.1.2/css/themify-icons.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/linearicons.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com//temptour/fontawesome/css/all.css" >
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/bootstrap.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/magnific-popup.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/nice-select.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/animate.min.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/owl.carousel.css">
+	<link rel="stylesheet" href="https://pmua-apptech.com/tpedu/css/main.css">
+	
+	<link rel="stylesheet"  href="https://pmua-apptech.com/slick/slick.css"/>
+	<link rel="stylesheet"  href="https://pmua-apptech.com/slick/slick-theme.css"/>
+	
+	
+	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+	<!-- วางแท็กนี้ในส่วนหัวหรือก่อนแท็กปิดของเนื้อความ -->
+	<script src="https://apis.google.com/js/platform.js" async defer>
+	  {lang: 'th'}
+	</script>
+	
+    
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+  <style>
+    body { background-color: #f8fafc; color: #334155; font-family: 'Prompt', sans-serif; }
+    .dashboard-container { padding: 40px 15px; }
+    
+    /* สไตล์ Banner โทนส้ม-ทอง (Amber) */
+    .hero-banner { 
+        background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); 
+        border-radius: 20px; 
+        padding: 50px 20px; 
+        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3); 
+        position: relative; 
+        overflow: hidden; 
+        margin-bottom: 30px;
+    }
+    .hero-banner::before { content: ""; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+    .hero-banner::after { content: ""; position: absolute; bottom: -50px; left: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+    
+    .total-box { 
+        display: inline-block; 
+        background: #ffffff; 
+        border-radius: 50px; 
+        padding: 15px 40px; 
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15); 
+        border: 3px solid rgba(255,255,255,0.5); 
+        position: relative; 
+        z-index: 2; 
+    }
+
+    /* ฟอร์มคัดกรองข้อมูล */
+    .filter-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 30px; }
+
+    .map-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    .map-container { height: 600px; width: 100%; cursor: pointer; } 
+
+    .stat-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; height: 100%; margin-bottom: 25px;}
+    .section-label { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+
+    /* สไตล์ Modal */
+    .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 50px rgba(0,0,0,0.25); overflow: hidden; }
+    .modal-header { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); color: white; border: none; padding: 20px 25px; }
+    .close-btn { color: white; opacity: 0.8; font-size: 1.5rem; text-shadow: none; transition: 0.2s; }
+    .close-btn:hover { opacity: 1; color: white; }
+
+    .level-item { margin-bottom: 15px; }
+    .level-label { display: flex; justify-content: space-between; font-size: 1rem; font-weight: 600; color: #334155; margin-bottom: 5px; }
+    .progress-custom { height: 12px; border-radius: 6px; background-color: #f1f5f9; }
+    .progress-bar-custom { border-radius: 6px; }
+
+    /* สีแยกระดับ */
+    .c-lv4 { background-color: #ef4444; } /* แดง */
+    .c-lv3 { background-color: #f59e0b; } /* ส้ม/เหลือง */
+    .c-lv2 { background-color: #10b981; } /* เขียว */
+    .c-lv1 { background-color: #3b82f6; } /* ฟ้า */
+
+    /* สไตล์ตารางอันดับ */
+    .rank-table { width: 100%; border-collapse: collapse; }
+    .rank-table td { padding: 12px 0; border-bottom: 1px dashed #e2e8f0; vertical-align: middle; }
+    .rank-table tr:last-child td { border-bottom: none; }
+    .rank-number { width: 32px; height: 32px; background: #f1f5f9; color: #64748b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95rem; }
+    .rank-1 { background: #fef08a; color: #b45309; }
+    .rank-2 { background: #e2e8f0; color: #475569; }
+    .rank-3 { background: #ffedd5; color: #9a3412; }
+
+    @media (min-width: 992px) { .modal-custom-md { max-width: 600px !important; } }
+
+    #preloadOverlay { position: fixed; inset: 0; background: rgba(255,255,255,.9); z-index: 3000; display: none; align-items: center; justify-content: center; }
+    #preloadOverlay .spinner { width: 60px; height: 60px; border-radius: 50%; border: 6px solid #e5e7eb; border-top-color: #f59e0b; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg) } }
+  </style>
+</head>
+<body>
+
+
+	
+	
+<style>
+/* Modern Dark Navbar */
+.navbar-modern-dark {
+    background: linear-gradient(90deg, #2a4079, #3f5999);
+    box-shadow: 0 4px 20px rgba(42, 64, 121, 0.25);
+    padding: 12px 0;
+    transition: all 0.3s ease;
+}
+
+/* Brand Logo */
+.navbar-brand img {
+    transition: transform 0.2s;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+/* Nav Links (White Text) */
+.nav-modern .nav-item .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+}
+.nav-modern .nav-item .nav-link:hover,
+.nav-modern .nav-item.active .nav-link {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.15);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Dropdown Menu (White Box) */
+.dropdown-menu-modern {
+    border: 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    margin-top: 12px;
+    padding: 8px;
+    background: #fff;
+    min-width: 220px;
+}
+.dropdown-menu-modern .dropdown-item {
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    color: #334155;
+    font-weight: 500;
+}
+.dropdown-menu-modern .dropdown-item:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+.dropdown-menu-modern::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 20px;
+    width: 12px; height: 12px;
+    background: #fff;
+    transform: rotate(45deg);
+    box-shadow: -2px -2px 5px rgba(0,0,0,0.04);
+}
+
+/* Buttons */
+.btn-nav-login {
+    border-radius: 50px;
+    padding: 6px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.btn-nav-search {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: 0.2s;
+}
+.btn-nav-search:hover {
+    background: #fff;
+    color: #2a4079;
+    transform: scale(1.1);
+}
+
+/* Mobile Toggler */
+.navbar-toggler { border: 1px solid rgba(255,255,255,0.3); }
+.navbar-toggler-icon { 
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255, 255, 255, 0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E"); 
+}
+
+/* Scroll Offset */
+html {
+  scroll-padding-top: 100px; 
+  scroll-behavior: smooth;
+}
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-modern-dark sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://pmua-apptech.com/">
+      <img src="https://pmua-apptech.com/pic/logohead.png" width="100" alt="Logo" />
+    </a>
+
+    <button class="navbar-toggler" type="button" 
+            data-toggle="collapse" data-target="#navbarModern" 
+            data-bs-toggle="collapse" data-bs-target="#navbarModern"
+            aria-controls="navbarModern" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarModern">
+      
+      <ul class="navbar-nav mr-auto nav-modern align-items-center">
+        <li class="nav-item">
+          <a class="nav-link" href="https://pmua-apptech.com/">หน้าแรก</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://pmua-apptech.com/propose">เทคโนโลยีที่เหมาะสม</a>
+        </li>
+        
+        
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dashDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             สถิติ / Dashboard
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="dashDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard"><i class="fa fa-cubes mr-2 text-muted"></i> Dashboard นวัตกรรม</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard/familydashboard"><i class="fa fa-home mr-2 text-muted"></i> Dashboard ครัวเรือน</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/dashboard/innovatordashboard"><i class="fa fa-user mr-2 text-muted"></i> Dashboard นวัตกรชุมชน</a></li>
+          </ul>
+        </li>
+		
+		<li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="menuDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             เมนู
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="menuDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/news"><i class="fa fa-newspaper-o mr-2 text-muted"></i> ข่าวสาร</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/news/calendar"><i class="fa fa-calendar-check-o mr-2 text-muted"></i> ปฏิทินกิจกรรม</a></li>
+			<li><a class="dropdown-item" href="https://pmua-apptech.com/video"><i class="fa fa-video mr-2 text-muted"></i> วีดีโอ</a></li>
+            <div class="dropdown-divider"></div>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/problem"><i class="fa fa-exclamation-triangle mr-2 text-muted"></i> กระดานโจทย์ปัญหา</a></li>
+          </ul>
+        </li>
+        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="aboutDrop" role="button" 
+             data-toggle="dropdown" data-bs-toggle="dropdown" 
+             aria-haspopup="true" aria-expanded="false">
+             เกี่ยวกับเรา
+          </a>
+          <ul class="dropdown-menu dropdown-menu-modern border-0" aria-labelledby="aboutDrop">
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/about"><i class="fa fa-info-circle mr-2 text-muted"></i> เกี่ยวกับเรา</a></li>
+            <li><a class="dropdown-item" href="https://pmua-apptech.com/contact"><i class="fa fa-phone mr-2 text-muted"></i> ติดต่อเรา</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="d-flex align-items-center mt-3 mt-lg-0">
+        
+        <a href="https://pmua-apptech.com/search" class="btn-nav-search mr-3" >
+            <i class="fa fa-search"></i>
+        </a>
+
+                    <a href="https://pmua-apptech.com/userlogin/home" class="btn btn-warning btn-nav-login text-dark">
+                <i class="fa fa-user mr-1"></i> เข้าสู่ระบบ
+            </a>
+        
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+function goBack() { window.history.back(); }
+</script>
+	<div id="preloadOverlay"><div class="spinner"></div></div>
+
+<div class="dashboard-container container">
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <div class="hero-banner text-center">
+                <h2 class="font-weight-bold text-white mb-2 text-uppercase" style="position: relative; z-index: 2;">แผนที่แสดงการกระจายตัวของนวัตกรชุมชน</h2>
+                <p class="mb-4" style="color: #fef3c7; font-size: 1.1rem; position: relative; z-index: 2;"><i class="fas fa-hand-pointer mr-1"></i> คลิกที่พื้นที่จังหวัดบนแผนที่ เพื่อดูจำนวนและระดับนวัตกร</p>
+                
+                <div class="total-box mt-2">
+                    <h6 class="mb-1 text-muted font-weight-bold"><i class="fas fa-lightbulb text-warning mr-1"></i> จำนวนนวัตกรชุมชนทั้งหมด (ทั่วประเทศ)</h6>
+                    <h1 class="display-4 font-weight-bold mb-0" style="color: #b45309; line-height: 1;">
+                        12,063 
+                        <span style="font-size: 1.5rem; font-weight: normal; color: #64748b;">คน</span>
+                    </h1>
+                    <div class="text-muted mt-1 small">*นับเฉพาะนวัตกรระดับ 1-4 ที่อยู่ในโครงการที่ผ่านการอนุมัติ</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ฟิลเตอร์ข้อมูล -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            <form class="filter-card p-4 rounded shadow-sm border" method="GET" action="" id="filterForm">
+                <h6 class="font-weight-bold mb-3" style="color: #d97706!important;"><i class="fa fa-filter mr-1"></i> คัดกรองข้อมูลสารสนเทศ</h6>
+                <div class="row g-2 align-items-center justify-content-center">
+                    
+                    <div class="col-md-8">
+                        <label class="small font-weight-bold text-muted ml-1">เลือกปีงบประมาณ</label>
+                        <select name="year_filter" class="form-control form-control-lg" style="font-size: 1rem; border-radius: 10px;">
+                            <option value="">-- รวมทุกปีงบประมาณ --</option>
+                                                                                            <option value="2026" >ปี 2569</option>
+                                                                                            <option value="2025" >ปี 2568</option>
+                                                    </select>
+                    </div>
+
+                    <div class="col-md-4 d-grid">
+                        <label class="small font-weight-bold text-white mb-1">&nbsp;</label>
+                        <button type="submit" class="btn btn-warning btn-lg w-100 font-weight-bold shadow-sm text-white" style="border-radius: 10px; background: linear-gradient(135deg, #d97706, #f59e0b); border:none;"><i class="fa fa-search mr-1"></i> แสดงผล</button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-12">
+            <div class="map-card">
+                <div class="map-container" id="geoMapChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5 mb-4">
+            <div class="stat-card">
+                <div class="section-label"><i class="fas fa-chart-pie text-warning mr-2"></i> สัดส่วนนวัตกรชุมชนจำแนกตามระดับ (ทั่วประเทศ)</div>
+                <div style="position: relative; height: 300px; width: 100%; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="levelPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 mb-4">
+            <div class="stat-card">
+                <div class="section-label"><i class="fas fa-trophy text-warning mr-2"></i> 10 อันดับ จังหวัดที่มีนวัตกรชุมชนสูงสุด</div>
+                <table class="rank-table">
+                    <tbody>
+                                                <tr>
+                            <td width="45"><div class="rank-number rank-1">1</div></td>
+                            <td width="150" class="font-weight-bold text-dark">สงขลา</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 100%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">787 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number rank-2">2</div></td>
+                            <td width="150" class="font-weight-bold text-dark">สกลนคร</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 88.43710292249%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">696 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number rank-3">3</div></td>
+                            <td width="150" class="font-weight-bold text-dark">เชียงใหม่</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 71.5374841169%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">563 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">4</div></td>
+                            <td width="150" class="font-weight-bold text-dark">นครราชสีมา</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 67.344345616264%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">530 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">5</div></td>
+                            <td width="150" class="font-weight-bold text-dark">อุดรธานี</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 65.438373570521%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">515 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">6</div></td>
+                            <td width="150" class="font-weight-bold text-dark">เชียงราย</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 57.1791613723%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">450 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">7</div></td>
+                            <td width="150" class="font-weight-bold text-dark">พะเยา</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 54.129606099111%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">426 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">8</div></td>
+                            <td width="150" class="font-weight-bold text-dark">ชุมพร</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 47.395171537484%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">373 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">9</div></td>
+                            <td width="150" class="font-weight-bold text-dark">บุรีรัมย์</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 39.644218551461%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">312 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                                <tr>
+                            <td width="45"><div class="rank-number ">10</div></td>
+                            <td width="150" class="font-weight-bold text-dark">แพร่</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1" style="height: 12px; border-radius: 6px; background-color: #f1f5f9;">
+                                        <div class="progress-bar" style="width: 39.390088945362%; border-radius: 6px; background: linear-gradient(90deg, #fbbf24, #d97706);"></div>
+                                    </div>
+                                    <div class="ml-3 font-weight-bold text-warning" style="min-width: 50px; text-align: right; color:#d97706!important;">310 <small class="text-muted">คน</small></div>
+                                </div>
+                            </td>
+                        </tr>
+                                            </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="provinceDetailModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-custom-md modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <h5 class="modal-title mb-0" id="modalTitle">
+                        <i class="fas fa-map-marker-alt mr-2"></i> ข้อมูลนวัตกร: <span id="modalProvinceName"></span>
+                    </h5>
+                    <button type="button" class="close close-btn m-0 p-0" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                
+                <div class="text-center mb-4 pb-3 border-bottom">
+                    <div class="text-muted font-weight-bold mb-1">รวมจำนวนนวัตกรชุมชนในพื้นที่ (ระดับ 1-4)</div>
+                    <div class="display-4 font-weight-bold text-warning" style="color: #d97706!important;" id="md-total-inno">0</div>
+                    <div class="text-muted">คน</div>
+                </div>
+
+                <div class="px-2" id="levelContainer">
+                    </div>
+
+            </div>
+            
+            <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
+                <div class="text-left">
+                    <div class="font-weight-bold text-secondary"><i class="fas fa-users mr-1"></i> ผู้ใช้ทั่วไป (ระดับ 0)</div>
+                    <div class="small text-muted">*ไม่ถูกนับรวมในแผนที่และยอดด้านบน</div>
+                </div>
+                <div class="h4 font-weight-bold text-secondary mb-0"><span id="md-total-gen">0</span> <small class="text-muted font-weight-normal" style="font-size: 1rem;">คน</small></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Footer Modern Styles */
+    .footer-modern {
+        /* background: ลบออก เพื่อให้ใช้ bg-primary จาก class html แทน */
+        color: rgba(255, 255, 255, 0.85); /* ปรับสีตัวอักษรให้ขาวจางๆ เพื่อให้อ่านง่ายบนพื้นสีเข้ม */
+        font-size: 0.95rem;
+        padding-top: 60px;
+        position: relative;
+    }
+
+    /* Headings */
+    .footer-widget-title {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 25px;
+        position: relative;
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .footer-widget-title::after {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: rgba(255,255,255,0.5); /* เส้นใต้หัวข้อสีขาวจางๆ */
+        margin-top: 8px;
+        border-radius: 2px;
+    }
+
+    /* Links List */
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .footer-links li {
+        margin-bottom: 12px;
+    }
+    .footer-links a {
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+    .footer-links a:hover {
+        color: #fff; /* Hover แล้วเป็นสีขาวสว่าง */
+        transform: translateX(5px);
+        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+    .footer-links a i {
+        font-size: 0.8rem;
+        margin-right: 8px;
+        opacity: 0.7;
+    }
+
+    /* Images & QR */
+    .sponsor-img {
+        background: #fff;
+        padding: 5px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .qr-box {
+        background: rgba(255,255,255,0.1);
+        padding: 10px;
+        border-radius: 10px;
+        display: inline-block;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Footer Bottom */
+    .footer-bottom {
+        border-top: 1px solid rgba(255,255,255,0.15);
+        padding: 25px 0;
+        margin-top: 40px;
+    }
+    
+    /* Social Icons */
+    .social-btn {
+        width: 40px; height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border-radius: 50%;
+        margin-left: 8px;
+        transition: 0.3s;
+        text-decoration: none !important;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .social-btn:hover {
+        background: #fff;
+        color: var(--primary); /* ใช้สีหลักของเว็บ (หรือสีน้ำเงิน) เมื่อ hover */
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    /* กรณีไม่มีตัวแปร var(--primary) ให้ fallback เป็นสีดำจางๆ หรือสีธีม */
+    .bg-primary .social-btn:hover { color: #000; } 
+</style>
+
+<footer class="footer-modern bg-primary">
+    <div class="container">
+        <div class="row">
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-widget-title">เกี่ยวกับเรา</h5>
+                <p class="mb-4 text-white-50" style="line-height: 1.6;">
+                    ใช้สำหรับค้นหาข้อมูล นวัตกรรม                </p>
+                
+                <div class="d-flex align-items-start gap-3">
+                                            <div class="mr-3">
+                            <img src="https://pmua-apptech.com/pic/sponcor/1.png" class="img-fluid sponsor-img" width="120" alt="Sponsor">
+                        </div>
+                                        
+                    <div class="qr-box text-center">
+                        <img src="https://quickchart.io/chart?chs=300x300&cht=qr&chl=https://pmua-apptech.com/&choe=UTF-8" class="img-fluid rounded" width="100" alt="QR Website" />
+                        <div class="small mt-1 text-white" style="font-size: 10px; opacity:0.8;">Visit Website</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-widget-title">เมนูลัด</h5>
+                <ul class="footer-links">
+                    <li><a href="https://pmua-apptech.com/"><i class="fa fa-angle-right"></i> หน้าแรก</a></li>
+                    <li><a href="https://pmua-apptech.com/about"><i class="fa fa-angle-right"></i> เกี่ยวกับเรา</a></li>
+                    <li><a href="https://pmua-apptech.com/policy"><i class="fa fa-angle-right"></i> นโยบาย (Policy)</a></li>
+                    <li><a href="https://pmua-apptech.com/contact"><i class="fa fa-angle-right"></i> ติดต่อเรา</a></li>
+                    <li><a href="https://pmua-apptech.com/userlogin/home"><i class="fa fa-angle-right"></i> เข้าสู่ระบบ</a></li>
+                </ul>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-widget-title">แผนผังเว็บไซต์</h5>
+                <ul class="footer-links">
+                    <li><a href="https://pmua-apptech.com/sitemap.xml"><i class="fa fa-sitemap"></i> XML Sitemap</a></li>
+                    <li><a href="https://pmua-apptech.com/sitemap.html"><i class="fa fa-file-code-o"></i> HTML Sitemap</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-widget-title">ติดต่อสอบถาม</h5>
+                
+                <div class="d-flex align-items-center mb-3 bg-white bg-opacity-10 p-3 rounded border border-light border-opacity-25" style="background: rgba(255,255,255,0.1);">
+                    <div class="mr-3">
+                        <img src="https://pmua-apptech.com/pic/lineoa.png" class="img-fluid rounded shadow-sm" width="80" alt="Line QR">
+                    </div>
+                    <div>
+                        <p class="mb-1 text-primary ">พบปัญหาการใช้งาน?</p>
+                        <a href="https://line.me/ti/p/~@pmua-apptech" target="_blank" class="text-primary font-weight-bold" style="text-decoration:none; font-size:1.1em;">
+                            <i class="fab fa-line mr-1"></i> ID : @pmua-apptech                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    
+
+<center><div class="fb-page" data-href="https://www.facebook.com/InnovativeComm" data-tabs="timeline,messages" data-small-header="false" 
+data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="true" height="300"><blockquote cite="https://www.facebook.com/InnovativeComm" 
+class="fb-xfbml-parse-ignore">
+<a href="https://www.facebook.com/InnovativeComm">Apptech</a></blockquote></div></center>
+<hr>
+
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom row align-items-center">
+            <div class="col-md-8 text-center text-md-left mb-3 mb-md-0">
+                <p class="m-0 text-white-50">
+                    Copyright &copy; <script>document.write(new Date().getFullYear());</script> 
+                    All rights reserved | <span class="text-white font-weight-bold">Apptech</span>
+                </p>
+            </div>
+            <div class="col-md-4 text-center text-md-right">
+                <a href="https://www.facebook.com/InnovativeComm" class="social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="" class="social-btn" title="Youtube"><i class="fab fa-youtube"></i></a>
+                <a href="https://line.me/ti/p/~@pmua-apptech" class="social-btn" title="Line"><i class="fab fa-line"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
+<br><br>
+
+	
+	
+	<script src="https://pmua-apptech.com//templatemulty/vendors/jquery/jquery-3.2.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+	 crossorigin="anonymous"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/vendor/bootstrap.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/easing.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/hoverIntent.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/superfish.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.ajaxchimp.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.magnific-popup.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/owl.carousel.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/owl-carousel-thumb.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.sticky.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.nice-select.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/parallax.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/waypoints.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/wow.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/jquery.counterup.min.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/mail-script.js"></script>
+	<script src="https://pmua-apptech.com/tpedu/js/main.js"></script>
+  
+	<!-- Modal -->
+	<div class="modal fade" id="processModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content border-0 shadow-lg rounded-4">
+		  <div class="modal-header bg-white border-0 justify-content-center">
+			<img src="https://pmua-apptech.com//pic/logohead.png" width="120" alt="Logo" class="img-fluid">
+		  </div>
+		  <div class="modal-body text-center py-4">
+			<div class="spinner-border text-primary mb-4" style="width: 3rem; height: 3rem;" role="status">
+			  <span class="visually-hidden">Loading...</span>
+			</div>
+			<h5 class="fw-bold text-primary">ระบบกำลังประมวลผล กรุณารอสักครู่...</h5>
+			<p class="text-muted small mt-2">โปรดอย่าปิดหน้าต่างนี้จนกว่าจะเสร็จสิ้น</p>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Bootstrap Spinner (เฉพาะ Bootstrap 4) -->
+<style>
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border .75s linear infinite;
+}
+@keyframes spinner-border {
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+
+
+
+<div class="modal fade" style="padding-top:100px" id="agentprofileModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel"><center><h2></h2></center></h4>
+          </div>
+          <div class="modal-body">
+            
+            
+            <form action="https://pmua-apptech.com/agent/addpic/10" method="post" enctype="multipart/form-data">
+					<center><input type="file" required name="userfile" class="form-control" size="" /><hr>
+					<h6 class="text-primary">ไฟล์รูปเท่านั้น </h6><hr>
+					<input name="picname" type="text" hidden readonly id="modal_news_idAPag"><br>
+					<input name="folpicname" type="text" hidden readonly id="modal_news_idCCag"><br>
+					<input type="submit" class="btn btn-primary btn-lg" value="ตกลง"></center>
+			</form>	
+            
+                
+          <br>
+          </div>
+          <div class="modal-footer">
+            
+            <button type="button" class="btn btn-default" data-dismiss="modal">ปิด</button>
+            
+            
+          </div>
+        </div>
+      </div>
+    </div>
+	
+	<script type="text/javascript">
+      $(document).ready(function(){
+        $('[data-event=UppicDetailagentprofile]').bind('click', function(e){
+
+			 $("#modal_news_idAPag").val($(this).attr("data-id"));
+			 $("#modal_news_idCCag").val($(this).attr("data-id2"));
+			
+		});
+        
+      });
+    </script>
+	
+	<style>
+    /* สไตล์ Banner แจ้งเตือนด้านล่าง */
+    .cookie-banner {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: #fff;
+        padding: 20px 25px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e2e8f0;
+        transform: translateY(150%);
+        transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .cookie-banner.show {
+        transform: translateY(0);
+    }
+    .cookie-text {
+        font-size: 0.95rem;
+        color: #475569;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+    .cookie-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    
+    /* สไตล์ Switch Toggle ใน Modal */
+    .cookie-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+    .cookie-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute; content: ""; height: 20px; width: 20px;
+        left: 3px; bottom: 3px; background-color: white;
+        transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:disabled + .slider { background-color: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+    input:checked + .slider:before { transform: translateX(24px); }
+    
+    .cookie-option-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 15px 0; border-bottom: 1px dashed #e2e8f0;
+    }
+    .cookie-option-row:last-child { border-bottom: none; }
+    
+    @media (min-width: 768px) {
+        .cookie-banner {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .cookie-text { margin-bottom: 0; margin-right: 20px; }
+    }
+</style>
+
+<div id="cookieConsentBanner" class="cookie-banner d-print-none">
+    <div class="cookie-text">
+        <strong><i class="fas fa-cookie-bite text-warning mr-2"></i> นโยบายคุกกี้ (Cookie Policy)</strong><br>
+        เว็บไซต์นี้ใช้คุกกี้เพื่อเพิ่มประสิทธิภาพและประสบการณ์ที่ดีในการใช้งานเว็บไซต์ คุณสามารถเลือกตั้งค่าความยินยอมการใช้คุกกี้ได้
+    </div>
+    <div class="cookie-buttons">
+        <button type="button" class="btn btn-light rounded-pill px-4 font-weight-bold" onclick="openCookieSettings()" style="border: 1px solid #e2e8f0;">ตั้งค่าคุกกี้</button>
+        <button type="button" class="btn btn-primary rounded-pill px-4 font-weight-bold" onclick="acceptAllCookies()">ยอมรับทั้งหมด</button>
+    </div>
+</div>
+
+<div class="modal fade d-print-none" id="cookieSettingsModal" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 10000;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-cog text-muted mr-2"></i> ตั้งค่าความเป็นส่วนตัว</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body px-4">
+                
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้ที่จำเป็น (Necessary)</h6>
+                        <small class="text-muted">จำเป็นสำหรับการทำงานพื้นฐานของเว็บไซต์ ไม่สามารถปิดการใช้งานได้</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" checked disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้เพื่อการวิเคราะห์ (Analytics)</h6>
+                        <small class="text-muted">ช่วยให้เราเข้าใจพฤติกรรมการใช้งาน เพื่อนำไปพัฒนาเว็บไซต์ให้ดีขึ้น</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="chkAnalytics">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="cookie-option-row">
+                    <div>
+                        <h6 class="font-weight-bold mb-1 text-dark">คุกกี้เพื่อการโฆษณา (Marketing)</h6>
+                        <small class="text-muted">ใช้เพื่อนำเสนอโฆษณาที่เกี่ยวข้องและตรงกับความสนใจของคุณ</small>
+                    </div>
+                    <label class="cookie-switch">
+                        <input type="checkbox" id="chkMarketing">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4 justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success rounded-pill px-4 font-weight-bold" onclick="saveCookieSettings()">บันทึกการตั้งค่า</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. ตรวจสอบว่าเคยตั้งค่าคุกกี้หรือยัง
+    function checkCookieConsent() {
+        if (!localStorage.getItem('cookieConsentSet')) {
+            // ดีเลย์ 1 วินาทีเพื่อให้โหลดเว็บเสร็จก่อนโชว์
+            setTimeout(() => {
+                document.getElementById('cookieConsentBanner').classList.add('show');
+            }, 1000);
+        }
+    }
+
+    // 2. เปิดหน้าต่างตั้งค่า
+    function openCookieSettings() {
+        $('#cookieSettingsModal').modal('show');
+    }
+
+    // 3. ฟังก์ชันหลัก: บันทึกค่าลง LocalStorage และส่ง AJAX ไป Database
+    function applyConsent(analytics, marketing) {
+        // ซ่อน Banner และ Modal ทันที
+        document.getElementById('cookieConsentBanner').classList.remove('show');
+        $('#cookieSettingsModal').modal('hide');
+
+        // จำค่าไว้ในเครื่อง (จะได้ไม่ต้องเด้งถามอีก)
+        localStorage.setItem('cookieConsentSet', 'true');
+        localStorage.setItem('cookieAnalytics', analytics);
+        localStorage.setItem('cookieMarketing', marketing);
+
+        // ส่งข้อมูลไปบันทึกลง Database ผ่าน Controller Cookieconsent
+        $.ajax({
+            url: "https://pmua-apptech.com/cookieconsent/save", 
+            type: "POST",
+            dataType: "json",
+            data: {
+                analytics: analytics,
+                marketing: marketing
+            },
+            success: function(response) {
+                if(response.status === 'success') {
+                    console.log(response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Cookie Consent Error: ", error);
+            }
+        });
+    }
+
+    // 4. เมื่อกดยอมรับทั้งหมด (เปิดทุกอย่าง)
+    function acceptAllCookies() {
+        applyConsent(true, true);
+    }
+
+    // 5. เมื่อกดบันทึกการตั้งค่า (เช็คจากสวิตช์)
+    function saveCookieSettings() {
+        let isAnalytics = document.getElementById('chkAnalytics').checked;
+        let isMarketing = document.getElementById('chkMarketing').checked;
+        applyConsent(isAnalytics, isMarketing);
+    }
+
+    // เริ่มทำงานเมื่อ HTML โหลดเสร็จสมบูรณ์
+    document.addEventListener("DOMContentLoaded", function() {
+        checkCookieConsent();
+    });
+</script>
+	
+	
+	<!--<div class="test-footer-fixed fixed-bottom d-lg-none  bg-light"  style="height:70px">
+	
+		<div class="container" style="padding-top:8px">
+		<div class="row">
+		
+		
+		
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+		
+			
+			<a href="https://pmua-apptech.com/"  class="text-dark text-center" size="3px">
+			<div style="font-size:16px"><i class="fa fa-home"></i>
+		
+			</div>
+			<div style="font-size:14px"><small>หน้าแรก</small></div>
+			
+			</a>
+			
+		</div>
+		
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+		
+			
+			<a href="https://pmua-apptech.com/propose"   class="text-dark text-center">
+			<div style="font-size:16px"><i class="fa fa-user-secret"></i></div>
+			<div style="font-size:14px"><small>หาผู้เชี่ยวชาญ</small></div>
+			</a>
+			
+		
+        </div>
+
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+			
+			<a href="https://pmua-apptech.com/seek"  class="text-dark text-center">
+			<div style="font-size:16px"><i class="fa fa-seedling"></i></div>
+			<div style="font-size:14px"><small>หาโจทย์</small></div>
+			</a>
+			
+		</div>
+		
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+			
+			<a  href="https://pmua-apptech.com/news"  class="text-dark text-center">
+			<div style="font-size:16px"><i class="fa fa-newspaper"></i></div>
+			<div style="font-size:14px"><small>ข่าวสาร</small></div>
+			</a>
+			
+        </div>
+		
+		<div class="col" style="padding-top:5px; padding-bottom:15px">
+			
+			<a  rel="nofollow" href="#"  class="text-dark text-center">
+			<div style="font-size:16px"><i class="fa fa-envelope"></i></div>
+			<div style="font-size:14px"><small>แชท</small></div>
+			</a>
+			
+        </div>
+		
+		
+		
+        </div>
+        </div>          
+         
+	</div>-->
+	
+	
+<script>
+// ข้อมูลรายละเอียดรายจังหวัด 
+const provData = {"นราธิวาส":{"total_inno":235,"levels":{"1":8,"2":123,"3":69,"4":35},"gen_users":1125},"สงขลา":{"total_inno":787,"levels":{"1":85,"2":329,"3":250,"4":123},"gen_users":300},"ชุมพร":{"total_inno":373,"levels":{"1":0,"2":162,"3":162,"4":49},"gen_users":76},"ลำพูน":{"total_inno":119,"levels":{"1":11,"2":68,"3":20,"4":20},"gen_users":76},"เชียงใหม่":{"total_inno":563,"levels":{"1":128,"2":207,"3":168,"4":60},"gen_users":127},"ชัยนาท":{"total_inno":219,"levels":{"1":59,"2":36,"3":40,"4":84},"gen_users":112},"พระนครศรีอยุธยา":{"total_inno":28,"levels":{"1":0,"2":1,"3":3,"4":24},"gen_users":6},"ราชบุรี":{"total_inno":157,"levels":{"1":32,"2":114,"3":10,"4":1},"gen_users":7},"นครราชสีมา":{"total_inno":530,"levels":{"1":77,"2":254,"3":140,"4":59},"gen_users":44},"แม่ฮ่องสอน":{"total_inno":227,"levels":{"1":24,"2":73,"3":97,"4":33},"gen_users":246},"พิษณุโลก":{"total_inno":168,"levels":{"1":11,"2":80,"3":63,"4":14},"gen_users":254},"กำแพงเพชร":{"total_inno":159,"levels":{"1":69,"2":40,"3":45,"4":5},"gen_users":57},"ปัตตานี":{"total_inno":290,"levels":{"1":149,"2":113,"3":25,"4":3},"gen_users":124},"กาญจนบุรี":{"total_inno":59,"levels":{"1":7,"2":35,"3":15,"4":2},"gen_users":1},"กาฬสินธุ์":{"total_inno":254,"levels":{"1":102,"2":53,"3":70,"4":29},"gen_users":203},"ลำปาง":{"total_inno":182,"levels":{"1":36,"2":13,"3":104,"4":29},"gen_users":66},"เชียงราย":{"total_inno":450,"levels":{"1":16,"2":210,"3":164,"4":60},"gen_users":117},"ตรัง":{"total_inno":159,"levels":{"1":58,"2":16,"3":78,"4":7},"gen_users":29},"พัทลุง":{"total_inno":207,"levels":{"1":77,"2":48,"3":64,"4":18},"gen_users":11},"เพชรบุรี":{"total_inno":31,"levels":{"1":3,"2":25,"3":2,"4":1},"gen_users":0},"อุตรดิตถ์":{"total_inno":231,"levels":{"1":44,"2":116,"3":42,"4":29},"gen_users":99},"นครพนม":{"total_inno":149,"levels":{"1":39,"2":57,"3":44,"4":9},"gen_users":50},"พะเยา":{"total_inno":426,"levels":{"1":140,"2":134,"3":106,"4":46},"gen_users":7},"สุโขทัย":{"total_inno":24,"levels":{"1":0,"2":2,"3":19,"4":3},"gen_users":87},"อุดรธานี":{"total_inno":515,"levels":{"1":94,"2":303,"3":87,"4":31},"gen_users":67},"สระแก้ว":{"total_inno":102,"levels":{"1":0,"2":89,"3":11,"4":2},"gen_users":9},"พังงา":{"total_inno":61,"levels":{"1":4,"2":32,"3":18,"4":7},"gen_users":67},"บุรีรัมย์":{"total_inno":312,"levels":{"1":70,"2":162,"3":67,"4":13},"gen_users":17},"ปราจีนบุรี":{"total_inno":92,"levels":{"1":21,"2":47,"3":18,"4":6},"gen_users":16},"ประจวบคีรีขันธ์":{"total_inno":97,"levels":{"1":3,"2":32,"3":54,"4":8},"gen_users":0},"ระนอง":{"total_inno":184,"levels":{"1":0,"2":166,"3":11,"4":7},"gen_users":3},"ร้อยเอ็ด":{"total_inno":185,"levels":{"1":43,"2":96,"3":35,"4":11},"gen_users":102},"ขอนแก่น":{"total_inno":285,"levels":{"1":39,"2":170,"3":53,"4":23},"gen_users":105},"สกลนคร":{"total_inno":696,"levels":{"1":120,"2":221,"3":327,"4":28},"gen_users":260},"ชัยภูมิ":{"total_inno":159,"levels":{"1":11,"2":64,"3":65,"4":19},"gen_users":31},"นครศรีธรรมราช":{"total_inno":187,"levels":{"1":60,"2":86,"3":26,"4":15},"gen_users":237},"ภูเก็ต":{"total_inno":59,"levels":{"1":0,"2":17,"3":24,"4":18},"gen_users":2},"สุราษฎร์ธานี":{"total_inno":71,"levels":{"1":4,"2":55,"3":9,"4":3},"gen_users":1},"กระบี่":{"total_inno":33,"levels":{"1":0,"2":15,"3":14,"4":4},"gen_users":0},"หนองบัวลำภู":{"total_inno":127,"levels":{"1":0,"2":68,"3":55,"4":4},"gen_users":108},"แพร่":{"total_inno":310,"levels":{"1":47,"2":150,"3":84,"4":29},"gen_users":14},"หนองคาย":{"total_inno":47,"levels":{"1":0,"2":16,"3":29,"4":2},"gen_users":3},"น่าน":{"total_inno":93,"levels":{"1":0,"2":56,"3":29,"4":8},"gen_users":26},"ฉะเชิงเทรา":{"total_inno":251,"levels":{"1":81,"2":120,"3":36,"4":14},"gen_users":140},"พิจิตร":{"total_inno":75,"levels":{"1":45,"2":17,"3":11,"4":2},"gen_users":2},"นครปฐม":{"total_inno":54,"levels":{"1":37,"2":11,"3":4,"4":2},"gen_users":0},"สตูล":{"total_inno":234,"levels":{"1":2,"2":99,"3":116,"4":17},"gen_users":635},"Bangkok":{"total_inno":11,"levels":{"1":2,"2":5,"3":3,"4":1},"gen_users":4},"สระบุรี":{"total_inno":24,"levels":{"1":4,"2":16,"3":4,"4":0},"gen_users":18},"ชลบุรี":{"total_inno":34,"levels":{"1":6,"2":24,"3":0,"4":4},"gen_users":0},"สมุทรปราการ":{"total_inno":145,"levels":{"1":3,"2":109,"3":19,"4":14},"gen_users":0},"เพชรบูรณ์":{"total_inno":116,"levels":{"1":45,"2":7,"3":27,"4":37},"gen_users":77},"ยะลา":{"total_inno":170,"levels":{"1":60,"2":95,"3":12,"4":3},"gen_users":65},"มหาสารคาม":{"total_inno":19,"levels":{"1":0,"2":11,"3":1,"4":7},"gen_users":20},"ศรีสะเกษ":{"total_inno":113,"levels":{"1":71,"2":27,"3":11,"4":4},"gen_users":19},"นครสวรรค์":{"total_inno":79,"levels":{"1":53,"2":20,"3":5,"4":1},"gen_users":40},"ตาก":{"total_inno":27,"levels":{"1":15,"2":6,"3":5,"4":1},"gen_users":1},"เลย":{"total_inno":175,"levels":{"1":0,"2":94,"3":56,"4":25},"gen_users":15},"อ่างทอง":{"total_inno":6,"levels":{"1":2,"2":1,"3":3,"4":0},"gen_users":10},"มุกดาหาร":{"total_inno":1,"levels":{"1":0,"2":1,"3":0,"4":0},"gen_users":1},"สุพรรณบุรี":{"total_inno":163,"levels":{"1":13,"2":60,"3":87,"4":3},"gen_users":25},"บึงกาฬ":{"total_inno":87,"levels":{"1":0,"2":72,"3":15,"4":0},"gen_users":0},"ลพบุรี":{"total_inno":162,"levels":{"1":8,"2":107,"3":43,"4":4},"gen_users":74},"ไม่ระบุจังหวัด":{"total_inno":7,"levels":{"1":3,"2":2,"3":1,"4":1},"gen_users":103},"สมุทรสงคราม":{"total_inno":47,"levels":{"1":3,"2":3,"3":26,"4":15},"gen_users":0},"อุทัยธานี":{"total_inno":3,"levels":{"1":2,"2":0,"3":1,"4":0},"gen_users":3},"ตราด":{"total_inno":133,"levels":{"1":0,"2":0,"3":132,"4":1},"gen_users":0},"นนทบุรี":{"total_inno":5,"levels":{"1":3,"2":0,"3":2,"4":0},"gen_users":1},"อุบลราชธานี":{"total_inno":192,"levels":{"1":7,"2":52,"3":91,"4":42},"gen_users":63},"ปทุมธานี":{"total_inno":27,"levels":{"1":11,"2":6,"3":7,"4":3},"gen_users":47},"อำนาจเจริญ":{"total_inno":25,"levels":{"1":0,"2":25,"3":0,"4":0},"gen_users":49},"ยโสธร":{"total_inno":1,"levels":{"1":1,"2":0,"3":0,"4":0},"gen_users":1},"สุรินทร์":{"total_inno":5,"levels":{"1":4,"2":0,"3":0,"4":1},"gen_users":0},"สิงห์บุรี":{"total_inno":2,"levels":{"1":1,"2":0,"3":1,"4":0},"gen_users":0},"ระยอง":{"total_inno":9,"levels":{"1":0,"2":2,"3":6,"4":1},"gen_users":0},"สมุทรสาคร":{"total_inno":19,"levels":{"1":0,"2":1,"3":17,"4":1},"gen_users":0}};
+
+function createLevelItem(level, count, maxVal) {
+    let pct = maxVal > 0 ? (count / maxVal) * 100 : 0;
+    
+    // กำหนดสีและชื่อให้แต่ละระดับ
+    let colorClass = '';
+    let levelName = '';
+    if(level == 4) { colorClass = 'c-lv4'; levelName = 'ระดับ 4 (ถ่ายทอดได้)'; }
+    else if(level == 3) { colorClass = 'c-lv3'; levelName = 'ระดับ 3 (ประยุกต์ใช้/ดัดแปลงได้)'; }
+    else if(level == 2) { colorClass = 'c-lv2'; levelName = 'ระดับ 2 (ใช้งานได้ด้วยตนเอง)'; }
+    else if(level == 1) { colorClass = 'c-lv1'; levelName = 'ระดับ 1 (เรียนรู้/รับการถ่ายทอด)'; }
+
+    return `
+        <div class="level-item">
+            <div class="level-label">
+                <span>${levelName}</span>
+                <span>${count.toLocaleString()} <small class="text-muted font-weight-normal">คน</small></span>
+            </div>
+            <div class="progress progress-custom">
+                <div class="progress-bar progress-bar-custom ${colorClass}" style="width: ${pct}%"></div>
+            </div>
+        </div>
+    `;
+}
+
+function showInnovatorDetails(provinceName) {
+    let pNameTH = provinceName;
+    if (provinceName === 'Bangkok') { pNameTH = 'กรุงเทพมหานคร'; }
+
+    document.getElementById('modalProvinceName').innerText = 'จ.' + pNameTH;
+    
+    const data = provData[provinceName];
+    const lvlContainer = document.getElementById('levelContainer');
+
+    if (data) {
+        // อัปเดตตัวเลขรวมใน Modal
+        document.getElementById('md-total-inno').innerText = data.total_inno.toLocaleString();
+        document.getElementById('md-total-gen').innerText = data.gen_users.toLocaleString();
+
+        lvlContainer.innerHTML = '';
+        
+        // หาค่ามากสุดเพื่อทำหลอด Progress ให้สมส่วน
+        let maxVal = 0;
+        for(let i=1; i<=4; i++) { if(data.levels[i] > maxVal) maxVal = data.levels[i]; }
+        
+        // วนลูปสร้างแถบจากระดับ 4 ลงมา 1
+        for(let i=4; i>=1; i--) {
+            lvlContainer.innerHTML += createLevelItem(i, data.levels[i], maxVal);
+        }
+
+    } else {
+        // กรณีไม่มีข้อมูลนวัตกร 1-4 ในจังหวัดนั้น
+        document.getElementById('md-total-inno').innerText = '0';
+        document.getElementById('md-total-gen').innerText = data ? data.gen_users.toLocaleString() : '0';
+        lvlContainer.innerHTML = '<div class="text-center text-muted py-4">ไม่พบข้อมูลนวัตกรระดับ 1-4 ในพื้นที่นี้</div>';
+    }
+
+    $('#provinceDetailModal').modal('show');
+}
+
+// 1. โหลดแผนที่ Google GeoChart
+    google.charts.load('current', { 'packages':['geochart'], 'language': 'th' });
+    google.charts.setOnLoadCallback(drawRegionsMap);
+
+    function drawRegionsMap() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'จังหวัด');
+        data.addColumn('number', 'จำนวนนวัตกรชุมชน');
+
+        data.addRows([
+            ['สงขลา', 787],['สกลนคร', 696],['เชียงใหม่', 563],['นครราชสีมา', 530],['อุดรธานี', 515],['เชียงราย', 450],['พะเยา', 426],['ชุมพร', 373],['บุรีรัมย์', 312],['แพร่', 310],['ปัตตานี', 290],['ขอนแก่น', 285],['กาฬสินธุ์', 254],['ฉะเชิงเทรา', 251],['นราธิวาส', 235],['สตูล', 234],['อุตรดิตถ์', 231],['แม่ฮ่องสอน', 227],['ชัยนาท', 219],['พัทลุง', 207],['อุบลราชธานี', 192],['นครศรีธรรมราช', 187],['ร้อยเอ็ด', 185],['ระนอง', 184],['ลำปาง', 182],['เลย', 175],['ยะลา', 170],['พิษณุโลก', 168],['สุพรรณบุรี', 163],['ลพบุรี', 162],['กำแพงเพชร', 159],['ชัยภูมิ', 159],['ตรัง', 159],['ราชบุรี', 157],['นครพนม', 149],['สมุทรปราการ', 145],['ตราด', 133],['หนองบัวลำภู', 127],['ลำพูน', 119],['เพชรบูรณ์', 116],['ศรีสะเกษ', 113],['สระแก้ว', 102],['ประจวบคีรีขันธ์', 97],['น่าน', 93],['ปราจีนบุรี', 92],['บึงกาฬ', 87],['นครสวรรค์', 79],['พิจิตร', 75],['สุราษฎร์ธานี', 71],['พังงา', 61],['กาญจนบุรี', 59],['ภูเก็ต', 59],['นครปฐม', 54],['หนองคาย', 47],['สมุทรสงคราม', 47],['ชลบุรี', 34],['กระบี่', 33],['เพชรบุรี', 31],['พระนครศรีอยุธยา', 28],['ตาก', 27],['ปทุมธานี', 27],['อำนาจเจริญ', 25],['สุโขทัย', 24],['สระบุรี', 24],['สมุทรสาคร', 19],['มหาสารคาม', 19],['Bangkok', 11],['ระยอง', 9],['อ่างทอง', 6],['สุรินทร์', 5],['นนทบุรี', 5],['อุทัยธานี', 3],['สิงห์บุรี', 2],['ยโสธร', 1],['มุกดาหาร', 1],        ]);
+
+        var options = {
+            region: 'TH', displayMode: 'regions', resolution: 'provinces',  
+            // ใช้โทนสีส้ม-ทอง
+            colorAxis: {colors: ['#fde68a', '#f59e0b', '#b45309']}, 
+            backgroundColor: 'transparent',
+            datalessRegionColor: '#f1f5f9', defaultColor: '#f1f5f9',
+            tooltip: { textStyle: { fontName: 'Prompt', fontSize: 14 } }
+        };
+
+        var chart = new google.visualization.GeoChart(document.getElementById('geoMapChart'));
+        
+        // เมื่อคลิกแผนที่ ให้เด้ง Modal
+        google.visualization.events.addListener(chart, 'select', function() {
+            var selection = chart.getSelection();
+            if (selection.length > 0) {
+                var row = selection[0].row;
+                var provinceName = data.getValue(row, 0); 
+                showInnovatorDetails(provinceName); 
+            }
+        });
+        chart.draw(data, options);
+    }
+
+document.addEventListener("DOMContentLoaded", function() {
+    Chart.register(ChartDataLabels);
+
+    // 2. กราฟโดนัท สัดส่วนระดับนวัตกรทั่วประเทศ
+    const ctxPie = document.getElementById('levelPieChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: ['ระดับ 4', 'ระดับ 3', 'ระดับ 2', 'ระดับ 1'],
+            datasets: [{
+                data: [
+                    1185, 
+                    3558, 
+                    5147, 
+                    2173                ],
+                // แดง, ส้ม, เขียว, ฟ้า (ตามสีที่ใช้ในหลอด Progress)
+                backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6'],
+                borderWidth: 2, borderColor: '#fff', hoverOffset: 5
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '60%',
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { family: 'Prompt', size: 13 }, padding: 15 } },
+                datalabels: {
+                    color: '#fff', font: { family: 'Prompt', weight: 'bold', size: 16 },
+                    formatter: (value, ctx) => {
+                        let sum = 12063;
+                        return sum > 0 && value > 0 ? (value*100 / sum).toFixed(1) + "%" : '';
+                    }
+                },
+                tooltip: { bodyFont: { family: 'Prompt', size: 14 } }
+            }
+        }
+    });
+});
+
+$('#filterForm').on('submit', function() { $('#preloadOverlay').css('display', 'flex'); });
+window.addEventListener('pageshow', function(){ document.getElementById('preloadOverlay').style.display = 'none'; });
+</script>
+
+</body>
+</html>
