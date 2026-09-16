@@ -217,6 +217,24 @@ class UniversityParserTests(unittest.TestCase):
 
 
 class DashboardExtractionTests(unittest.TestCase):
+    def test_family_economic_metrics_are_parsed_from_cards(self) -> None:
+        metrics = scrape.extract_family_economic_metrics(
+            load_fixture("dashboard_family_all.html")
+        )
+        self.assertEqual(metrics["cost_reduction"]["thb"], 160951488)
+        self.assertEqual(metrics["income_increase"]["thb"], 836895050)
+        self.assertEqual(metrics["net_income_increase"]["thb"], 997846539)
+        self.assertEqual(metrics["net_formula"]["component_sum_thb"], 997846538)
+        self.assertEqual(metrics["net_formula"]["difference_thb"], 1)
+        self.assertFalse(metrics["net_formula"]["matches_displayed_net"])
+
+    def test_family_economic_metrics_fail_when_a_card_is_missing(self) -> None:
+        with self.assertRaises(ValueError):
+            scrape.extract_family_economic_metrics(
+                '<div class="eco-card bg-red"><div class="small">'
+                "มูลค่าต้นทุนที่ลดลงรวม</div><div class=\"h3\">1 ฿</div></div>"
+            )
+
     def test_innovators_blob_sums_to_anchor(self) -> None:
         data = scrape.extract_inline_json(
             load_fixture("dashboard_innovators.html"), "provData"

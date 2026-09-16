@@ -51,7 +51,10 @@ active version of each record plus an immutable version log.
   public dictionaries at `/api/form/get_province`, `/get_district`, and
   `/get_tumbon` (three cached lookups total).
 - **The dashboards embed pre-computed aggregates as inline JSON**; sums are
-  validated against the on-page headline numbers during collection.
+  validated against the on-page headline numbers during collection. The family
+  dashboard's three economic totals are separate server-rendered `.eco-card`
+  values, so `output/dashboards/family_*.json` also includes `economic_metrics`
+  with raw THB text, parsed integer amounts, and a Net-vs-components check.
 - The researcher directory is slow (~9 s/request server-side); its discovery
   and parsing share a single pagination pass for that reason.
 

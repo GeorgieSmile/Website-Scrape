@@ -21,7 +21,8 @@ Verified source facts this scraper relies on (2026-08-23):
   (csv-provinces/csv-districts/csv-tumbons) resolvable via the public JSON
   dictionaries under /api/form/.
 - the three dashboards embed pre-computed aggregates as inline JSON
-  (`const provData = {...}` / `const provinceData = {...}`).
+  (`const provData = {...}` / `const provinceData = {...}`); the family
+  dashboard's economic totals are separate server-rendered HTML cards.
 """
 
 from __future__ import annotations
@@ -1179,6 +1180,13 @@ class DashboardSpec:
     sum_keys: tuple[str, ...] = ()
 
 
+FAMILY_ECONOMIC_METRICS = {
+    "มูลค่าต้นทุนที่ลดลงรวม": "cost_reduction",
+    "มูลค่ารายได้ที่เพิ่มขึ้นรวม": "income_increase",
+    "มูลค่ารายได้สุทธิเพิ่มขึ้น (Net)": "net_income_increase",
+}
+
+
 DASHBOARD_SPECS = [
     DashboardSpec(
         dashboard_id="innovation_map",
@@ -1221,6 +1229,54 @@ def extract_inline_json(html: str, var_name: str) -> dict[str, Any]:
     return value
 
 
+def extract_family_economic_metrics(html: str) -> dict[str, Any]:
+    """Extract the three server-rendered economic cards from family dashboard HTML.
+
+    These values are not part of ``provData`` and are not loaded through a
+    public JSON endpoint. The backend renders them directly into ``.eco-card``
+    elements, so parse the label/value pair from the response HTML.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    metrics: dict[str, Any] = {}
+    for card in soup.select(".eco-card"):
+        label_node = card.select_one(".small")
+        value_node = card.select_one(".h3")
+        if label_node is None or value_node is None:
+            continue
+        label = clean_text(label_node.get_text(" ", strip=True))
+        key = FAMILY_ECONOMIC_METRICS.get(label)
+        if key is None:
+            continue
+        raw_value = clean_text(value_node.get_text(" ", strip=True))
+        amount = parse_thb_amount(raw_value)
+        if amount is None:
+            raise ValueError(
+                f"family dashboard economic metric {label!r} is not a THB amount: "
+                f"{raw_value!r}"
+            )
+        if key in metrics:
+            raise ValueError(f"family dashboard economic metric duplicated: {label}")
+        metrics[key] = {"thb": amount, "raw": raw_value}
+
+    missing = set(FAMILY_ECONOMIC_METRICS.values()) - metrics.keys()
+    if missing:
+        raise ValueError(
+            "family dashboard economic metrics missing: " + ", ".join(sorted(missing))
+        )
+
+    component_sum = (
+        metrics["cost_reduction"]["thb"] + metrics["income_increase"]["thb"]
+    )
+    metrics["net_formula"] = {
+        "component_sum_thb": component_sum,
+        "displayed_net_thb": metrics["net_income_increase"]["thb"],
+        "difference_thb": metrics["net_income_increase"]["thb"] - component_sum,
+        "matches_displayed_net": component_sum
+        == metrics["net_income_increase"]["thb"],
+    }
+    return metrics
+
+
 def collect_dashboard_artifact(
     session: requests.Session,
     spec: DashboardSpec,
@@ -1248,6 +1304,13 @@ def collect_dashboard_artifact(
             {item.get("prod_id") for items in prov_data.values() for item in items}
         )
 
+    economic_metrics = None
+    if spec.dashboard_id == "family":
+        economic_metrics = extract_family_economic_metrics(response.text)
+        integrity["economic_net_matches_components"] = economic_metrics[
+            "net_formula"
+        ]["matches_displayed_net"]
+
     headline = None
     if spec.headline_pattern:
         page_text = BeautifulSoup(response.text, "html.parser").get_text(
@@ -1262,6 +1325,14 @@ def collect_dashboard_artifact(
                 )
 
     warnings: list[str] = []
+    if economic_metrics and not economic_metrics["net_formula"][
+        "matches_displayed_net"
+    ]:
+        difference = economic_metrics["net_formula"]["difference_thb"]
+        warnings.append(
+            f"family[{year_filter or 'all'}]: displayed Net differs from the "
+            f"component sum by {difference:,} THB"
+        )
     for key, value in integrity.items():
         if key.startswith("headline_matches_") and not value:
             warnings.append(
@@ -1283,6 +1354,7 @@ def collect_dashboard_artifact(
             "headline": headline,
             "integrity_checks": integrity,
             "prov_data": prov_data,
+            **({"economic_metrics": economic_metrics} if economic_metrics else {}),
         },
         warnings,
     )
