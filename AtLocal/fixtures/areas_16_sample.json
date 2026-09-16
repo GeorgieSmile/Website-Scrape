@@ -1,0 +1,11 @@
+{
+  "status": "Success",
+  "data": {
+    "province": ["กาญจนบุรี;3"],
+    "district": ["ท่ามะกา;3"],
+    "name": ["ย่านวัฒนธรรม;3"],
+    "description": ["รายละเอียด;3"],
+    "picture_list": ["[\"l657.jpg\"];3"]
+  },
+  "message": ""
+}

@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "data": {
+    "provinces": [{"id": "5", "name": "สระบุรี"}],
+    "areas": [{"id": "3", "provinceId": "5", "name": "อำเภอเสาไห้"}],
+    "articles": [{
+      "id": "3",
+      "date": "2026-04-24",
+      "title": "ตัวอย่างบทความ",
+      "summary": "<p>เนื้อหาตัวอย่าง</p>",
+      "imageUrl": "https://example.invalid/article.webp",
+      "provinceId": "5",
+      "areaId": "3",
+      "active": true,
+      "province": "สระบุรี",
+      "area": "อำเภอเสาไห้"
+    }]
+  }
+}
