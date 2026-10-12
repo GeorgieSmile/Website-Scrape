@@ -1009,9 +1009,9 @@ def run_scrape(args: argparse.Namespace) -> int:
     report = create_progress_reporter(args.quiet)
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     verification = (
-        None
-        if args.no_browser
-        else BrowserVerification(args.chrome_path, args.browser_timeout, report)
+        BrowserVerification(args.chrome_path, args.browser_timeout, report)
+        if args.browser
+        else None
     )
     session = create_session(args.user_agent, verification)
     summary: dict[str, Any] = {"run_id": run_id, "datasets": {}, "warnings": []}
@@ -1127,7 +1127,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--user-agent", default=DEFAULT_USER_AGENT)
     parser.add_argument(
         "--chrome-path",
-        help="Chrome/Chromium executable for browser verification (auto-detected by default).",
+        help="Chrome/Chromium executable for browser verification (auto-detected by default; used with --browser).",
     )
     parser.add_argument(
         "--browser-timeout",
@@ -1136,9 +1136,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Seconds allowed for each Chrome verification, greater than 0 and at most 300.",
     )
     parser.add_argument(
-        "--no-browser",
+        "--browser",
         action="store_true",
-        help="Disable automatic Chrome verification; fail clearly if the site blocks requests.",
+        help=(
+            "If the site shows its browser check, open visible Chrome to pass it and reuse "
+            "the verified session. Off by default: a blocked request fails clearly instead."
+        ),
     )
     return parser
 

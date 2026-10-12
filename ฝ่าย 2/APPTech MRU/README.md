@@ -34,8 +34,8 @@ parses the server-rendered detail pages. Detail pages are fetched concurrently
 by a small `concurrent.futures` thread pool (one session per worker thread);
 parsing stays in the main thread, in catalog order.
 
-If the site returns its **“One moment, please…”** browser check, the scraper
-opens visible Chrome with a fresh temporary profile and a fixed, nonzero
+If the site returns its **“One moment, please…”** browser check and `--browser`
+is given, the scraper opens visible Chrome with a fresh temporary profile and a fixed, nonzero
 localhost debugging port. After the normal check completes, it transfers the
 browser cookies and actual user agent to the catalog and worker sessions.
 Collection continues through `requests`, not through browser page loads.
@@ -90,7 +90,7 @@ uv pip install --python .venv/bin/python -r "ฝ่าย 2/APPTech MRU/requirem
 
 # Full refresh: replaces each successfully validated dataset's output.
 .venv/bin/python "ฝ่าย 2/APPTech MRU/scrape.py" \
-  --dataset all --workers 4 \
+  --dataset all --workers 4 --browser \
   --user-agent "ApptechMruCollector"
 ```
 
@@ -105,8 +105,8 @@ A full refresh is roughly 550 requests. Options:
 - `--chrome-path PATH`: explicit Chrome/Chromium executable.
 - `--browser-timeout SECONDS`: per-startup verification deadline (default 40;
   greater than 0 and at most 300). Process startup/cleanup can add a few seconds.
-- `--no-browser`: disable browser startup; report an explicit verification error
-  if the site blocks requests.
+- `--browser`: allow the Chrome handoff described above. Off by default; without
+  it, a blocked request stops with an explicit verification error.
 
 `--user-agent` identifies normal requests, but a successful browser handoff
 replaces it with Chrome's actual user agent to match the verified session.

@@ -47,7 +47,7 @@ class SessionVerificationTests(unittest.TestCase):
         help_text = scrape.build_parser().format_help()
         self.assertIn("--chrome-path", help_text)
         self.assertIn("--browser-timeout", help_text)
-        self.assertIn("--no-browser", help_text)
+        self.assertIn("--browser ", help_text)
         self.assertIn("25%", help_text)
 
     def test_unblocked_request_does_not_launch_chrome(self) -> None:

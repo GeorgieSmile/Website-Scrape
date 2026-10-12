@@ -44,7 +44,7 @@ def is_browser_challenge(text: str) -> bool:
 
 def reject_browser_challenge(text: str) -> None:
     if is_browser_challenge(text):
-        raise BrowserVerificationError("browser verification required by the MRU site")
+        raise BrowserVerificationError("browser verification required by the MRU site; rerun with --browser")
 
 
 @dataclass(frozen=True)
