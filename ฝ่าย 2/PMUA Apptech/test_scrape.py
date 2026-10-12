@@ -8,11 +8,14 @@ Run from the repository root:
 
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -321,65 +324,216 @@ class SearchDiscoveryGuardTests(unittest.TestCase):
         self.assertEqual([row["product_id"] for row in rows], ["101", "102", "103"])
 
 
-class StateTests(unittest.TestCase):
-    def _sync_once(self, connection, run_id: str, title: str = "same") -> dict:
-        record = scrape.build_record(
-            "station",
-            "900",
-            title,
-            {"detail_url": "https://example.com"},
+class FetchOrderedTests(unittest.TestCase):
+    def test_results_come_back_in_input_order(self) -> None:
+        def fetch(number: int) -> int:
+            time.sleep(0.01 * (5 - number))  # Later items finish first.
+            return number * 10
+
+        results = list(scrape.fetch_ordered(fetch, [0, 1, 2, 3, 4], 4))
+        self.assertEqual(results, [0, 10, 20, 30, 40])
+
+    def test_first_error_propagates_and_cancels_pending_work(self) -> None:
+        calls: list[int] = []
+
+        def fetch(number: int) -> int:
+            calls.append(number)
+            time.sleep(0.02)
+            if number == 1:
+                raise RuntimeError("boom")
+            return number
+
+        with self.assertRaisesRegex(RuntimeError, "boom"):
+            list(scrape.fetch_ordered(fetch, list(range(50)), 1))
+        self.assertLess(len(calls), 50)
+
+
+class ConcurrentPaginationTests(unittest.TestCase):
+    @staticmethod
+    def search_page(ids: list[int], total: int = 10) -> str:
+        links = "".join(
+            f'<a href="https://pmua-apptech.com/product/show/{number}">x</a>'
+            for number in ids
+        )
+        return (
+            f'<div>พบข้อมูล <span class="t">{total}</span> รายการ</div>' + links
+        )
+
+    def pages(self, per_page_ids: list[list[int]], total: int = 10) -> Any:
+        pages = {
+            "https://pmua-apptech.com/search?q=": self.search_page(per_page_ids[0], total)
+        }
+        for number, ids in enumerate(per_page_ids[1:], start=2):
+            pages[f"https://pmua-apptech.com/search?q=&page={number}"] = self.search_page(
+                ids, total
+            )
+
+        def fake_get_html(_session: Any, url: str, timeout: int = 45) -> str:
+            time.sleep(0.01 * (len(pages) - len(url) % len(pages)))  # Jumble finish order.
+            return pages[url]
+
+        return fake_get_html
+
+    def test_concurrent_discovery_matches_sequential(self) -> None:
+        layout = [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+        with patch.object(scrape, "get_html", self.pages(layout)):
+            sequential = scrape.discover_products(None, 0, scrape.no_progress, workers=1)  # type: ignore[arg-type]
+            concurrent = scrape.discover_products(None, 0, scrape.no_progress, workers=4)  # type: ignore[arg-type]
+        self.assertEqual(sequential, concurrent)
+        self.assertEqual(
+            [row["product_id"] for row in concurrent[0]], [str(n) for n in range(1, 11)]
+        )
+
+    def test_concurrent_discovery_runs_stuck_check_in_page_order(self) -> None:
+        layout = [[1, 2], [3, 4], [3, 4], [7, 8], [9, 10]]
+        with patch.object(scrape, "get_html", self.pages(layout)):
+            with self.assertRaisesRegex(ValueError, "page 3 returned only duplicate"):
+                scrape.discover_products(None, 0, scrape.no_progress, workers=4)  # type: ignore[arg-type]
+
+    def test_concurrent_discovery_respects_limit(self) -> None:
+        layout = [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+        with patch.object(scrape, "get_html", self.pages(layout)):
+            rows, _ = scrape.discover_products(None, 0, scrape.no_progress, limit=3, workers=4)  # type: ignore[arg-type]
+        self.assertEqual([row["product_id"] for row in rows], ["1", "2", "3"])
+
+
+class DirectoryWaveTests(unittest.TestCase):
+    def test_waves_stop_at_first_short_page_and_ignore_later_pages(self) -> None:
+        pages = {
+            "https://x/dir": "a b",
+            "https://x/dir?per_page=2": "c d",
+            "https://x/dir?per_page=4": "e",
+            "https://x/dir?per_page=6": "a z",  # past the end: duplicate ID must be ignored
+            "https://x/dir?per_page=8": "",
+        }
+
+        def fake_get_html(_session: Any, url: str, timeout: int = 45) -> str:
+            return pages[url]
+
+        def parse(text: str) -> list[dict[str, Any]]:
+            return [{"record_id": item} for item in text.split()]
+
+        with (
+            patch.object(scrape, "get_html", fake_get_html),
+            patch.object(scrape, "DIRECTORY_PAGE_SIZE", 2),
+        ):
+            for workers in (1, 4):
+                with self.subTest(workers=workers):
+                    records = scrape._collect_directory(
+                        None, "https://x/dir", "t", parse, 0, scrape.no_progress, workers=workers  # type: ignore[arg-type]
+                    )
+                    self.assertEqual([r["record_id"] for r in records], list("abcde"))
+
+
+class CompareWithPreviousTests(unittest.TestCase):
+    STATIONS = scrape.DatasetDefinition("station", "stations.json", 1, None)
+    DASHBOARDS = scrape.DatasetDefinition(
+        "dashboard", None, 1, None, per_record_export_dir="dashboards"
+    )
+
+    def record(self, record_id: str = "900", title: str = "same") -> dict:
+        return scrape.build_record(
+            "station", record_id, title, {"detail_url": "https://example.com"}, []
+        )
+
+    def records(self, count: int, title: str = "same") -> list[dict]:
+        return [self.record(str(900 + number), title) for number in range(count)]
+
+    def write_previous(self, directory: str, records: list[dict]) -> Path:
+        (Path(directory) / "stations.json").write_text(
+            json.dumps({"data": records}), encoding="utf-8"
+        )
+        return Path(directory)
+
+    def test_counts_new_updated_unchanged_and_removed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = self.write_previous(directory, self.records(4))
+            current = self.records(2) + [
+                self.record("902", "changed"),
+                self.record("999"),
+            ]
+            counts = scrape.compare_with_previous(self.STATIONS, current, output_dir)
+        self.assertEqual(counts, {"new": 1, "updated": 1, "unchanged": 2, "removed": 1})
+
+    def test_first_run_without_file_counts_everything_as_new(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            counts = scrape.compare_with_previous(
+                self.STATIONS, self.records(3), Path(directory)
+            )
+        self.assertEqual(counts, {"new": 3, "updated": 0, "unchanged": 0, "removed": 0})
+
+    def test_removal_guard_trips_above_threshold_and_override_allows_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = self.write_previous(directory, self.records(12))
+            with self.assertRaisesRegex(ValueError, "25% safety limit"):
+                scrape.compare_with_previous(self.STATIONS, self.records(8), output_dir)
+            counts = scrape.compare_with_previous(
+                self.STATIONS, self.records(8), output_dir, allow_large_removal=True
+            )
+        self.assertEqual(counts["removed"], 4)
+
+    def test_removal_guard_ignores_small_previous_datasets(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = self.write_previous(directory, self.records(9))
+            counts = scrape.compare_with_previous(
+                self.STATIONS, self.records(1), output_dir
+            )
+        self.assertEqual(counts["removed"], 8)
+
+    def test_unreadable_previous_file_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "stations.json"
+            bad_contents = (
+                "{not json",
+                json.dumps([]),
+                json.dumps({"data": {}}),
+                json.dumps({"data": [{"title": "no id"}]}),
+                json.dumps({"data": self.records(1) * 2}),
+            )
+            for contents in bad_contents:
+                path.write_text(contents, encoding="utf-8")
+                with self.subTest(contents=contents), self.assertRaises(ValueError):
+                    scrape.compare_with_previous(
+                        self.STATIONS,
+                        self.records(1),
+                        Path(directory),
+                        allow_large_removal=True,
+                    )
+
+    def test_minimum_records_and_duplicate_ids_fail(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            product = scrape.DatasetDefinition("product", "products.json", 1000, None)
+            with self.assertRaises(ValueError):
+                scrape.compare_with_previous(product, [], Path(directory))
+            with self.assertRaises(ValueError):
+                scrape.compare_with_previous(
+                    self.STATIONS,
+                    [self.record("901", "A"), self.record("901", "B")],
+                    Path(directory),
+                )
+
+    def test_dashboard_files_are_read_back_as_records(self) -> None:
+        dashboard = scrape.build_record(
+            "dashboard",
+            "family:all",
+            "family (all years)",
+            {"artifact": "family_all.json", "dashboard": "family", "prov_data": {}},
             [],
         )
-        return scrape.sync_records(connection, "station", 1, [record], run_id, "now")
-
-    def test_rerun_creates_no_new_versions(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            connection = scrape.open_database(Path(directory) / "state.sqlite3")
-            counts = self._sync_once(connection, "run-1")
-            self.assertEqual(counts["new"], 1)
-            counts = self._sync_once(connection, "run-2")
-            self.assertEqual(counts["unchanged"], 1)
-            versions = connection.execute(
-                "SELECT COUNT(*) FROM record_versions"
-            ).fetchone()[0]
-            self.assertEqual(versions, 1)
-            connection.close()
-
-    def test_changed_content_creates_version(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            connection = scrape.open_database(Path(directory) / "state.sqlite3")
-            self._sync_once(connection, "run-1", "old title")
-            counts = self._sync_once(connection, "run-2", "new title")
-            self.assertEqual(counts["updated"], 1)
-            versions = connection.execute(
-                "SELECT change_type FROM record_versions ORDER BY version_no"
-            ).fetchall()
-            self.assertEqual(
-                [row["change_type"] for row in versions], ["created", "updated"]
+            scrape.write_dataset(
+                Path(directory), self.DASHBOARDS, [dashboard], "run-1", "now", []
             )
-            connection.close()
-
-    def test_duplicate_ids_fail(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            connection = scrape.open_database(Path(directory) / "state.sqlite3")
-            record_a = scrape.build_record(
-                "station", "901", "A", {"detail_url": "u"}, []
-            )
-            record_b = scrape.build_record(
-                "station", "901", "B", {"detail_url": "v"}, []
-            )
-            with self.assertRaises(ValueError):
-                scrape.sync_records(
-                    connection, "station", 1, [record_a, record_b], "r", "now"
+            written = json.loads(
+                (Path(directory) / "dashboards" / "family_all.json").read_text(
+                    encoding="utf-8"
                 )
-            connection.close()
-
-    def test_minimum_records_guard(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            connection = scrape.open_database(Path(directory) / "state.sqlite3")
-            with self.assertRaises(ValueError):
-                scrape.sync_records(connection, "product", 1000, [], "r", "now")
-            connection.close()
+            )
+            self.assertNotIn("artifact", written)
+            counts = scrape.compare_with_previous(
+                self.DASHBOARDS, [dashboard], Path(directory)
+            )
+        self.assertEqual(counts, {"new": 0, "updated": 0, "unchanged": 1, "removed": 0})
 
 
 class CountDriftTests(unittest.TestCase):

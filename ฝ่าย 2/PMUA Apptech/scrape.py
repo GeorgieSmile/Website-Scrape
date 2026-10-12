@@ -4,8 +4,8 @@ The national บพท./PMU-A platform catalogs university technology-transfer
 centers (ศูนย์), their innovations (เทคโนโลยี / นวัตกรรม), expert researchers,
 partner universities, and three public dashboards. Everything relevant is
 server-rendered HTML or embedded inline JSON — no login, no JavaScript
-rendering. SQLite is the authoritative incremental state; the JSON files in
-output/ are clean exports of the active state.
+rendering. Each run is compared with the previous JSON export in output/,
+which is the only state kept.
 
 Verified source facts this scraper relies on (2026-08-23):
 - sitemap.xml is stale (827 of 1,172 products) and homepage stat cards are
@@ -30,12 +30,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
-import sqlite3
 import sys
+import threading
 import time
 import unicodedata
-from collections.abc import Callable
+from collections.abc import Callable, Generator
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -49,7 +52,6 @@ from urllib3.util.retry import Retry
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT / "output"
-STATE_PATH = ROOT / "state" / "pmua_apptech.sqlite3"
 
 BASE_URL = "https://pmua-apptech.com/"
 SEARCH_URL = BASE_URL + "search"
@@ -61,8 +63,10 @@ UNIVERSITIES_URL = BASE_URL + "welcome/universities"
 AREA_API_BASE = BASE_URL + "api/form"
 
 DIRECTORY_PAGE_SIZE = 12  # Both directories render 12 cards per offset page.
-DEFAULT_DELAY_SECONDS = 0.4
-DEFAULT_USER_AGENT = "PmuaApptechCollector/1.0 (contact: replace-with-your-email)"
+DEFAULT_DELAY_SECONDS = 0.0  # Pause after each request, per worker.
+DEFAULT_WORKERS = 4
+MAX_WORKERS = 8
+DEFAULT_USER_AGENT = "PmuaApptechCollector"
 PLACEHOLDER_TEXT = {"-", "ไม่มี", "-ไม่มี-", "N/A"}
 REMOVAL_SAFETY_RATIO = 0.25
 REMOVAL_SAFETY_MINIMUM = (
@@ -133,6 +137,45 @@ def create_session(user_agent: str) -> requests.Session:
     adapter = HTTPAdapter(max_retries=retry_policy)
     session.mount("https://", adapter)
     return session
+
+
+def get_html(session: requests.Session, url: str, timeout: int = 45) -> str:
+    """HTTP only: fetch one page as text. Safe to run in a worker thread."""
+    response = session.get(url, timeout=timeout)
+    response.raise_for_status()
+    response.encoding = "utf-8"
+    return response.text
+
+
+def thread_session_provider(user_agent: str) -> Callable[[], requests.Session]:
+    """Return a function giving each calling thread its own session."""
+    local = threading.local()
+
+    def get_session() -> requests.Session:
+        session = getattr(local, "session", None)
+        if session is None:
+            session = local.session = create_session(user_agent)
+        return session
+
+    return get_session
+
+
+def fetch_ordered(
+    fetch: Callable[[Any], Any], items: list[Any], workers: int
+) -> Generator[Any, None, None]:
+    """Yield fetch(item) for each item in input order, fetching concurrently.
+
+    The first error raises here and cancels work that has not started. Callers
+    should wrap the iterator in contextlib.closing so that an error in their
+    own loop body also stops the pool.
+    """
+    executor = ThreadPoolExecutor(max_workers=workers)
+    try:
+        futures = [executor.submit(fetch, item) for item in items]
+        for future in futures:
+            yield future.result()
+    finally:
+        executor.shutdown(wait=True, cancel_futures=True)
 
 
 def clean_text(value: Any) -> Any:
@@ -245,23 +288,31 @@ def discover_products(
     delay: float,
     report: ProgressReporter,
     limit: int = 0,
+    workers: int = 1,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> tuple[list[dict[str, Any]], int | None]:
     """Page through /search?q=&page=N collecting unique product IDs.
 
     Guards: when unlimited, collected unique IDs must equal the total the
     site reports on the results page; a page that yields only already-seen
     IDs means pagination is stuck and fails the run.
+
+    With workers > 1, once page 1 reports the total, the remaining pages are
+    fetched concurrently and then checked here in page order, exactly as the
+    sequential loop would check them. Pages are fetched with one worker
+    session per thread; the main session only fetches page 1 and any pages
+    the estimate did not cover.
     """
     ids: list[str] = []
     seen: set[str] = set()
     reported_total: int | None = None
-    page = 1
-    while True:
-        url = SEARCH_URL + (f"?q=&page={page}" if page > 1 else "?q=")
-        response = session.get(url, timeout=45)
-        response.raise_for_status()
-        response.encoding = "utf-8"
-        html = response.text
+
+    def search_url(page: int) -> str:
+        return SEARCH_URL + (f"?q=&page={page}" if page > 1 else "?q=")
+
+    def consume(page: int, html: str) -> bool:
+        """Apply the per-page guards; True when pagination is finished."""
+        nonlocal reported_total
         page_total = parse_search_total(html)
         if reported_total is None:
             reported_total = page_total
@@ -284,21 +335,46 @@ def discover_products(
             new_on_page += 1
 
         if not found:
-            break
+            return True
         if found and new_on_page == 0:
             raise ValueError(
                 f"product: page {page} returned only duplicate IDs; pagination is stuck"
             )
         if reported_total and len(ids) >= reported_total:
-            break
+            return True
         if limit and len(ids) >= limit:
-            ids = ids[:limit]
-            break
+            del ids[limit:]
+            return True
         report(
             f"product: page {page:,} yielded {new_on_page} new IDs ({len(ids):,} collected)"
         )
-        page += 1
+        return False
+
+    done = consume(1, get_html(session, search_url(1)))
+    page = 2
+    if not done and workers > 1 and reported_total and ids:
+        per_page = len(ids)
+        last_page = math.ceil(reported_total / per_page)
+        if limit:
+            last_page = min(last_page, math.ceil(limit / per_page))
+        pages = list(range(2, last_page + 1))
+        worker_session = thread_session_provider(user_agent)
+
+        def fetch_page(page_number: int) -> str:
+            html = get_html(worker_session(), search_url(page_number))
+            time.sleep(delay)
+            return html
+
+        with closing(fetch_ordered(fetch_page, pages, workers)) as htmls:
+            for page_number, html in zip(pages, htmls, strict=True):
+                page = page_number + 1
+                if consume(page_number, html):
+                    done = True
+                    break
+    while not done:
         time.sleep(delay)
+        done = consume(page, get_html(session, search_url(page)))
+        page += 1
 
     if not limit and reported_total is not None and len(ids) != reported_total:
         raise ValueError(
@@ -1045,7 +1121,12 @@ def parse_researchers_page(html: str) -> list[dict[str, Any]]:
 
 
 def collect_researchers(
-    session: requests.Session, delay: float, report: ProgressReporter, limit: int = 0
+    session: requests.Session,
+    delay: float,
+    report: ProgressReporter,
+    limit: int = 0,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
     return _collect_directory(
         session,
@@ -1055,6 +1136,8 @@ def collect_researchers(
         delay,
         report,
         limit=limit,
+        workers=workers,
+        user_agent=user_agent,
     )
 
 
@@ -1099,7 +1182,12 @@ def parse_universities_page(html: str) -> list[dict[str, Any]]:
 
 
 def collect_universities(
-    session: requests.Session, delay: float, report: ProgressReporter, limit: int = 0
+    session: requests.Session,
+    delay: float,
+    report: ProgressReporter,
+    limit: int = 0,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
     return _collect_directory(
         session,
@@ -1109,6 +1197,8 @@ def collect_universities(
         delay,
         report,
         limit=limit,
+        workers=workers,
+        user_agent=user_agent,
     )
 
 
@@ -1120,6 +1210,8 @@ def _collect_directory(
     delay: float,
     report: ProgressReporter,
     limit: int = 0,
+    workers: int = 1,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
     """Single-pass directory collection: parse card records while paginating.
 
@@ -1128,36 +1220,55 @@ def _collect_directory(
     (or an empty one past the end) terminates pagination. Discovery and
     parsing share one request sequence because these endpoints are slow
     (~9 s/request on the researcher directory). Duplicate IDs fail the run.
+
+    Offsets are fetched in waves of `workers` pages and parsed here in offset
+    order; pages after the first short or empty one are ignored.
     """
+    del session  # directory pages are fetched through per-thread worker sessions
     records: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
-    offset = 0
-    while True:
+    worker_session = thread_session_provider(user_agent)
+
+    def fetch_offset(offset: int) -> str:
         url = base_url if offset == 0 else f"{base_url}?per_page={offset}"
-        response = session.get(url, timeout=60)
-        response.raise_for_status()
-        response.encoding = "utf-8"
-        page_records = parse_page(response.text)
-        if not page_records:
-            break
-        new_here = 0
-        for record in page_records:
-            record_id = record["record_id"]
-            if record_id in seen_ids:
-                raise ValueError(
-                    f"{dataset_id}: directory returned duplicate ID {record_id}"
-                )
-            seen_ids.add(record_id)
-            records.append(record)
-            new_here += 1
-        report(
-            f"{dataset_id}: offset {offset} rendered {new_here} records "
-            f"({len(records):,} collected)"
-        )
-        if len(page_records) < DIRECTORY_PAGE_SIZE or (limit and len(records) >= limit):
-            break
-        offset += DIRECTORY_PAGE_SIZE
+        html = get_html(worker_session(), url, timeout=60)
         time.sleep(delay)
+        return html
+
+    executor = ThreadPoolExecutor(max_workers=workers)
+    try:
+        offset = 0
+        done = False
+        while not done:
+            wave = [offset + index * DIRECTORY_PAGE_SIZE for index in range(workers)]
+            futures = [executor.submit(fetch_offset, wave_offset) for wave_offset in wave]
+            for wave_offset, future in zip(wave, futures, strict=True):
+                page_records = parse_page(future.result())
+                if not page_records:
+                    done = True
+                    break
+                new_here = 0
+                for record in page_records:
+                    record_id = record["record_id"]
+                    if record_id in seen_ids:
+                        raise ValueError(
+                            f"{dataset_id}: directory returned duplicate ID {record_id}"
+                        )
+                    seen_ids.add(record_id)
+                    records.append(record)
+                    new_here += 1
+                report(
+                    f"{dataset_id}: offset {wave_offset} rendered {new_here} records "
+                    f"({len(records):,} collected)"
+                )
+                if len(page_records) < DIRECTORY_PAGE_SIZE or (
+                    limit and len(records) >= limit
+                ):
+                    done = True
+                    break
+            offset = wave[-1] + DIRECTORY_PAGE_SIZE
+    finally:
+        executor.shutdown(wait=True, cancel_futures=True)
     if limit:
         records = records[:limit]
     if not records:
@@ -1361,8 +1472,14 @@ def collect_dashboard_artifact(
 
 
 def collect_dashboards(
-    session: requests.Session, delay: float, report: ProgressReporter, limit: int = 0
+    session: requests.Session,
+    delay: float,
+    report: ProgressReporter,
+    limit: int = 0,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
+    del workers, user_agent  # seven page loads stay sequential
     records: list[dict[str, Any]] = []
     for spec in DASHBOARD_SPECS:
         for year_filter in spec.year_filters:
@@ -1377,7 +1494,7 @@ def collect_dashboards(
 
 
 # ---------------------------------------------------------------------------
-# Incremental state (ported from the sibling scrapers)
+# Dataset definitions
 
 
 @dataclass(frozen=True)
@@ -1430,49 +1547,70 @@ def collect_products(
     report: ProgressReporter,
     limit: int = 0,
     area_resolver: AreaNameResolver | None = None,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
-    rows, _ = discover_products(session, delay, report, limit=limit)
+    rows, _ = discover_products(
+        session, delay, report, limit=limit, workers=workers, user_agent=user_agent
+    )
     records: list[dict[str, Any]] = []
     total = len(rows)
     progress_every = max(1, total // 40)
-    for index, row in enumerate(rows, start=1):
-        product_id = row["product_id"]
-        detail_url = PRODUCT_DETAIL_URL.format(product_id=product_id)
-        last_error: Exception | None = None
-        for _ in range(2):
-            response = session.get(detail_url, timeout=45)
-            response.raise_for_status()
-            response.encoding = "utf-8"
-            try:
-                records.append(parse_product_detail(response.text, row, area_resolver))
-                break
-            except ValueError as error:
-                last_error = error
-                time.sleep(delay)
-        else:
-            raise ValueError(f"Failed to parse {detail_url}: {last_error}")
-        report_detail_progress(
-            report, "product", index, total, product_id, progress_every
+    worker_session = thread_session_provider(user_agent)
+
+    def fetch_page(row: dict[str, Any]) -> str:
+        html = get_html(
+            worker_session(), PRODUCT_DETAIL_URL.format(product_id=row["product_id"])
         )
         time.sleep(delay)
+        return html
+
+    with closing(fetch_ordered(fetch_page, rows, workers)) as pages:
+        for index, (row, html) in enumerate(zip(rows, pages, strict=True), start=1):
+            product_id = row["product_id"]
+            detail_url = PRODUCT_DETAIL_URL.format(product_id=product_id)
+            last_error: Exception | None = None
+            for attempt in range(2):
+                if attempt:  # a parse failure re-fetches once, here, sequentially
+                    time.sleep(delay)
+                    html = get_html(session, detail_url)
+                try:
+                    records.append(parse_product_detail(html, row, area_resolver))
+                    break
+                except ValueError as error:
+                    last_error = error
+            else:
+                raise ValueError(f"Failed to parse {detail_url}: {last_error}")
+            report_detail_progress(
+                report, "product", index, total, product_id, progress_every
+            )
     return records
 
 
 def collect_stations(
-    session: requests.Session, delay: float, report: ProgressReporter, limit: int = 0
+    session: requests.Session,
+    delay: float,
+    report: ProgressReporter,
+    limit: int = 0,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
     rows = discover_stations(session, delay, report, limit=limit)
     records: list[dict[str, Any]] = []
     total = len(rows)
-    for index, row in enumerate(rows, start=1):
-        station_id = row["station_id"]
-        detail_url = STATION_DETAIL_URL.format(station_id=station_id)
-        response = session.get(detail_url, timeout=45)
-        response.raise_for_status()
-        response.encoding = "utf-8"
-        records.append(parse_station_detail(response.text, row))
-        report_detail_progress(report, "station", index, total, station_id, 5)
+    worker_session = thread_session_provider(user_agent)
+
+    def fetch_page(row: dict[str, Any]) -> str:
+        html = get_html(
+            worker_session(), STATION_DETAIL_URL.format(station_id=row["station_id"])
+        )
         time.sleep(delay)
+        return html
+
+    with closing(fetch_ordered(fetch_page, rows, workers)) as pages:
+        for index, (row, html) in enumerate(zip(rows, pages, strict=True), start=1):
+            records.append(parse_station_detail(html, row))
+            report_detail_progress(report, "station", index, total, row["station_id"], 5)
     return records
 
 
@@ -1490,93 +1628,76 @@ def select_datasets(name: str) -> list[DatasetDefinition]:
     return [DATASETS[name]]
 
 
-def open_database(path: Path) -> sqlite3.Connection:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS runs (
-            run_id TEXT PRIMARY KEY,
-            started_at TEXT NOT NULL,
-            finished_at TEXT,
-            status TEXT NOT NULL,
-            summary_json TEXT NOT NULL
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS records (
-            dataset TEXT NOT NULL,
-            record_id TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            content_hash TEXT NOT NULL,
-            first_seen_at TEXT NOT NULL,
-            last_seen_at TEXT NOT NULL,
-            last_changed_at TEXT NOT NULL,
-            last_run_id TEXT NOT NULL,
-            active INTEGER NOT NULL DEFAULT 1,
-            PRIMARY KEY (dataset, record_id)
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS record_versions (
-            dataset TEXT NOT NULL,
-            record_id TEXT NOT NULL,
-            version_no INTEGER NOT NULL,
-            change_type TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            content_hash TEXT NOT NULL,
-            run_id TEXT NOT NULL,
-            changed_at TEXT NOT NULL,
-            PRIMARY KEY (dataset, record_id, version_no)
-        )
-        """
-    )
-    return connection
+ENVELOPE_KEYS = frozenset(
+    {"schema_version", "dataset", "source_base_url", "scraped_at", "run_id", "warnings"}
+)
 
 
-def active_records(
-    connection: sqlite3.Connection, dataset_id: str
-) -> dict[str, sqlite3.Row]:
-    rows = connection.execute(
-        "SELECT * FROM records WHERE dataset = ? AND active = 1", (dataset_id,)
-    ).fetchall()
-    return {row["record_id"]: row for row in rows}
+def read_json_file(path: Path) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("top level is not an object")
+    return payload
 
 
-def next_version_no(
-    connection: sqlite3.Connection, dataset_id: str, record_id: str
-) -> int:
-    row = connection.execute(
-        "SELECT MAX(version_no) FROM record_versions WHERE dataset = ? AND record_id = ?",
-        (dataset_id, record_id),
-    ).fetchone()
-    return (row[0] or 0) + 1
+def load_previous_records(
+    dataset: DatasetDefinition, output_dir: Path
+) -> dict[str, dict[str, Any]]:
+    """Return the previous output's records by ID; empty on a first run.
+
+    An existing file that cannot be read fails the dataset so the removal guard
+    is never skipped silently. Per-record datasets (dashboards) keep one file
+    per record: the record is the file minus the envelope, plus its artifact name.
+    """
+    previous: dict[str, dict[str, Any]] = {}
+    path = output_dir / (dataset.output_name or "")
+    try:
+        if dataset.per_record_export_dir:
+            directory = output_dir / dataset.per_record_export_dir
+            items = []
+            for artifact_path in sorted(directory.glob("*.json")):
+                payload = read_json_file(artifact_path)
+                record = {
+                    key: value
+                    for key, value in payload.items()
+                    if key not in ENVELOPE_KEYS
+                }
+                record["artifact"] = artifact_path.name
+                items.append(record)
+        elif path.exists():
+            items = read_json_file(path)["data"]
+            if not isinstance(items, list):
+                raise TypeError("'data' is not a list")
+        else:
+            items = []
+        for item in items:
+            record_id = item["record_id"]
+            if record_id in previous:
+                raise ValueError(f"duplicate record ID {record_id}")
+            previous[record_id] = item
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        raise ValueError(
+            f"{dataset.dataset_id} cannot read previous output: {error!r}"
+        ) from error
+    return previous
 
 
-def sync_records(
-    connection: sqlite3.Connection,
-    dataset_id: str,
-    minimum_records: int,
+def compare_with_previous(
+    dataset: DatasetDefinition,
     records: list[dict[str, Any]],
-    run_id: str,
-    now: str,
+    output_dir: Path,
     allow_large_removal: bool = False,
 ) -> dict[str, int]:
-    if len(records) < minimum_records:
+    if len(records) < dataset.minimum_records:
         raise ValueError(
-            f"{dataset_id} scrape produced {len(records)} records; "
-            f"expected at least {minimum_records}"
+            f"{dataset.dataset_id} scrape produced {len(records)} records; "
+            f"expected at least {dataset.minimum_records}"
         )
     by_id = {record["record_id"]: record for record in records}
     if len(by_id) != len(records):
-        raise ValueError(f"{dataset_id} produced duplicate record IDs")
+        raise ValueError(f"{dataset.dataset_id} produced duplicate record IDs")
 
-    existing = active_records(connection, dataset_id)
+    existing = load_previous_records(dataset, output_dir)
     removed_ids = set(existing) - set(by_id)
     if (
         existing
@@ -1584,123 +1705,17 @@ def sync_records(
         and len(removed_ids) / len(existing) > REMOVAL_SAFETY_RATIO
         and not allow_large_removal
     ):
-        raise ValueError(f"{dataset_id} removal exceeds the 25% safety limit")
+        raise ValueError(f"{dataset.dataset_id} removal exceeds the 25% safety limit")
 
     counts = {"new": 0, "updated": 0, "unchanged": 0, "removed": len(removed_ids)}
-    with connection:
-        for record_id, record in by_id.items():
-            payload = json.dumps(record, ensure_ascii=False, sort_keys=True)
-            record_hash = semantic_hash(record)
-            previous = existing.get(record_id)
-            if previous is None:
-                connection.execute(
-                    """
-                    INSERT INTO records (
-                        dataset, record_id, payload_json, content_hash, first_seen_at,
-                        last_seen_at, last_changed_at, last_run_id, active
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-                    """,
-                    (
-                        dataset_id,
-                        record_id,
-                        payload,
-                        record_hash,
-                        now,
-                        now,
-                        now,
-                        run_id,
-                    ),
-                )
-                connection.execute(
-                    """
-                    INSERT INTO record_versions (
-                        dataset, record_id, version_no, change_type, payload_json,
-                        content_hash, run_id, changed_at
-                    ) VALUES (?, ?, ?, 'created', ?, ?, ?, ?)
-                    """,
-                    (
-                        dataset_id,
-                        record_id,
-                        next_version_no(connection, dataset_id, record_id),
-                        payload,
-                        record_hash,
-                        run_id,
-                        now,
-                    ),
-                )
-                counts["new"] += 1
-            elif previous["content_hash"] != record_hash:
-                connection.execute(
-                    """
-                    UPDATE records
-                    SET payload_json = ?, content_hash = ?, last_seen_at = ?,
-                        last_changed_at = ?, last_run_id = ?, active = 1
-                    WHERE dataset = ? AND record_id = ?
-                    """,
-                    (
-                        payload,
-                        record_hash,
-                        now,
-                        now,
-                        run_id,
-                        dataset_id,
-                        record_id,
-                    ),
-                )
-                connection.execute(
-                    """
-                    INSERT INTO record_versions (
-                        dataset, record_id, version_no, change_type, payload_json,
-                        content_hash, run_id, changed_at
-                    ) VALUES (?, ?, ?, 'updated', ?, ?, ?, ?)
-                    """,
-                    (
-                        dataset_id,
-                        record_id,
-                        next_version_no(connection, dataset_id, record_id),
-                        payload,
-                        record_hash,
-                        run_id,
-                        now,
-                    ),
-                )
-                counts["updated"] += 1
-            else:
-                connection.execute(
-                    """
-                    UPDATE records SET last_seen_at = ?, last_run_id = ?, active = 1
-                    WHERE dataset = ? AND record_id = ?
-                    """,
-                    (now, run_id, dataset_id, record_id),
-                )
-                counts["unchanged"] += 1
-
-        for record_id in removed_ids:
-            previous = existing[record_id]
-            connection.execute(
-                """
-                UPDATE records SET active = 0, last_seen_at = ?, last_run_id = ?
-                WHERE dataset = ? AND record_id = ?
-                """,
-                (now, run_id, dataset_id, record_id),
-            )
-            connection.execute(
-                """
-                INSERT INTO record_versions (
-                    dataset, record_id, version_no, change_type, payload_json,
-                    content_hash, run_id, changed_at
-                ) VALUES (?, ?, ?, 'retired', ?, ?, ?, ?)
-                """,
-                (
-                    dataset_id,
-                    record_id,
-                    next_version_no(connection, dataset_id, record_id),
-                    previous["payload_json"],
-                    previous["content_hash"],
-                    run_id,
-                    now,
-                ),
-            )
+    for record_id, record in by_id.items():
+        previous = existing.get(record_id)
+        if previous is None:
+            counts["new"] += 1
+        elif semantic_hash(previous) != semantic_hash(record):
+            counts["updated"] += 1
+        else:
+            counts["unchanged"] += 1
     return counts
 
 
@@ -1721,30 +1736,24 @@ def record_id_sort_key(record: dict[str, Any]) -> tuple[int, str]:
     return (numeric if numeric is not None else 0, record_id)
 
 
-def export_dataset(
-    connection: sqlite3.Connection,
+def write_dataset(
+    output_dir: Path,
     dataset: DatasetDefinition,
+    records: list[dict[str, Any]],
     run_id: str,
     scraped_at: str,
     warnings: list[str],
 ) -> None:
-    rows = connection.execute(
-        "SELECT record_id, payload_json FROM records WHERE dataset = ? AND active = 1",
-        (dataset.dataset_id,),
-    ).fetchall()
-    records: list[dict[str, Any]] = []
-    for row in rows:
-        try:
-            records.append(json.loads(row["payload_json"]))
-        except ValueError as error:
-            raise ValueError(
-                f"Corrupt stored payload for {dataset.dataset_id}/{row['record_id']}"
-            ) from error
+    """Write a dataset: records in ID order with keys sorted recursively."""
+    exported = [
+        json.loads(json.dumps(record, ensure_ascii=False, sort_keys=True))
+        for record in records
+    ]
     if dataset.per_record_export_dir:
-        for record in records:
+        for record in exported:
             artifact_name = record.get("artifact") or f"{record['record_id']}.json"
             write_json(
-                OUTPUT_DIR / dataset.per_record_export_dir / artifact_name,
+                output_dir / dataset.per_record_export_dir / artifact_name,
                 {
                     "schema_version": DEFAULT_SCHEMA_VERSION,
                     "dataset": dataset.dataset_id,
@@ -1759,18 +1768,18 @@ def export_dataset(
             )
         return
     assert dataset.output_name is not None
-    records.sort(key=record_id_sort_key)
+    exported.sort(key=record_id_sort_key)
     write_json(
-        OUTPUT_DIR / dataset.output_name,
+        output_dir / dataset.output_name,
         {
             "schema_version": DEFAULT_SCHEMA_VERSION,
             "dataset": dataset.dataset_id,
             "source_base_url": BASE_URL,
             "scraped_at": scraped_at,
             "run_id": run_id,
-            "record_count": len(records),
+            "record_count": len(exported),
             "warnings": sorted(set(warnings)),
-            "data": records,
+            "data": exported,
         },
     )
 
@@ -1783,20 +1792,8 @@ def run_scrape(args: argparse.Namespace) -> int:
     selected = select_datasets(args.dataset)
     report = create_progress_reporter(args.quiet)
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    connection = open_database(STATE_PATH)
     session = create_session(args.user_agent)
     summary: dict[str, Any] = {"run_id": run_id, "datasets": {}, "warnings": []}
-    started_at = utc_now()
-    connection.execute(
-        "INSERT INTO runs (run_id, started_at, status, summary_json) VALUES (?, ?, ?, ?)",
-        (run_id, started_at, "running", "{}"),
-    )
-    connection.commit()
-
-    if "replace-with-your-email" in args.user_agent:
-        summary["warnings"].append(
-            "Set --user-agent to an identifying value with a contact address before production use."
-        )
 
     area_resolver = AreaNameResolver(session, report)
 
@@ -1806,29 +1803,39 @@ def run_scrape(args: argparse.Namespace) -> int:
         try:
             if dataset.dataset_id == "product":
                 records = collect_products(
-                    session, args.delay, report, args.limit, area_resolver
+                    session,
+                    args.delay,
+                    report,
+                    args.limit,
+                    area_resolver,
+                    args.workers,
+                    args.user_agent,
                 )
             else:
                 assert dataset.collect is not None
-                records = dataset.collect(session, args.delay, report, args.limit)
+                records = dataset.collect(
+                    session,
+                    args.delay,
+                    report,
+                    args.limit,
+                    args.workers,
+                    args.user_agent,
+                )
             warn_count_drift(dataset.dataset_id, len(records), summary["warnings"])
             if args.limit:
                 summary["datasets"][dataset.dataset_id] = {
                     "status": "smoke_test",
                     "discovered": len(records),
-                    "state_updated": False,
+                    "output_written": False,
                 }
                 report(
                     f"{dataset.dataset_id}: smoke test completed with {len(records):,} records"
                 )
                 continue
-            counts = sync_records(
-                connection,
-                dataset.dataset_id,
-                dataset.minimum_records,
+            counts = compare_with_previous(
+                dataset,
                 records,
-                run_id,
-                utc_now(),
+                OUTPUT_DIR,
                 allow_large_removal=args.allow_large_removal,
             )
             record_warnings = [
@@ -1836,9 +1843,10 @@ def run_scrape(args: argparse.Namespace) -> int:
                 for record in records
                 for warning in record.get("validation_warnings", [])
             ]
-            export_dataset(
-                connection,
+            write_dataset(
+                OUTPUT_DIR,
                 dataset,
+                records,
                 run_id,
                 utc_now(),
                 summary["warnings"] + record_warnings,
@@ -1846,7 +1854,7 @@ def run_scrape(args: argparse.Namespace) -> int:
             summary["datasets"][dataset.dataset_id] = {
                 "status": "completed",
                 "discovered": len(records),
-                "state_updated": True,
+                "output_written": True,
                 **counts,
             }
             report(
@@ -1859,18 +1867,10 @@ def run_scrape(args: argparse.Namespace) -> int:
                 "status": "failed",
                 "error_type": type(error).__name__,
                 "error": str(error),
-                "state_updated": False,
+                "output_written": False,
             }
             report(f"{dataset.dataset_id}: failed — {type(error).__name__}: {error}")
 
-    status = "failed" if has_failures else "completed"
-    finished_at = utc_now()
-    connection.execute(
-        "UPDATE runs SET finished_at = ?, status = ?, summary_json = ? WHERE run_id = ?",
-        (finished_at, status, json.dumps(summary, ensure_ascii=False), run_id),
-    )
-    connection.commit()
-    connection.close()
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 1 if has_failures else 0
 
@@ -1880,12 +1880,23 @@ def build_parser() -> argparse.ArgumentParser:
         description="Scrape public pmua-apptech.com content."
     )
     parser.add_argument("--dataset", choices=("all", *DATASETS), default="all")
-    parser.add_argument("--delay", type=float, default=DEFAULT_DELAY_SECONDS)
+    parser.add_argument(
+        "--delay",
+        type=float,
+        default=DEFAULT_DELAY_SECONDS,
+        help="Seconds each worker pauses after every request.",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=DEFAULT_WORKERS,
+        help=f"Concurrent page fetches, 1 to {MAX_WORKERS}.",
+    )
     parser.add_argument(
         "--limit",
         type=int,
         default=0,
-        help="Smoke-test record limit; does not update state or JSON outputs.",
+        help="Smoke-test record limit; does not write JSON outputs.",
     )
     parser.add_argument(
         "--progress-every",
@@ -1901,7 +1912,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--allow-large-removal",
         action="store_true",
-        help="Allow an update that would deactivate more than 25% of an established dataset.",
+        help="Allow an update that would remove more than 25%% of an established dataset.",
     )
     parser.add_argument("--user-agent", default=DEFAULT_USER_AGENT)
     return parser
@@ -1913,6 +1924,8 @@ def main() -> int:
         raise SystemExit(
             "--delay and --limit must be non-negative; --progress-every must be at least 1"
         )
+    if not 1 <= args.workers <= MAX_WORKERS:
+        raise SystemExit(f"--workers must be between 1 and {MAX_WORKERS}")
     return run_scrape(args)
 
 
