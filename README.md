@@ -24,7 +24,7 @@ The scrapers generally:
 - collect only publicly available data
 - use conservative request delays and documented source boundaries
 - normalize results into JSON exports
-- track changes and run history in SQLite
+- report what changed since the previous run (ฝ่าย 2 compares with the previous JSON export; ฝ่าย 3 keeps SQLite history)
 - validate pagination, duplicates, record counts, and source consistency
 - use saved fixtures and offline tests for parser validation
 
