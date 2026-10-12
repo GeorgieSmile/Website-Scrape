@@ -1,48 +1,48 @@
 .venv
-*/__pycache__/
+__pycache__/
 .DS_Store
 pyrightconfig.json
 
 # Visit Lumphun
-Visit Lumphun/output
-Visit Lumphun/state
-Visit Lumphun/SCRAPER_PLAN.md
+ฝ่าย 3/Visit Lumphun/output
+ฝ่าย 3/Visit Lumphun/state
+ฝ่าย 3/Visit Lumphun/SCRAPER_PLAN.md
 
 # Evaluate City
-Evaluate City/output
-Evaluate City/state
-Evaluate City/SCRAPER_PLAN.md
+ฝ่าย 3/Evaluate City/output
+ฝ่าย 3/Evaluate City/state
+ฝ่าย 3/Evaluate City/SCRAPER_PLAN.md
 
 # Cultural Map
-Cultural Map/output
-Cultural Map/state
-Cultural Map/SCRAPER_PLAN.md
+ฝ่าย 2/Cultural Map/output
+ฝ่าย 2/Cultural Map/state
+ฝ่าย 2/Cultural Map/SCRAPER_PLAN.md
 
 # RinMP
-RinMP/output
-RinMP/state
-RinMP/SCRAPER_PLAN.md
+ฝ่าย 2/RinMP/output
+ฝ่าย 2/RinMP/state
+ฝ่าย 2/RinMP/SCRAPER_PLAN.md
 
 #APPTech MRU
-APPTech MRU/output
-APPTech MRU/state
-APPTech MRU/SCRAPER_PLAN.md
+ฝ่าย 2/APPTech MRU/output
+ฝ่าย 2/APPTech MRU/state
+ฝ่าย 2/APPTech MRU/SCRAPER_PLAN.md
 
 # PMUA Apptech
-PMUA Apptech/output
-PMUA Apptech/state
-PMUA Apptech/SCRAPER_PLAN.md
+ฝ่าย 2/PMUA Apptech/output
+ฝ่าย 2/PMUA Apptech/state
+ฝ่าย 2/PMUA Apptech/SCRAPER_PLAN.md
 
 # At Local
 At Local Marketplace Analysis/
-AtLocal/output
-AtLocal/state
-AtLocal/SCRAPER_PLAN.md
+ฝ่าย 2/AtLocal/output
+ฝ่าย 2/AtLocal/state
+ฝ่าย 2/AtLocal/SCRAPER_PLAN.md
 
 # iCommunity
 iCommunity Analysis/
-iCommunity/output
-iCommunity/state
-iCommunity/SCRAPER_PLAN.md
+ฝ่าย 2/iCommunity/output
+ฝ่าย 2/iCommunity/state
+ฝ่าย 2/iCommunity/SCRAPER_PLAN.md
 
 

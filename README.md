@@ -8,14 +8,14 @@ future dashboard or database use.
 
 | Project | Data collected |
 | --- | --- |
-| [Visit Lumphun](Visit%20Lumphun/README.md) | Tourism sites, venues, travel services, products, and contacts |
-| [Evaluate City](Evaluate%20City/README.md) | City indicators and published measurements |
-| [Cultural Map](Cultural%20Map/README.md) | Cultural places, products, activities, recreation, and team data |
-| [RinMP](RinMP/README.md) | Appropriate technologies, statistics, and owner profiles |
-| [APPTech MRU](APPTech%20MRU/README.md) | Innovations and technology requirements |
-| [PMUA Apptech](PMUA%20Apptech/README.md) | Products, technology centers, researchers, universities, and dashboards |
-| [AtLocal](AtLocal/README.md) | Articles, cultures, products, entrepreneurs, festivals, and cultural areas |
-| [iCommunity](iCommunity/README.md) | AppTech programmes, innovations, innovators, activities, and community products |
+| [Visit Lumphun](ฝ่าย%203/Visit%20Lumphun/README.md) | Tourism sites, venues, travel services, products, and contacts |
+| [Evaluate City](ฝ่าย%203/Evaluate%20City/README.md) | City indicators and published measurements |
+| [Cultural Map](ฝ่าย%202/Cultural%20Map/README.md) | Cultural places, products, activities, recreation, and team data |
+| [RinMP](ฝ่าย%202/RinMP/README.md) | Appropriate technologies, statistics, and owner profiles |
+| [APPTech MRU](ฝ่าย%202/APPTech%20MRU/README.md) | Innovations and technology requirements |
+| [PMUA Apptech](ฝ่าย%202/PMUA%20Apptech/README.md) | Products, technology centers, researchers, universities, and dashboards |
+| [AtLocal](ฝ่าย%202/AtLocal/README.md) | Articles, cultures, products, entrepreneurs, festivals, and cultural areas |
+| [iCommunity](ฝ่าย%202/iCommunity/README.md) | AppTech programmes, innovations, innovators, activities, and community products |
 
 ## Common Features
 
