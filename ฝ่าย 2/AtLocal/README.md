@@ -1,48 +1,119 @@
-# At Local scraper
+# AtLocal scraper
 
-This scraper collects public At Local Thailand articles, cultures, map products,
-marketplace products, entrepreneurs, festivals, and the 16 cultural areas.
+A compact, incremental scraper for the public At Local Thailand sites,
+[atlocalthailand.com](https://atlocalthailand.com/) and
+[market.atlocalthailand.com](https://market.atlocalthailand.com/). It creates
+seven clean JSON exports and compares each run with the previous export.
 
-Map products and marketplace products stay in separate JSON files. The scraper
-stores media URLs and filenames but does not download media.
+It follows the approved source boundary: every request goes to those two
+hosts. Map products and marketplace products stay in separate JSON files. The
+scraper stores media URLs and filenames but does not download media.
 
-## Run
+## Structure
 
-```bash
-../.venv/bin/python scrape.py --dataset all --user-agent "AtLocalCollector"
+```text
+AtLocal/
+├── README.md         # this file
+├── scrape.py         # collection, parsing, cleaning, comparison, JSON export
+├── test_scrape.py    # offline parser and previous-output checks
+├── fixtures/         # saved API and Next.js payload samples for the tests
+├── requirements.txt  # requests and Beautiful Soup
+├── SCRAPER_PLAN.md   # local design notes (git-ignored, absent from a clone)
+└── output/           # created at runtime; one JSON file per dataset
 ```
 
-Useful options:
+## How it works
 
-- `--dataset {all,articles,cultures,product_map,marketplace_products,entrepreneurs,festivals,areas_16}`
-- `--delay SECONDS`, default `1.0`
-- `--limit N` for a read-only smoke test
-- `--allow-large-removal` to override the 25% retirement guard
+`requests` provides a session with retry handling for temporary HTTP failures.
+`BeautifulSoup` parses server-rendered pages, and the marketplace products are
+read from the embedded Next.js server payload. Requests are sequential.
 
-The scraper writes current data to `output/`. Each run compares the new records
-with the previous output file (matched by record ID) and prints new, changed, unchanged, and retired counts in its JSON run summary.
-A dataset is refused, leaving its previous file untouched, if more than 25% of
-the previous records would disappear (override with `--allow-large-removal`) or
-if the previous file exists but cannot be read. Version history is not kept
-locally.
+| Dataset | Source | Stable ID |
+| --- | --- | --- |
+| Articles | `GET /api/front/articles`, with a detail API URL per record | `article_id` |
+| Cultures | `GET /api/front/culture`, with a detail API URL per record | `culture_id` |
+| Product map | `POST /api/s9001/get_items_by_search_filter_v1` (the listing API is the full record) | `map_product_id` |
+| Marketplace products | homepage, then every discovered `/shop/{id}` page | `shop_id` + `marketplace_product_id` |
+| Entrepreneurs | `GET /api/front/owners` | `entrepreneur_id` |
+| Festivals | `/activity` links and `GET /api/front/highlights`, then each public `/festival/...` page | `festival_id` (the path) |
+| 16 areas | `POST /api/s9001/get_map_info_all_v2` | `area_id` |
 
-## Verified first run
+## Install and run
 
-The first complete collection on 2026-08-25 produced 3 articles, 18 culture
-records, 1,883 map products, 543 marketplace products, 4 entrepreneurs, 8
-public festival pages, and 16 areas.
-
-The legacy map catalog has 78 records with an empty `item_name`. The scraper
-keeps them because their source IDs, shop names, and locations are still
-published. Each has a `Missing item_name in source` warning. It never creates a
-replacement title.
-
-## Test
+Run these commands from the repository root using its `.venv`.
 
 ```bash
-../.venv/bin/python -m unittest -v
+uv pip install --python .venv/bin/python -r "ฝ่าย 2/AtLocal/requirements.txt"
+
+# Smoke test: writes nothing.
+.venv/bin/python "ฝ่าย 2/AtLocal/scrape.py" --dataset all --limit 3
+
+# Full refresh: replaces each successfully validated dataset's output.
+.venv/bin/python "ฝ่าย 2/AtLocal/scrape.py" --dataset all
+```
+
+Options:
+
+- `--dataset {all,articles,cultures,product_map,marketplace_products,entrepreneurs,festivals,areas_16}`
+- `--delay SECONDS` (default 1.0): pause between requests. This scraper has
+  no `--workers` option.
+- `--limit N`: smoke test; writes nothing.
+- `--allow-large-removal`: override the 25% retirement guard (see below).
+- `--user-agent NAME` (default `AtLocalCollector`)
+- `--quiet`: suppress progress messages on standard error.
+
+A JSON run summary is printed to standard output. A network, parser, or
+validation failure is reported per dataset and does not replace that dataset's
+last successful export; the run then exits 1.
+
+## Output
+
+| File | Content | Records (2026-10-12) |
+| --- | --- | --- |
+| `articles.json` | Articles | 3 |
+| `cultures.json` | Culture records | 18 |
+| `product_map.json` | Map products (legacy map catalog) | 1,883 |
+| `marketplace_products.json` | Marketplace products from every shop page | 636 |
+| `entrepreneurs.json` | Entrepreneurs | 4 |
+| `festivals.json` | Public festival pages | 8 |
+| `areas_16.json` | The 16 cultural areas | 16 |
+
+Every file has the same top-level structure:
+
+```json
+{
+  "schema_version": 1,
+  "dataset": "product_map",
+  "source_urls": ["https://atlocalthailand.com/api/s9001/get_items_by_search_filter_v1"],
+  "scraped_at": "2026-10-12T09:42:33.393363+00:00",
+  "record_count": 1883,
+  "warnings": [],
+  "metadata": {},
+  "data": []
+}
+```
+
+The legacy map catalog has records with an empty `item_name`. The scraper keeps
+them because their source IDs, shop names, and locations are still published.
+Each has a `Missing item_name in source` warning, and the scraper never
+creates a replacement title.
+
+## Comparison with the previous run
+
+The previous `output/<dataset>.json` is the only state. Each run compares the
+new records with it by record ID and prints `new`, `changed`, `unchanged`, and
+`retired` counts per dataset in its JSON run summary. A dataset is refused,
+leaving its previous file untouched, if more than 25% of the previous records
+would disappear (override with `--allow-large-removal`) or if the previous file
+exists but cannot be read. With no previous file, every record counts as new.
+Version history is not kept locally.
+
+## Tests
+
+```bash
+.venv/bin/python -m unittest discover -s "ฝ่าย 2/AtLocal"
 ```
 
 All tests run offline. They cover API payload parsing, marketplace Next.js
-payload extraction, festival discovery, 16-area joining, and the previous-output
-comparison.
+payload extraction, festival discovery, 16-area joining, and the
+previous-output comparison.

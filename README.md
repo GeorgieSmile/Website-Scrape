@@ -22,23 +22,28 @@ future dashboard or database use.
 The scrapers generally:
 
 - collect only publicly available data
-- use conservative request delays and documented source boundaries
+- stay inside documented source boundaries and keep request rates configurable
 - normalize results into JSON exports
-- report what changed since the previous run (ฝ่าย 2 compares with the previous JSON export; ฝ่าย 3 keeps SQLite history)
+- report what changed since the previous run (ฝ่าย 2 compares with the previous
+  JSON export; ฝ่าย 3 keeps SQLite history)
 - validate pagination, duplicates, record counts, and source consistency
-- use saved fixtures and offline tests for parser validation
+- use offline tests, and saved fixtures where a parser needs them, for parser
+  validation (ฝ่าย 2)
 
 Generated files in `output/` and `state/` are ignored by Git. Source code,
-fixtures, tests, and documentation remain version controlled.
+fixtures, tests, and documentation remain version controlled. The ฝ่าย 2
+scrapers no longer read or write `state/`; any `state/` folder left in a
+ฝ่าย 2 project is an unused leftover from the earlier SQLite design.
 
 ## Setup
 
-The projects use the shared Python virtual environment in `.venv/`. Install the
+The projects use the shared Python virtual environment in `.venv/` at the
+repository root. Run every command from the repository root. Install the
 dependencies for the scraper you want to run:
 
 ```bash
 uv pip install --python .venv/bin/python \
-  -r "AtLocal/requirements.txt"
+  -r "ฝ่าย 2/AtLocal/requirements.txt"
 ```
 
 Replace `AtLocal` with the relevant project directory.
@@ -49,23 +54,23 @@ Each project has its own command-line options. See its README before starting a
 full collection.
 
 ```bash
-.venv/bin/python "AtLocal/scrape.py" --dataset all
-.venv/bin/python "iCommunity/scrape.py"
+.venv/bin/python "ฝ่าย 2/AtLocal/scrape.py" --dataset all
+.venv/bin/python "ฝ่าย 2/iCommunity/scrape.py"
 ```
 
 Most scrapers support limited smoke tests, dataset selection, request delays,
-custom output paths, and large-removal safeguards.
+and large-removal safeguards. Only iCommunity and RinMP accept `--output-dir`. The ฝ่าย 2 scrapers except
+AtLocal also support `--workers` for concurrent detail-page fetching.
 
 ## Tests
 
-Run the complete offline test suite from the repository root:
+The ฝ่าย 2 scrapers each have an offline test suite. Run one at a time from the
+repository root, because the project folders are not Python packages and a
+single `unittest discover` at the root finds nothing:
 
 ```bash
-.venv/bin/python -m unittest discover
+.venv/bin/python -m unittest discover -s "ฝ่าย 2/AtLocal"
 ```
 
-To test one scraper:
-
-```bash
-.venv/bin/python -m unittest discover -s "AtLocal"
-```
+Replace `AtLocal` with the relevant project directory. The ฝ่าย 3 scrapers have
+no test suites.
