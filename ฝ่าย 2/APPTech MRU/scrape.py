@@ -4,9 +4,8 @@ The platform publishes two catalogs through its own frontend API
 (POST /backend/ajax/public/{innovation,requirement}.php, 12 rows per call),
 while all rich attributes are server-rendered on the detail pages. The
 scraper is therefore a hybrid: the API provides discovery and completeness
-counts, detail-page HTML provides the full record. SQLite is the
-authoritative incremental state; the JSON files in output/ are clean exports
-of the active state.
+counts, detail-page HTML provides the full record. Each run is compared with
+the previous JSON file in output/, which is the only state kept.
 """
 
 from __future__ import annotations
@@ -15,11 +14,13 @@ import argparse
 import hashlib
 import json
 import re
-import sqlite3
 import sys
+import threading
 import time
 import unicodedata
-from collections.abc import Callable
+from collections.abc import Callable, Generator
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -28,13 +29,17 @@ from typing import Any
 from urllib.parse import urljoin, urlparse
 
 import requests
+from browser_access import (
+    BrowserVerification,
+    VerifiedSession,
+    reject_browser_challenge,
+)
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT / "output"
-STATE_PATH = ROOT / "state" / "apptech_mru.sqlite3"
 
 BASE_URL = "https://38rat.nstru.ac.th/"
 API_BASE_URL = "https://38rat.nstru.ac.th/backend/ajax/public/"
@@ -48,8 +53,10 @@ REQUIREMENT_DETAIL_URL = (
 )
 
 API_PAGE_SIZE = 12  # Server hard-caps the window; a larger endlimit is ignored.
-DEFAULT_DELAY_SECONDS = 1.0
-DEFAULT_USER_AGENT = "ApptechMruCollector/1.0 (contact: replace-with-your-email)"
+DEFAULT_DELAY_SECONDS = 0.0  # Pause after each request, per worker.
+DEFAULT_WORKERS = 4
+MAX_WORKERS = 8
+DEFAULT_USER_AGENT = "ApptechMruCollector"
 PLACEHOLDER_TEXT = {"-", "ไม่มี", "-ไม่มี-", "N/A"}
 REMOVAL_SAFETY_RATIO = 0.25
 REMOVAL_SAFETY_MINIMUM = (
@@ -104,8 +111,10 @@ def report_detail_progress(
         report(f"{dataset_id}: {index:,}/{total:,} — fetching {record_id}")
 
 
-def create_session(user_agent: str) -> requests.Session:
-    """Create one polite session with retries for temporary failures."""
+def create_session(
+    user_agent: str, verification: BrowserVerification | None = None
+) -> requests.Session:
+    """Create one independent session, optionally sharing browser verification."""
     retry_policy = Retry(
         total=3,
         backoff_factor=1,
@@ -113,7 +122,7 @@ def create_session(user_agent: str) -> requests.Session:
         allowed_methods=frozenset({"GET", "POST"}),
         respect_retry_after_header=True,
     )
-    session = requests.Session()
+    session = VerifiedSession(verification) if verification else requests.Session()
     session.headers.update(
         {"User-Agent": user_agent, "Origin": BASE_URL.rstrip("/"), "Referer": BASE_URL}
     )
@@ -262,6 +271,9 @@ def fetch_catalog(
         }
         response = session.post(dataset.api_url, json=body, timeout=45)
         response.raise_for_status()
+        response_text = getattr(response, "text", "")
+        if isinstance(response_text, str):
+            reject_browser_challenge(response_text)
         try:
             envelope = response.json()
         except ValueError as error:
@@ -742,26 +754,73 @@ def parse_requirement_detail(html: str, listing_row: dict[str, Any]) -> dict[str
     )
 
 
-def fetch_detail(
-    session: requests.Session,
-    dataset: DatasetDefinition,
-    listing_row: dict[str, Any],
-    delay: float,
-) -> dict[str, Any]:
-    """Fetch one detail page and parse it; retry once when parsing fails."""
+def thread_session_provider(
+    user_agent: str, verification: BrowserVerification | None = None
+) -> Callable[[], requests.Session]:
+    """Give each thread its own session while sharing verification, not connections."""
+    local = threading.local()
+
+    def get_session() -> requests.Session:
+        session = getattr(local, "session", None)
+        if session is None:
+            session = local.session = create_session(user_agent, verification)
+        return session
+
+    return get_session
+
+
+def fetch_ordered(
+    fetch: Callable[[Any], Any], items: list[Any], workers: int
+) -> Generator[Any, None, None]:
+    """Yield fetch(item) for each item in input order, fetching concurrently.
+
+    The first error raises here and cancels work that has not started. Callers
+    should wrap the iterator in contextlib.closing so that an error in their
+    own loop body also stops the pool.
+    """
+    executor = ThreadPoolExecutor(max_workers=workers)
+    try:
+        futures = [executor.submit(fetch, item) for item in items]
+        for future in futures:
+            yield future.result()
+    finally:
+        executor.shutdown(wait=True, cancel_futures=True)
+
+
+def fetch_detail_html(
+    session: requests.Session, dataset: DatasetDefinition, listing_row: dict[str, Any]
+) -> str:
+    """HTTP only: fetch one detail page. Safe to run in a worker thread."""
     detail_url = dataset.detail_url_template.format(
         **{dataset.id_field: listing_row[dataset.id_field]}
     )
+    response = session.get(detail_url, timeout=45)
+    response.raise_for_status()
+    response.encoding = "utf-8"
+    reject_browser_challenge(response.text)
+    return response.text
+
+
+def parse_detail_page(
+    session: requests.Session,
+    dataset: DatasetDefinition,
+    listing_row: dict[str, Any],
+    html: str,
+    delay: float,
+) -> dict[str, Any]:
+    """Parse a fetched detail page; on a parse failure re-fetch once, then fail."""
     last_error: Exception | None = None
-    for _ in range(2):
-        response = session.get(detail_url, timeout=45)
-        response.raise_for_status()
-        response.encoding = "utf-8"
+    for attempt in range(2):
+        if attempt:
+            time.sleep(delay)
+            html = fetch_detail_html(session, dataset, listing_row)
         try:
-            return dataset.parse_detail(response.text, listing_row)
+            return dataset.parse_detail(html, listing_row)
         except ValueError as error:
             last_error = error
-            time.sleep(delay)
+    detail_url = dataset.detail_url_template.format(
+        **{dataset.id_field: listing_row[dataset.id_field]}
+    )
     raise ValueError(f"Failed to parse {detail_url}: {last_error}")
 
 
@@ -772,231 +831,35 @@ def collect_dataset(
     limit: int,
     report: ProgressReporter,
     progress_every: int,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
     rows = fetch_catalog(session, dataset, delay, report, limit=limit)
-    records: list[dict[str, Any]] = []
-    for index, row in enumerate(rows, start=1):
-        record_id = row[dataset.id_field]
-        report_detail_progress(
-            report, dataset.dataset_id, index, len(rows), record_id, progress_every
-        )
-        records.append(fetch_detail(session, dataset, row, delay))
+    verification = session.verification if isinstance(session, VerifiedSession) else None
+    worker_session = thread_session_provider(user_agent, verification)
+
+    def fetch_page(row: dict[str, Any]) -> str:
+        html = fetch_detail_html(worker_session(), dataset, row)
         time.sleep(delay)
+        return html
+
+    records: list[dict[str, Any]] = []
+    with closing(fetch_ordered(fetch_page, rows, workers)) as pages:
+        for index, (row, html) in enumerate(zip(rows, pages, strict=True), start=1):
+            report_detail_progress(
+                report,
+                dataset.dataset_id,
+                index,
+                len(rows),
+                row[dataset.id_field],
+                progress_every,
+            )
+            records.append(parse_detail_page(session, dataset, row, html, delay))
     return records
 
 
 # ---------------------------------------------------------------------------
-# Incremental state
-
-
-def open_database(path: Path) -> sqlite3.Connection:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS runs (
-            run_id TEXT PRIMARY KEY,
-            started_at TEXT NOT NULL,
-            finished_at TEXT,
-            status TEXT NOT NULL,
-            summary_json TEXT NOT NULL
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS records (
-            dataset TEXT NOT NULL,
-            record_id TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            content_hash TEXT NOT NULL,
-            first_seen_at TEXT NOT NULL,
-            last_seen_at TEXT NOT NULL,
-            last_changed_at TEXT NOT NULL,
-            last_run_id TEXT NOT NULL,
-            active INTEGER NOT NULL DEFAULT 1,
-            PRIMARY KEY (dataset, record_id)
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS record_versions (
-            dataset TEXT NOT NULL,
-            record_id TEXT NOT NULL,
-            version_no INTEGER NOT NULL,
-            change_type TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            content_hash TEXT NOT NULL,
-            run_id TEXT NOT NULL,
-            changed_at TEXT NOT NULL,
-            PRIMARY KEY (dataset, record_id, version_no)
-        )
-        """
-    )
-    return connection
-
-
-def active_records(
-    connection: sqlite3.Connection, dataset_id: str
-) -> dict[str, sqlite3.Row]:
-    rows = connection.execute(
-        "SELECT * FROM records WHERE dataset = ? AND active = 1", (dataset_id,)
-    ).fetchall()
-    return {row["record_id"]: row for row in rows}
-
-
-def next_version_no(
-    connection: sqlite3.Connection, dataset_id: str, record_id: str
-) -> int:
-    row = connection.execute(
-        "SELECT MAX(version_no) FROM record_versions WHERE dataset = ? AND record_id = ?",
-        (dataset_id, record_id),
-    ).fetchone()
-    return (row[0] or 0) + 1
-
-
-def sync_records(
-    connection: sqlite3.Connection,
-    dataset: DatasetDefinition,
-    records: list[dict[str, Any]],
-    run_id: str,
-    now: str,
-    allow_large_removal: bool = False,
-) -> dict[str, int]:
-    if len(records) < dataset.minimum_records:
-        raise ValueError(
-            f"{dataset.dataset_id} scrape produced {len(records)} records; "
-            f"expected at least {dataset.minimum_records}"
-        )
-    by_id = {record["record_id"]: record for record in records}
-    if len(by_id) != len(records):
-        raise ValueError(f"{dataset.dataset_id} produced duplicate record IDs")
-
-    existing = active_records(connection, dataset.dataset_id)
-    removed_ids = set(existing) - set(by_id)
-    if (
-        existing
-        and len(existing) >= REMOVAL_SAFETY_MINIMUM
-        and len(removed_ids) / len(existing) > REMOVAL_SAFETY_RATIO
-        and not allow_large_removal
-    ):
-        raise ValueError(f"{dataset.dataset_id} removal exceeds the 25% safety limit")
-
-    counts = {"new": 0, "updated": 0, "unchanged": 0, "removed": len(removed_ids)}
-    with connection:
-        for record_id, record in by_id.items():
-            payload = json.dumps(record, ensure_ascii=False, sort_keys=True)
-            record_hash = semantic_hash(record)
-            previous = existing.get(record_id)
-            if previous is None:
-                connection.execute(
-                    """
-                    INSERT INTO records (
-                        dataset, record_id, payload_json, content_hash, first_seen_at,
-                        last_seen_at, last_changed_at, last_run_id, active
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-                    """,
-                    (
-                        dataset.dataset_id,
-                        record_id,
-                        payload,
-                        record_hash,
-                        now,
-                        now,
-                        now,
-                        run_id,
-                    ),
-                )
-                connection.execute(
-                    """
-                    INSERT INTO record_versions (
-                        dataset, record_id, version_no, change_type, payload_json, content_hash, run_id, changed_at
-                    ) VALUES (?, ?, ?, 'created', ?, ?, ?, ?)
-                    """,
-                    (
-                        dataset.dataset_id,
-                        record_id,
-                        next_version_no(connection, dataset.dataset_id, record_id),
-                        payload,
-                        record_hash,
-                        run_id,
-                        now,
-                    ),
-                )
-                counts["new"] += 1
-            elif previous["content_hash"] != record_hash:
-                connection.execute(
-                    """
-                    UPDATE records
-                    SET payload_json = ?, content_hash = ?, last_seen_at = ?,
-                        last_changed_at = ?, last_run_id = ?, active = 1
-                    WHERE dataset = ? AND record_id = ?
-                    """,
-                    (
-                        payload,
-                        record_hash,
-                        now,
-                        now,
-                        run_id,
-                        dataset.dataset_id,
-                        record_id,
-                    ),
-                )
-                connection.execute(
-                    """
-                    INSERT INTO record_versions (
-                        dataset, record_id, version_no, change_type, payload_json, content_hash, run_id, changed_at
-                    ) VALUES (?, ?, ?, 'updated', ?, ?, ?, ?)
-                    """,
-                    (
-                        dataset.dataset_id,
-                        record_id,
-                        next_version_no(connection, dataset.dataset_id, record_id),
-                        payload,
-                        record_hash,
-                        run_id,
-                        now,
-                    ),
-                )
-                counts["updated"] += 1
-            else:
-                connection.execute(
-                    """
-                    UPDATE records SET last_seen_at = ?, last_run_id = ?, active = 1
-                    WHERE dataset = ? AND record_id = ?
-                    """,
-                    (now, run_id, dataset.dataset_id, record_id),
-                )
-                counts["unchanged"] += 1
-
-        for record_id in removed_ids:
-            previous = existing[record_id]
-            connection.execute(
-                """
-                UPDATE records SET active = 0, last_seen_at = ?, last_run_id = ?
-                WHERE dataset = ? AND record_id = ?
-                """,
-                (now, run_id, dataset.dataset_id, record_id),
-            )
-            connection.execute(
-                """
-                INSERT INTO record_versions (
-                    dataset, record_id, version_no, change_type, payload_json, content_hash, run_id, changed_at
-                ) VALUES (?, ?, ?, 'retired', ?, ?, ?, ?)
-                """,
-                (
-                    dataset.dataset_id,
-                    record_id,
-                    next_version_no(connection, dataset.dataset_id, record_id),
-                    previous["payload_json"],
-                    previous["content_hash"],
-                    run_id,
-                    now,
-                ),
-            )
-    return counts
+# Comparison with the previous output file
 
 
 def write_json(path: Path, value: dict[str, Any]) -> None:
@@ -1016,37 +879,95 @@ def record_id_sort_key(record: dict[str, Any]) -> tuple[int, str]:
     return (numeric if numeric is not None else 0, record_id)
 
 
-def export_dataset(
-    connection: sqlite3.Connection,
+def load_previous_records(
+    dataset: DatasetDefinition, previous_path: Path
+) -> dict[str, dict[str, Any]]:
+    """Return the previous output's records by ID; empty on a first run.
+
+    An existing file that cannot be read fails the dataset so the removal guard
+    is never skipped silently.
+    """
+    if not previous_path.exists():
+        return {}
+    previous: dict[str, dict[str, Any]] = {}
+    try:
+        payload = json.loads(previous_path.read_text(encoding="utf-8"))
+        data = payload["data"]
+        if not isinstance(data, list):
+            raise TypeError("'data' is not a list")
+        for item in data:
+            record_id = item["record_id"]
+            if record_id in previous:
+                raise ValueError(f"duplicate record ID {record_id}")
+            previous[record_id] = item
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        raise ValueError(
+            f"{dataset.dataset_id} cannot read previous output {previous_path.name}: {error!r}"
+        ) from error
+    return previous
+
+
+def compare_with_previous(
     dataset: DatasetDefinition,
+    records: list[dict[str, Any]],
+    previous_path: Path,
+    allow_large_removal: bool = False,
+) -> dict[str, int]:
+    if len(records) < dataset.minimum_records:
+        raise ValueError(
+            f"{dataset.dataset_id} scrape produced {len(records)} records; "
+            f"expected at least {dataset.minimum_records}"
+        )
+    by_id = {record["record_id"]: record for record in records}
+    if len(by_id) != len(records):
+        raise ValueError(f"{dataset.dataset_id} produced duplicate record IDs")
+
+    existing = load_previous_records(dataset, previous_path)
+    removed_ids = set(existing) - set(by_id)
+    if (
+        existing
+        and len(existing) >= REMOVAL_SAFETY_MINIMUM
+        and len(removed_ids) / len(existing) > REMOVAL_SAFETY_RATIO
+        and not allow_large_removal
+    ):
+        raise ValueError(f"{dataset.dataset_id} removal exceeds the 25% safety limit")
+
+    counts = {"new": 0, "updated": 0, "unchanged": 0, "removed": len(removed_ids)}
+    for record_id, record in by_id.items():
+        previous = existing.get(record_id)
+        if previous is None:
+            counts["new"] += 1
+        elif semantic_hash(previous) != semantic_hash(record):
+            counts["updated"] += 1
+        else:
+            counts["unchanged"] += 1
+    return counts
+
+
+def write_dataset(
+    path: Path,
+    dataset: DatasetDefinition,
+    records: list[dict[str, Any]],
     run_id: str,
     scraped_at: str,
     warnings: list[str],
 ) -> None:
-    rows = connection.execute(
-        "SELECT record_id, payload_json FROM records WHERE dataset = ? AND active = 1",
-        (dataset.dataset_id,),
-    ).fetchall()
-    records: list[dict[str, Any]] = []
-    for row in rows:
-        try:
-            records.append(json.loads(row["payload_json"]))
-        except ValueError as error:
-            raise ValueError(
-                f"Corrupt stored payload for {dataset.dataset_id}/{row['record_id']}"
-            ) from error
-    records.sort(key=record_id_sort_key)
+    """Write one dataset envelope: records in ID order, keys sorted recursively."""
+    exported = [
+        json.loads(json.dumps(record, ensure_ascii=False, sort_keys=True))
+        for record in sorted(records, key=record_id_sort_key)
+    ]
     write_json(
-        OUTPUT_DIR / dataset.output_name,
+        path,
         {
             "schema_version": DEFAULT_SCHEMA_VERSION,
             "dataset": dataset.dataset_id,
             "source_base_url": BASE_URL,
             "scraped_at": scraped_at,
             "run_id": run_id,
-            "record_count": len(records),
+            "record_count": len(exported),
             "warnings": sorted(set(warnings)),
-            "data": records,
+            "data": exported,
         },
     )
 
@@ -1087,44 +1008,43 @@ def run_scrape(args: argparse.Namespace) -> int:
     selected = select_datasets(args.dataset)
     report = create_progress_reporter(args.quiet)
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    connection = open_database(STATE_PATH)
-    session = create_session(args.user_agent)
-    summary: dict[str, Any] = {"run_id": run_id, "datasets": {}, "warnings": []}
-    started_at = utc_now()
-    connection.execute(
-        "INSERT INTO runs (run_id, started_at, status, summary_json) VALUES (?, ?, ?, ?)",
-        (run_id, started_at, "running", "{}"),
+    verification = (
+        None
+        if args.no_browser
+        else BrowserVerification(args.chrome_path, args.browser_timeout, report)
     )
-    connection.commit()
-
-    if "replace-with-your-email" in args.user_agent:
-        summary["warnings"].append(
-            "Set --user-agent to an identifying value with a contact address before production use."
-        )
+    session = create_session(args.user_agent, verification)
+    summary: dict[str, Any] = {"run_id": run_id, "datasets": {}, "warnings": []}
 
     has_failures = False
     for dataset in selected:
         report(f"{dataset.dataset_id}: starting")
         try:
             records = collect_dataset(
-                session, dataset, args.delay, args.limit, report, args.progress_every
+                session,
+                dataset,
+                args.delay,
+                args.limit,
+                report,
+                args.progress_every,
+                args.workers,
+                args.user_agent,
             )
             if args.limit:
                 summary["datasets"][dataset.dataset_id] = {
                     "status": "smoke_test",
                     "discovered": len(records),
-                    "state_updated": False,
+                    "output_written": False,
                 }
                 report(
                     f"{dataset.dataset_id}: smoke test completed with {len(records):,} records"
                 )
                 continue
-            counts = sync_records(
-                connection,
+            output_path = OUTPUT_DIR / dataset.output_name
+            counts = compare_with_previous(
                 dataset,
                 records,
-                run_id,
-                utc_now(),
+                output_path,
                 allow_large_removal=args.allow_large_removal,
             )
             record_warnings = [
@@ -1132,9 +1052,10 @@ def run_scrape(args: argparse.Namespace) -> int:
                 for record in records
                 for warning in record.get("validation_warnings", [])
             ]
-            export_dataset(
-                connection,
+            write_dataset(
+                output_path,
                 dataset,
+                records,
                 run_id,
                 utc_now(),
                 summary["warnings"] + record_warnings,
@@ -1142,7 +1063,7 @@ def run_scrape(args: argparse.Namespace) -> int:
             summary["datasets"][dataset.dataset_id] = {
                 "status": "completed",
                 "discovered": len(records),
-                "state_updated": True,
+                "output_written": True,
                 **counts,
             }
             report(
@@ -1155,18 +1076,11 @@ def run_scrape(args: argparse.Namespace) -> int:
                 "status": "failed",
                 "error_type": type(error).__name__,
                 "error": str(error),
-                "state_updated": False,
+                "output_written": False,
             }
             report(f"{dataset.dataset_id}: failed — {type(error).__name__}: {error}")
 
-    status = "failed" if has_failures else "completed"
-    finished_at = utc_now()
-    connection.execute(
-        "UPDATE runs SET finished_at = ?, status = ?, summary_json = ? WHERE run_id = ?",
-        (finished_at, status, json.dumps(summary, ensure_ascii=False), run_id),
-    )
-    connection.commit()
-    connection.close()
+    session.close()
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 1 if has_failures else 0
 
@@ -1176,12 +1090,23 @@ def build_parser() -> argparse.ArgumentParser:
         description="Scrape public 38rat.nstru.ac.th APPTech content."
     )
     parser.add_argument("--dataset", choices=("all", *DATASETS), default="all")
-    parser.add_argument("--delay", type=float, default=DEFAULT_DELAY_SECONDS)
+    parser.add_argument(
+        "--delay",
+        type=float,
+        default=DEFAULT_DELAY_SECONDS,
+        help="Seconds each worker pauses after every request.",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=DEFAULT_WORKERS,
+        help=f"Concurrent detail-page fetches, 1 to {MAX_WORKERS}.",
+    )
     parser.add_argument(
         "--limit",
         type=int,
         default=0,
-        help="Smoke-test record limit; does not update state or JSON outputs.",
+        help="Smoke-test record limit; does not write JSON outputs.",
     )
     parser.add_argument(
         "--progress-every",
@@ -1197,9 +1122,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--allow-large-removal",
         action="store_true",
-        help="Allow an update that would deactivate more than 25% of an established dataset.",
+        help="Allow an update that would remove more than 25%% of an established dataset.",
     )
     parser.add_argument("--user-agent", default=DEFAULT_USER_AGENT)
+    parser.add_argument(
+        "--chrome-path",
+        help="Chrome/Chromium executable for browser verification (auto-detected by default).",
+    )
+    parser.add_argument(
+        "--browser-timeout",
+        type=float,
+        default=40,
+        help="Seconds allowed for each Chrome verification, greater than 0 and at most 300.",
+    )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Disable automatic Chrome verification; fail clearly if the site blocks requests.",
+    )
     return parser
 
 
@@ -1209,6 +1149,10 @@ def main() -> int:
         raise SystemExit(
             "--delay and --limit must be non-negative; --progress-every must be at least 1"
         )
+    if not 1 <= args.workers <= MAX_WORKERS:
+        raise SystemExit(f"--workers must be between 1 and {MAX_WORKERS}")
+    if not 0 < args.browser_timeout <= 300:
+        raise SystemExit("--browser-timeout must be greater than 0 and at most 300")
     return run_scrape(args)
 
 

@@ -1,8 +1,10 @@
-"""Offline checks for the APPTech MRU parser and incremental state safeguards."""
+"""Offline checks for the APPTech MRU parser and previous-output safeguards."""
 
 from __future__ import annotations
 
+import json
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -320,7 +322,66 @@ class CatalogClientTests(unittest.TestCase):
                 )
 
 
-class StateTests(unittest.TestCase):
+class BrowserChallengeTests(unittest.TestCase):
+    def response(self) -> scrape.requests.Response:
+        response = scrape.requests.Response()
+        response.status_code = 200
+        response._content = (
+            b'<html><title>One moment, please...</title>'
+            b'<body>Please wait while your request is being verified...</body></html>'
+        )
+        response.headers["Content-Type"] = "text/html"
+        return response
+
+    def test_catalog_challenge_has_actionable_error(self) -> None:
+        with (
+            patch.object(scrape.requests.Session, "post", return_value=self.response()),
+            self.assertRaisesRegex(RuntimeError, "browser verification required"),
+        ):
+            scrape.fetch_catalog(
+                scrape.create_session("test"),
+                scrape.DATASETS["innovations"],
+                0,
+                scrape.no_progress,
+            )
+
+    def test_detail_challenge_is_rejected_before_parsing(self) -> None:
+        with (
+            patch.object(scrape.requests.Session, "get", return_value=self.response()),
+            self.assertRaisesRegex(RuntimeError, "browser verification required"),
+        ):
+            scrape.fetch_detail_html(
+                scrape.create_session("test"),
+                scrape.DATASETS["innovations"],
+                INNOVATION_LISTING_ROW,
+            )
+
+
+class FetchOrderedTests(unittest.TestCase):
+    def test_results_come_back_in_input_order(self) -> None:
+        def fetch(number: int) -> int:
+            time.sleep(0.01 * (5 - number))  # Later items finish first.
+            return number * 10
+
+        results = list(scrape.fetch_ordered(fetch, [0, 1, 2, 3, 4], 4))
+        self.assertEqual(results, [0, 10, 20, 30, 40])
+
+    def test_first_error_propagates_and_cancels_pending_work(self) -> None:
+        calls: list[int] = []
+
+        def fetch(number: int) -> int:
+            calls.append(number)
+            time.sleep(0.02)
+            if number == 1:
+                raise RuntimeError("boom")
+            return number
+
+        with self.assertRaisesRegex(RuntimeError, "boom"):
+            list(scrape.fetch_ordered(fetch, list(range(50)), 1))
+        self.assertLess(len(calls), 50)
+
+
+class CompareWithPreviousTests(unittest.TestCase):
     def record(self, dataset_id: str, record_id: str, value: str) -> dict[str, object]:
         return scrape.build_record(
             dataset_id,
@@ -344,88 +405,82 @@ class StateTests(unittest.TestCase):
             parse_detail=lambda html, row: {},
         )
 
-    def test_rerun_without_changes_creates_no_new_versions(self) -> None:
-        dataset = self.dataset()
+    def write_previous(self, directory: str, records: list[dict[str, object]]) -> Path:
+        path = Path(directory) / "innovations.json"
+        path.write_text(json.dumps({"data": records}), encoding="utf-8")
+        return path
+
+    def records(self, count: int, value: str = "same") -> list[dict[str, object]]:
+        return [self.record("innovation", str(number), value) for number in range(1, count + 1)]
+
+    def test_counts_new_updated_unchanged_and_removed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            connection = scrape.open_database(Path(directory) / "state.sqlite3")
-            records = [
-                self.record("innovation", str(number), "same") for number in range(1, 5)
+            path = self.write_previous(directory, self.records(4))
+            current = self.records(2) + [
+                self.record("innovation", "3", "changed"),
+                self.record("innovation", "9", "same"),
             ]
-            first = scrape.sync_records(
-                connection, dataset, records, "run-1", "2026-01-01T00:00:00+00:00"
-            )
-            self.assertEqual(first["new"], 4)
-            second = scrape.sync_records(
-                connection, dataset, records, "run-2", "2026-01-02T00:00:00+00:00"
-            )
-            self.assertEqual(second["unchanged"], 4)
-            versions = connection.execute(
-                "SELECT COUNT(*) FROM record_versions"
-            ).fetchone()[0]
-            self.assertEqual(versions, 4)
-            connection.close()
+            counts = scrape.compare_with_previous(self.dataset(), current, path)
+        self.assertEqual(counts, {"new": 1, "updated": 1, "unchanged": 2, "removed": 1})
 
-    def test_update_creates_version_and_retirement_preserves_payload(self) -> None:
-        dataset = self.dataset()
+    def test_first_run_without_file_counts_everything_as_new(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            connection = scrape.open_database(Path(directory) / "state.sqlite3")
-            scrape.sync_records(
-                connection,
-                dataset,
-                [self.record("innovation", "1", "old")],
-                "run-1",
-                "2026-01-01T00:00:00+00:00",
+            counts = scrape.compare_with_previous(
+                self.dataset(), self.records(3), Path(directory) / "missing.json"
             )
-            scrape.sync_records(
-                connection,
-                dataset,
-                [self.record("innovation", "1", "new")],
-                "run-2",
-                "2026-01-02T00:00:00+00:00",
-            )
-            changes = connection.execute(
-                "SELECT change_type FROM record_versions ORDER BY version_no"
-            ).fetchall()
-            self.assertEqual(
-                [row["change_type"] for row in changes], ["created", "updated"]
-            )
+        self.assertEqual(counts, {"new": 3, "updated": 0, "unchanged": 0, "removed": 0})
 
-            scrape.sync_records(
-                connection,
-                self.dataset(minimum_records=0),
-                [],
-                "run-3",
-                "2026-01-03T00:00:00+00:00",
-                allow_large_removal=True,
-            )
-            retired = connection.execute(
-                "SELECT change_type, payload_json FROM record_versions ORDER BY version_no"
-            ).fetchall()
-            self.assertEqual(retired[-1]["change_type"], "retired")
-            self.assertIn('"new"', retired[-1]["payload_json"])
-            active = connection.execute(
-                "SELECT COUNT(*) FROM records WHERE active = 1"
-            ).fetchone()[0]
-            self.assertEqual(active, 0)
-            connection.close()
-
-    def test_view_count_change_does_not_create_version(self) -> None:
-        dataset = self.dataset()
+    def test_view_count_change_is_unchanged(self) -> None:
+        base = self.record("innovation", "1", "same")
+        bumped = self.record("innovation", "1", "same")
+        bumped_data = bumped["data"]
+        assert isinstance(bumped_data, dict)
+        bumped_data["view_count"] = 999
         with tempfile.TemporaryDirectory() as directory:
-            connection = scrape.open_database(Path(directory) / "state.sqlite3")
-            base = self.record("innovation", "1", "same")
-            bumped = self.record("innovation", "1", "same")
-            bumped_data = bumped["data"]
-            assert isinstance(bumped_data, dict)
-            bumped_data["view_count"] = 999
-            scrape.sync_records(
-                connection, dataset, [base], "run-1", "2026-01-01T00:00:00+00:00"
+            path = self.write_previous(directory, [base])
+            counts = scrape.compare_with_previous(self.dataset(), [bumped], path)
+        self.assertEqual(counts["unchanged"], 1)
+
+    def test_removal_guard_trips_above_threshold_and_override_allows_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_previous(directory, self.records(12))
+            with self.assertRaisesRegex(ValueError, "25% safety limit"):
+                scrape.compare_with_previous(self.dataset(), self.records(8), path)
+            counts = scrape.compare_with_previous(
+                self.dataset(), self.records(8), path, allow_large_removal=True
             )
-            counts = scrape.sync_records(
-                connection, dataset, [bumped], "run-2", "2026-01-02T00:00:00+00:00"
+        self.assertEqual(counts["removed"], 4)
+
+    def test_removal_guard_ignores_small_previous_datasets(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_previous(directory, self.records(9))
+            counts = scrape.compare_with_previous(self.dataset(), self.records(1), path)
+        self.assertEqual(counts["removed"], 8)
+
+    def test_unreadable_previous_file_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "innovations.json"
+            bad_contents = (
+                "{not json",
+                json.dumps([]),
+                json.dumps({"data": {}}),
+                json.dumps({"data": [{"title": "no id"}]}),
+                json.dumps({"data": self.records(1) * 2}),
             )
-            self.assertEqual(counts["unchanged"], 1)
-            connection.close()
+            for contents in bad_contents:
+                path.write_text(contents, encoding="utf-8")
+                with self.subTest(contents=contents), self.assertRaises(ValueError):
+                    scrape.compare_with_previous(
+                        self.dataset(), self.records(1), path, allow_large_removal=True
+                    )
+
+    def test_record_floor_and_duplicate_ids_fail(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            missing = Path(directory) / "missing.json"
+            with self.assertRaisesRegex(ValueError, "expected at least"):
+                scrape.compare_with_previous(self.dataset(minimum_records=5), self.records(2), missing)
+            with self.assertRaisesRegex(ValueError, "duplicate record IDs"):
+                scrape.compare_with_previous(self.dataset(), self.records(1) * 2, missing)
 
 
 if __name__ == "__main__":

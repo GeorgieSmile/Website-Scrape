@@ -3,8 +3,8 @@
 This is a compact, incremental scraper for the public APPTech MRU platform at
 [38rat.nstru.ac.th](https://38rat.nstru.ac.th/) — the Appropriate Technology
 marketplace hosted by Nakhon Sawan Rajabhat University. It creates two clean
-JSON exports (innovations and requirements) while retaining full change
-history in SQLite.
+JSON exports (innovations and requirements) and compares each run with the
+previous export.
 
 It follows the approved source boundary: every request is to
 `38rat.nstru.ac.th`. The scraper collects text data only — it does not
@@ -15,12 +15,14 @@ record IDs.
 
 ```text
 APPTech MRU/
-├── scrape.py         # collection, parsing, cleaning, SQLite sync, and JSON export
-├── test_scrape.py    # offline parser and incremental-state checks
+├── scrape.py         # collection, parsing, cleaning, comparison, and JSON export
+├── browser_access.py # coordinated Chrome-cookie handoff for requests sessions
+├── chrome_verify.mjs # internal Chrome DevTools helper (requires Node.js 22+)
+├── test_scrape.py     # offline parser and previous-output checks
+├── test_browser_access.py # offline verification, concurrency, and cleanup checks
 ├── fixtures/         # saved live detail pages used by the offline tests
 ├── requirements.txt  # requests and Beautiful Soup
 ├── SCRAPER_PLAN.md   # investigated design and source findings
-├── state/            # created at runtime; SQLite incremental state
 └── output/           # created at runtime; innovations.json and requirements.json
 ```
 
@@ -28,8 +30,22 @@ APPTech MRU/
 
 `requests` provides a persistent session (GET for detail pages, POST for the
 catalog API) with retry handling for temporary HTTP failures. `BeautifulSoup`
-parses the server-rendered detail pages. Python's standard-library `sqlite3`
-keeps the latest active version of each record plus an immutable version log.
+parses the server-rendered detail pages. Detail pages are fetched concurrently
+by a small `concurrent.futures` thread pool (one session per worker thread);
+parsing stays in the main thread, in catalog order.
+
+If the site returns its **“One moment, please…”** browser check, the scraper
+opens visible Chrome with a fresh temporary profile and a fixed, nonzero
+localhost debugging port. After the normal check completes, it transfers the
+browser cookies and actual user agent to the catalog and worker sessions.
+Collection continues through `requests`, not through browser page loads.
+There are no browser-property overrides, stealth patches, or CAPTCHA solvers.
+
+Verification is shared across workers: at most one initial browser startup
+and one refresh per run. A failed startup or exhausted refresh budget stops
+collection safely. Chrome is closed and its temporary profile removed after
+each startup; existing personal browser profiles are not accessed. Transferred
+cookies stay in Python memory and are never logged or saved to the repository.
 
 The scraper is a **hybrid**, verified against the live site on 2026-08-22:
 
@@ -59,29 +75,56 @@ completeness is guarded — unique IDs collected must equal the API's reported
 
 ## Install and run
 
-Run these commands from the workspace root. The project must use the existing
-virtual environment at `Website Scrape/.venv`.
+Run these commands from the `Website Scrape` workspace root using its existing
+`.venv`. Browser verification additionally requires **Google Chrome/Chromium,
+Node.js 22+ on PATH, and a visible desktop session**. It does not install a
+browser or use Playwright. On macOS, the standard Google Chrome application
+path is detected automatically; on Linux, common Chrome/Chromium executable
+names are searched on PATH. Other executable locations need `--chrome-path`.
 
 ```bash
-uv pip install --python "Website Scrape/.venv/bin/python" -r "Website Scrape/APPTech MRU/requirements.txt"
-"Website Scrape/.venv/bin/python" "Website Scrape/APPTech MRU/scrape.py" \
-  --dataset all --delay 1 \
-  --user-agent "ApptechMruCollector/1.0 (contact: you@example.org)"
+uv pip install --python .venv/bin/python -r "ฝ่าย 2/APPTech MRU/requirements.txt"
+
+# Safe live smoke test: writes no output.
+.venv/bin/python "ฝ่าย 2/APPTech MRU/scrape.py" --dataset all --limit 4 --workers 4
+
+# Full refresh: replaces each successfully validated dataset's output.
+.venv/bin/python "ฝ่าย 2/APPTech MRU/scrape.py" \
+  --dataset all --workers 4 \
+  --user-agent "ApptechMruCollector"
 ```
 
-Use a contactable User-Agent before a production run. A one-second delay is
-the normal policy between requests; a full refresh is roughly 550 requests
-(~10 minutes). A network, parser, or validation failure is reported per
-dataset and does not replace that dataset's last successful JSON export.
+A full refresh is roughly 550 requests. Options:
+
+- `--workers N` (1–8, default 4): concurrent detail-page fetches. The catalog
+  API is still paged sequentially. `--workers 1` fetches one page at a time.
+- `--delay SECONDS` (default 0): pause each worker takes after every request.
+  The effective request rate is roughly `workers / (response time + delay)`.
+- `--limit N`: smoke test; writes nothing.
+- `--allow-large-removal`: override the removal guard (see below).
+- `--chrome-path PATH`: explicit Chrome/Chromium executable.
+- `--browser-timeout SECONDS`: per-startup verification deadline (default 40;
+  greater than 0 and at most 300). Process startup/cleanup can add a few seconds.
+- `--no-browser`: disable browser startup; report an explicit verification error
+  if the site blocks requests.
+
+`--user-agent` identifies normal requests, but a successful browser handoff
+replaces it with Chrome's actual user agent to match the verified session.
+If unattended collection cannot use a visible browser, request API access or
+an allowlist from the site administrator instead of assuming headless Chrome
+will pass this check.
+
+A network, parser, or validation failure is reported per dataset and does not
+replace that dataset's last successful JSON export.
 
 Useful development commands:
 
 ```bash
 # Offline tests (no network)
-"Website Scrape/.venv/bin/python" -m unittest discover -s "Website Scrape/APPTech MRU"
+.venv/bin/python -m unittest discover -s "ฝ่าย 2/APPTech MRU"
 
-# Smoke test a few records without updating state or outputs
-"Website Scrape/.venv/bin/python" "Website Scrape/APPTech MRU/scrape.py" --limit 3
+# Smoke test a few records without writing outputs
+.venv/bin/python "ฝ่าย 2/APPTech MRU/scrape.py" --limit 3
 ```
 
 ## Output envelope
@@ -112,22 +155,20 @@ description sections, required expertise, impact sections, funding, type,
 category, and tags. Ambiguous values stay verbatim in `*_raw` fields; missing
 values become `null` with a warning — nothing is guessed.
 
-## Incremental behavior
+## Comparison with the previous run
 
-SQLite (`state/apptech_mru.sqlite3`) is the authoritative store:
+The previous `output/<dataset>.json` is the only state. Every run re-fetches
+the catalog and all detail pages, then compares the new records with that file
+by record ID. The JSON run summary printed to stdout reports `new`, `updated`,
+`unchanged`, and `removed` counts per dataset. Hashes ignore `view_count`, so a
+view-count change alone is `unchanged` — but the new file always carries the
+current view count.
 
-- `runs` — one row per run with its outcome and summary.
-- `records` — the current payload per (dataset, record ID) with content
-  hash and first-seen / last-seen / last-changed timestamps.
-- `record_versions` — an immutable copy of every created, updated, or
-  retired payload.
-
-Every run re-fetches the (cheap) catalog and the detail pages, hashes the
-cleaned payload, and writes only actual changes. View counts are excluded
-from the hash, so they do not create versions. Records are deactivated only
-when a complete successful run confirms their absence, and a removal of more
-than 25% of an established dataset (≥10 records) fails the run unless
-`--allow-large-removal` is passed.
+A removal of more than 25% of an established dataset (≥10 previous records)
+fails that dataset unless `--allow-large-removal` is passed. If the previous
+file exists but cannot be read, the dataset fails rather than skipping the
+guard; with no previous file (first run) every record counts as new. Version
+history is not kept locally.
 
 ## Verified baselines
 
@@ -136,3 +177,13 @@ innovation type), 2 requirements; a second unchanged run produced zero new
 record versions. Innovation 10620 matches its live page: category
 `เกษตรและเทคโนโลยี`, type `พร้อมใช้`, TRL 6 (image `TRL-6.png`), SRL 7,
 funding 550,000 บาท.
+
+Browser-access smoke test (2026-10-12): the implemented CLI completed with
+`--dataset all --limit 13 --workers 4`, parsing 13 innovations across two
+catalog pages and both requirements after one Chrome startup. The APIs reported 501 innovations and
+2 requirements. Both output files retained their original SHA-256 hashes.
+All 49 offline tests passed, including coordinated refresh, bounded cleanup,
+and CLI help rendering.
+The final live check left no temporary Chrome profiles. This was not a full
+refresh or a new performance baseline; long-duration cookie expiry remains
+unverified live (coordinated refresh is tested offline).
