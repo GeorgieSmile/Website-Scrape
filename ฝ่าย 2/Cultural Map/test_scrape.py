@@ -1,8 +1,10 @@
-"""Offline checks for the Cultural Map parser and incremental state safeguards."""
+"""Offline checks for the Cultural Map parser and previous-output safeguards."""
 
 from __future__ import annotations
 
+import json
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -157,27 +159,112 @@ class DetailParserTests(unittest.TestCase):
         self.assertTrue(records[1]["data"]["profile_image_url"].endswith("/team/b.jpg"))
 
 
-class StateTests(unittest.TestCase):
-    def record(self, external_id: str) -> dict[str, object]:
+class FetchOrderedTests(unittest.TestCase):
+    def test_results_come_back_in_input_order(self) -> None:
+        def fetch(number: int) -> int:
+            time.sleep(0.01 * (5 - number))  # Later items finish first.
+            return number * 10
+
+        results = list(scrape.fetch_ordered(fetch, [0, 1, 2, 3, 4], 4))
+        self.assertEqual(results, [0, 10, 20, 30, 40])
+
+    def test_first_error_propagates_and_cancels_pending_work(self) -> None:
+        calls: list[int] = []
+
+        def fetch(number: int) -> int:
+            calls.append(number)
+            time.sleep(0.02)
+            if number == 1:
+                raise RuntimeError("boom")
+            return number
+
+        with self.assertRaisesRegex(RuntimeError, "boom"):
+            list(scrape.fetch_ordered(fetch, list(range(50)), 1))
+        self.assertLess(len(calls), 50)
+
+
+class CompareWithPreviousTests(unittest.TestCase):
+    def record(self, external_id: str, value: str = "same") -> dict[str, object]:
         return scrape.build_record(
             external_id,
             f"Title {external_id}",
             f"https://www.culturalmapthailand.info/{external_id}",
             [],
-            {"value": external_id},
+            {"value": value},
             [],
         )
 
-    def test_large_removal_is_rejected_without_mutating_state(self) -> None:
-        source = scrape.SourceDefinition("test", "test.json", 1, (), 1, lambda _s, _d, _l, _r, _p: [])
+    def source(self, minimum_records: int = 1) -> scrape.SourceDefinition:
+        return scrape.SourceDefinition("test", "test.json", 1, (), minimum_records, lambda _s, _d, _l, _r, _p, _w, _u: [])
+
+    def records(self, count: int, value: str = "same") -> list[dict[str, object]]:
+        return [self.record(f"X-{number}", value) for number in range(1, count + 1)]
+
+    def write_previous(self, directory: str, records: list[dict[str, object]]) -> Path:
+        path = Path(directory) / "test.json"
+        path.write_text(json.dumps({"data": {"records": records}}), encoding="utf-8")
+        return path
+
+    def test_counts_new_updated_unchanged_and_removed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            connection = scrape.open_database(Path(directory) / "state.sqlite3")
-            initial = [self.record(f"X-{number}") for number in range(1, 5)]
-            scrape.sync_records(connection, source, initial, "run-1", "2026-01-01T00:00:00+00:00")
+            path = self.write_previous(directory, self.records(4))
+            current = self.records(2) + [self.record("X-3", "changed"), self.record("X-9")]
+            counts = scrape.compare_with_previous(self.source(), current, path)
+        self.assertEqual(counts, {"new": 1, "updated": 1, "unchanged": 2, "removed": 1})
+
+    def test_first_run_without_file_counts_everything_as_new(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            counts = scrape.compare_with_previous(self.source(), self.records(3), Path(directory) / "missing.json")
+        self.assertEqual(counts, {"new": 3, "updated": 0, "unchanged": 0, "removed": 0})
+
+    def test_view_count_change_is_unchanged(self) -> None:
+        base = self.record("X-1")
+        bumped = self.record("X-1")
+        bumped_data = bumped["data"]
+        assert isinstance(bumped_data, dict)
+        bumped_data["view_count"] = 999
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_previous(directory, [base])
+            counts = scrape.compare_with_previous(self.source(), [bumped], path)
+        self.assertEqual(counts["unchanged"], 1)
+
+    def test_large_removal_is_rejected_and_override_allows_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_previous(directory, self.records(4))
             with self.assertRaisesRegex(ValueError, "25% safety limit"):
-                scrape.sync_records(connection, source, initial[:1], "run-2", "2026-01-02T00:00:00+00:00")
-            self.assertEqual(len(scrape.active_records(connection, "test")), 4)
-            connection.close()
+                scrape.compare_with_previous(self.source(), self.records(1), path)
+            counts = scrape.compare_with_previous(self.source(), self.records(1), path, allow_large_removal=True)
+        self.assertEqual(counts["removed"], 3)
+
+    def test_removal_at_threshold_is_allowed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_previous(directory, self.records(4))
+            counts = scrape.compare_with_previous(self.source(), self.records(3), path)
+        self.assertEqual(counts["removed"], 1)
+
+    def test_unreadable_previous_file_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "test.json"
+            bad_contents = (
+                "{not json",
+                json.dumps([]),
+                json.dumps({"data": []}),
+                json.dumps({"data": {"records": {}}}),
+                json.dumps({"data": {"records": [{"title": "no id"}]}}),
+                json.dumps({"data": {"records": self.records(1) * 2}}),
+            )
+            for contents in bad_contents:
+                path.write_text(contents, encoding="utf-8")
+                with self.subTest(contents=contents), self.assertRaises(ValueError):
+                    scrape.compare_with_previous(self.source(), self.records(1), path, allow_large_removal=True)
+
+    def test_record_floor_and_duplicate_ids_fail(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            missing = Path(directory) / "missing.json"
+            with self.assertRaisesRegex(ValueError, "expected at least"):
+                scrape.compare_with_previous(self.source(minimum_records=5), self.records(2), missing)
+            with self.assertRaisesRegex(ValueError, "duplicate external IDs"):
+                scrape.compare_with_previous(self.source(), self.records(1) * 2, missing)
 
 
 if __name__ == "__main__":

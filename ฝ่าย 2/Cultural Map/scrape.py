@@ -2,8 +2,8 @@
 
 The scraper intentionally stays on the www host. It collects the Map/Inspiration
 JSON feed, Product category pages, Activity and Re-Creation archives, and Team.
-SQLite stores the latest clean record state; five JSON files are human-readable
-exports of that active state.
+Each run is compared with the previous JSON export, which is the only state
+kept; five JSON files are human-readable exports.
 """
 
 from __future__ import annotations
@@ -12,11 +12,13 @@ import argparse
 import hashlib
 import json
 import re
-import sqlite3
 import sys
+import threading
 import time
 import unicodedata
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Generator, Iterable
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import lru_cache
@@ -32,7 +34,6 @@ from urllib3.util.retry import Retry
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT / "output"
-STATE_PATH = ROOT / "state" / "culturalmap_www.sqlite3"
 MAP_LOOKUP_PATH = ROOT / "references" / "map_inspiration_lookups_v1.json"
 BASE_URL = "https://www.culturalmapthailand.info/"
 MAP_FEED_URL = (
@@ -42,8 +43,10 @@ MAP_FEED_URL = (
 DP_MEDIA_BASE_URL = "https://dp.culturalmapthailand.info/file-upload/"
 DEFAULT_SCHEMA_VERSION = 1
 MAP_SCHEMA_VERSION = 2
-DEFAULT_DELAY_SECONDS = 1.0
-DEFAULT_USER_AGENT = "CulturalMapWWWCollector/1.0 (contact: replace-with-your-email)"
+DEFAULT_DELAY_SECONDS = 0.0  # Pause after each request, per worker.
+DEFAULT_WORKERS = 4
+MAX_WORKERS = 8
+DEFAULT_USER_AGENT = "CulturalMapWWWCollector"
 PLACEHOLDER_TEXT = {"-", "ไม่มี", "-ไม่มี-"}
 ProgressReporter = Callable[[str], None]
 
@@ -55,7 +58,7 @@ class SourceDefinition:
     schema_version: int
     source_urls: tuple[str, ...]
     minimum_records: int
-    collect: Callable[[requests.Session, float, int, ProgressReporter, int], list[dict[str, Any]]]
+    collect: Callable[[requests.Session, float, int, ProgressReporter, int, int, str], list[dict[str, Any]]]
 
 
 def utc_now() -> str:
@@ -128,6 +131,61 @@ def fetch_json(session: requests.Session, url: str) -> Any:
     response.raise_for_status()
     response.encoding = "utf-8-sig"
     return json.loads(response.text.lstrip("\ufeff"))
+
+
+def thread_session_provider(user_agent: str) -> Callable[[], requests.Session]:
+    """Return a function giving each calling thread its own session."""
+    local = threading.local()
+
+    def get_session() -> requests.Session:
+        session = getattr(local, "session", None)
+        if session is None:
+            session = local.session = create_session(user_agent)
+        return session
+
+    return get_session
+
+
+def fetch_ordered(fetch: Callable[[Any], Any], items: list[Any], workers: int) -> Generator[Any, None, None]:
+    """Yield fetch(item) for each item in input order, fetching concurrently.
+
+    The first error raises here and cancels work that has not started. Callers
+    should wrap the iterator in contextlib.closing so that an error in their
+    own loop body also stops the pool.
+    """
+    executor = ThreadPoolExecutor(max_workers=workers)
+    try:
+        futures = [executor.submit(fetch, item) for item in items]
+        for future in futures:
+            yield future.result()
+    finally:
+        executor.shutdown(wait=True, cancel_futures=True)
+
+
+def collect_detail_pages(
+    source_name: str,
+    items: list[dict[str, Any]],
+    parse: Callable[[str, dict[str, Any]], dict[str, Any]],
+    delay_seconds: float,
+    report: ProgressReporter,
+    progress_every: int,
+    workers: int,
+    user_agent: str,
+) -> list[dict[str, Any]]:
+    """Fetch detail pages concurrently (HTTP only); parse them here, in item order."""
+    worker_session = thread_session_provider(user_agent)
+
+    def fetch_page(item: dict[str, Any]) -> str:
+        html = fetch_text(worker_session(), item["source_url"])
+        time.sleep(delay_seconds)
+        return html
+
+    records: list[dict[str, Any]] = []
+    with closing(fetch_ordered(fetch_page, items, workers)) as pages:
+        for index, (item, html) in enumerate(zip(items, pages, strict=True), start=1):
+            report_detail_progress(report, source_name, index, len(items), item["external_id"], progress_every)
+            records.append(parse(html, item))
+    return records
 
 
 def clean_text(value: Any) -> Any:
@@ -535,8 +593,10 @@ def collect_map_inspiration(
     limit: int = 0,
     report: ProgressReporter = no_progress,
     progress_every: int = 10,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
-    del delay_seconds, progress_every
+    del delay_seconds, progress_every, workers, user_agent
     report("Map/Inspiration: downloading public JSON feed")
     payload = fetch_json(session, MAP_FEED_URL)
     if not isinstance(payload, list):
@@ -705,6 +765,8 @@ def collect_products(
     limit: int = 0,
     report: ProgressReporter = no_progress,
     progress_every: int = 10,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
     root_url = f"{BASE_URL}culturalproduct"
     report("Products: downloading listing and category pages")
@@ -727,23 +789,13 @@ def collect_products(
                     url for url in item["discovered_from"] if url not in discovered[external_id]["discovered_from"]
                 )
 
-    records = []
     items = sorted(discovered.values(), key=natural_id_key)
     if limit:
         items = items[:limit]
     report(f"Products: discovered {len(items):,} detail pages")
-    for item in items:
-        report_detail_progress(
-            report,
-            "Products",
-            len(records) + 1,
-            len(items),
-            item["external_id"],
-            progress_every,
-        )
-        detail_html = fetch_text(session, item["source_url"])
-        records.append(parse_product_detail(detail_html, item))
-        time.sleep(delay_seconds)
+    records = collect_detail_pages(
+        "Products", items, parse_product_detail, delay_seconds, report, progress_every, workers, user_agent
+    )
     report(f"Products: parsed {len(records):,} detail pages")
     return records
 
@@ -803,27 +855,19 @@ def collect_activities(
     limit: int = 0,
     report: ProgressReporter = no_progress,
     progress_every: int = 10,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
     listing_url = f"{BASE_URL}activity"
     report("Activities: downloading listing page")
     discovered = discover_links(fetch_text(session, listing_url), listing_url, "G")
-    records = []
     items = sorted(discovered.values(), key=natural_id_key)
     if limit:
         items = items[:limit]
     report(f"Activities: discovered {len(items):,} detail pages")
-    for item in items:
-        report_detail_progress(
-            report,
-            "Activities",
-            len(records) + 1,
-            len(items),
-            item["external_id"],
-            progress_every,
-        )
-        detail_html = fetch_text(session, item["source_url"])
-        records.append(parse_activity_detail(detail_html, item))
-        time.sleep(delay_seconds)
+    records = collect_detail_pages(
+        "Activities", items, parse_activity_detail, delay_seconds, report, progress_every, workers, user_agent
+    )
     report(f"Activities: parsed {len(records):,} detail pages")
     return records
 
@@ -857,27 +901,19 @@ def collect_recreation(
     limit: int = 0,
     report: ProgressReporter = no_progress,
     progress_every: int = 10,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
     listing_url = f"{BASE_URL}ReAll"
     report("Re-Creation: downloading listing page")
     discovered = discover_links(fetch_text(session, listing_url), listing_url, "REDetail")
-    records = []
     items = sorted(discovered.values(), key=natural_id_key)
     if limit:
         items = items[:limit]
     report(f"Re-Creation: discovered {len(items):,} detail pages")
-    for item in items:
-        report_detail_progress(
-            report,
-            "Re-Creation",
-            len(records) + 1,
-            len(items),
-            item["external_id"],
-            progress_every,
-        )
-        detail_html = fetch_text(session, item["source_url"])
-        records.append(parse_recreation_detail(detail_html, item))
-        time.sleep(delay_seconds)
+    records = collect_detail_pages(
+        "Re-Creation", items, parse_recreation_detail, delay_seconds, report, progress_every, workers, user_agent
+    )
     report(f"Re-Creation: parsed {len(records):,} detail pages")
     return records
 
@@ -931,8 +967,10 @@ def collect_team(
     limit: int = 0,
     report: ProgressReporter = no_progress,
     progress_every: int = 10,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
-    del delay_seconds, progress_every
+    del delay_seconds, progress_every, workers, user_agent
     team_url = f"{BASE_URL}team"
     report("Team: downloading public page")
     soup = BeautifulSoup(fetch_text(session, team_url), "html.parser")
@@ -1011,53 +1049,34 @@ SOURCES = {
 }
 
 
-def open_database(path: Path) -> sqlite3.Connection:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS runs (
-            run_id TEXT PRIMARY KEY,
-            started_at TEXT NOT NULL,
-            finished_at TEXT,
-            status TEXT NOT NULL,
-            summary_json TEXT NOT NULL
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS records (
-            page_id TEXT NOT NULL,
-            external_id TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            content_hash TEXT NOT NULL,
-            first_seen_at TEXT NOT NULL,
-            last_seen_at TEXT NOT NULL,
-            last_changed_at TEXT NOT NULL,
-            last_run_id TEXT NOT NULL,
-            active INTEGER NOT NULL DEFAULT 1,
-            PRIMARY KEY (page_id, external_id)
-        )
-        """
-    )
-    return connection
+def load_previous_records(source: SourceDefinition, previous_path: Path) -> dict[str, dict[str, Any]]:
+    """Return the previous output's records by ID; empty on a first run.
+
+    An existing file that cannot be read fails the source so the removal guard
+    is never skipped silently.
+    """
+    if not previous_path.exists():
+        return {}
+    previous: dict[str, dict[str, Any]] = {}
+    try:
+        payload = json.loads(previous_path.read_text(encoding="utf-8"))
+        data = payload["data"]["records"]
+        if not isinstance(data, list):
+            raise TypeError("'data.records' is not a list")
+        for item in data:
+            external_id = item["external_id"]
+            if external_id in previous:
+                raise ValueError(f"duplicate external ID {external_id}")
+            previous[external_id] = item
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        raise ValueError(f"{source.page_id} cannot read previous output {previous_path.name}: {error!r}") from error
+    return previous
 
 
-def active_records(connection: sqlite3.Connection, page_id: str) -> dict[str, sqlite3.Row]:
-    rows = connection.execute(
-        "SELECT * FROM records WHERE page_id = ? AND active = 1", (page_id,)
-    ).fetchall()
-    return {row["external_id"]: row for row in rows}
-
-
-def sync_records(
-    connection: sqlite3.Connection,
+def compare_with_previous(
     source: SourceDefinition,
     records: list[dict[str, Any]],
-    run_id: str,
-    now: str,
+    previous_path: Path,
     allow_large_removal: bool = False,
 ) -> dict[str, int]:
     if len(records) < source.minimum_records:
@@ -1068,57 +1087,20 @@ def sync_records(
     if len(by_id) != len(records):
         raise ValueError(f"{source.page_id} produced duplicate external IDs")
 
-    existing = active_records(connection, source.page_id)
+    existing = load_previous_records(source, previous_path)
     removed_ids = set(existing) - set(by_id)
     if existing and len(removed_ids) / len(existing) > 0.25 and not allow_large_removal:
         raise ValueError(f"{source.page_id} removal exceeds the 25% safety limit")
 
     counts = {"new": 0, "updated": 0, "unchanged": 0, "removed": len(removed_ids)}
-    with connection:
-        for external_id, record in by_id.items():
-            payload = json.dumps(record, ensure_ascii=False, sort_keys=True)
-            record_hash = semantic_hash(record)
-            previous = existing.get(external_id)
-            if previous is None:
-                connection.execute(
-                    """
-                    INSERT INTO records (
-                        page_id, external_id, payload_json, content_hash, first_seen_at,
-                        last_seen_at, last_changed_at, last_run_id, active
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-                    """,
-                    (source.page_id, external_id, payload, record_hash, now, now, now, run_id),
-                )
-                counts["new"] += 1
-            elif previous["content_hash"] != record_hash:
-                connection.execute(
-                    """
-                    UPDATE records
-                    SET payload_json = ?, content_hash = ?, last_seen_at = ?,
-                        last_changed_at = ?, last_run_id = ?, active = 1
-                    WHERE page_id = ? AND external_id = ?
-                    """,
-                    (payload, record_hash, now, now, run_id, source.page_id, external_id),
-                )
-                counts["updated"] += 1
-            else:
-                connection.execute(
-                    """
-                    UPDATE records SET last_seen_at = ?, last_run_id = ?, active = 1
-                    WHERE page_id = ? AND external_id = ?
-                    """,
-                    (now, run_id, source.page_id, external_id),
-                )
-                counts["unchanged"] += 1
-
-        for external_id in removed_ids:
-            connection.execute(
-                """
-                UPDATE records SET active = 0, last_seen_at = ?, last_run_id = ?
-                WHERE page_id = ? AND external_id = ?
-                """,
-                (now, run_id, source.page_id, external_id),
-            )
+    for external_id, record in by_id.items():
+        previous = existing.get(external_id)
+        if previous is None:
+            counts["new"] += 1
+        elif semantic_hash(previous) != semantic_hash(record):
+            counts["updated"] += 1
+        else:
+            counts["unchanged"] += 1
     return counts
 
 
@@ -1131,14 +1113,15 @@ def write_json(path: Path, value: dict[str, Any]) -> None:
     temporary_path.replace(path)
 
 
-def export_page(connection: sqlite3.Connection, source: SourceDefinition, run_id: str, scraped_at: str) -> None:
-    rows = connection.execute(
-        "SELECT payload_json FROM records WHERE page_id = ? AND active = 1", (source.page_id,)
-    ).fetchall()
-    records = [json.loads(row["payload_json"]) for row in rows]
-    records.sort(key=natural_id_key)
+def write_page(path: Path, source: SourceDefinition, records: list[dict[str, Any]], run_id: str, scraped_at: str) -> None:
+    """Write one source envelope: records in natural ID order, keys sorted recursively."""
+    # external_id breaks ties: natural_id_key alone gives every TEAM-<hash> the same key.
+    exported = [
+        json.loads(json.dumps(record, ensure_ascii=False, sort_keys=True))
+        for record in sorted(records, key=lambda record: (natural_id_key(record), record["external_id"]))
+    ]
     write_json(
-        OUTPUT_DIR / source.output_name,
+        path,
         {
             "schema_version": source.schema_version,
             "page_id": source.page_id,
@@ -1146,7 +1129,7 @@ def export_page(connection: sqlite3.Connection, source: SourceDefinition, run_id
             "scraped_at": scraped_at,
             "run_id": run_id,
             "warnings": [],
-            "data": {"records": records},
+            "data": {"records": exported},
         },
     )
 
@@ -1161,46 +1144,35 @@ def run_scrape(args: argparse.Namespace) -> int:
     selected_sources = select_sources(args.source)
     report = create_progress_reporter(args.quiet)
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    connection = open_database(STATE_PATH)
     session = create_session(args.user_agent)
     summary: dict[str, Any] = {"run_id": run_id, "sources": {}, "warnings": []}
-    started_at = utc_now()
-    connection.execute(
-        "INSERT INTO runs (run_id, started_at, status, summary_json) VALUES (?, ?, ?, ?)",
-        (run_id, started_at, "running", "{}"),
-    )
-    connection.commit()
-
-    if "replace-with-your-email" in args.user_agent:
-        summary["warnings"].append("Set --user-agent to an identifying value with a contact address before production use.")
 
     has_failures = False
     for source in selected_sources:
         source_name = source_display_name(source.page_id)
         report(f"{source_name}: starting")
         try:
-            records = source.collect(session, args.delay, args.limit, report, args.progress_every)
+            records = source.collect(session, args.delay, args.limit, report, args.progress_every, args.workers, args.user_agent)
             if args.limit:
                 summary["sources"][source.page_id] = {
                     "status": "smoke_test",
                     "discovered": len(records),
-                    "state_updated": False,
+                    "output_written": False,
                 }
                 report(f"{source_name}: smoke test completed with {len(records):,} records")
                 continue
-            counts = sync_records(
-                connection,
+            output_path = OUTPUT_DIR / source.output_name
+            counts = compare_with_previous(
                 source,
                 records,
-                run_id,
-                utc_now(),
+                output_path,
                 allow_large_removal=args.allow_large_removal,
             )
-            export_page(connection, source, run_id, utc_now())
+            write_page(output_path, source, records, run_id, utc_now())
             summary["sources"][source.page_id] = {
                 "status": "completed",
                 "discovered": len(records),
-                "state_updated": True,
+                "output_written": True,
                 **counts,
             }
             report(f"{source_name}: validated and saved {len(records):,} records")
@@ -1210,18 +1182,10 @@ def run_scrape(args: argparse.Namespace) -> int:
                 "status": "failed",
                 "error_type": type(error).__name__,
                 "error": str(error),
-                "state_updated": False,
+                "output_written": False,
             }
             report(f"{source_name}: failed — {type(error).__name__}: {error}")
 
-    status = "failed" if has_failures else "completed"
-    finished_at = utc_now()
-    connection.execute(
-        "UPDATE runs SET finished_at = ?, status = ?, summary_json = ? WHERE run_id = ?",
-        (finished_at, status, json.dumps(summary, ensure_ascii=False), run_id),
-    )
-    connection.commit()
-    connection.close()
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 1 if has_failures else 0
 
@@ -1229,8 +1193,13 @@ def run_scrape(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Scrape public www.culturalmapthailand.info content.")
     parser.add_argument("--source", choices=("all", *SOURCES), default="all")
-    parser.add_argument("--delay", type=float, default=DEFAULT_DELAY_SECONDS)
-    parser.add_argument("--limit", type=int, default=0, help="Smoke-test record limit; does not update state or JSON outputs.")
+    parser.add_argument(
+        "--delay", type=float, default=DEFAULT_DELAY_SECONDS, help="Seconds each worker pauses after every request."
+    )
+    parser.add_argument(
+        "--workers", type=int, default=DEFAULT_WORKERS, help=f"Concurrent detail-page fetches, 1 to {MAX_WORKERS}."
+    )
+    parser.add_argument("--limit", type=int, default=0, help="Smoke-test record limit; does not write JSON outputs.")
     parser.add_argument(
         "--progress-every",
         type=int,
@@ -1241,7 +1210,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--allow-large-removal",
         action="store_true",
-        help="Allow an update that would deactivate more than 25% of an existing source.",
+        help="Allow an update that would remove more than 25%% of an existing source.",
     )
     parser.add_argument("--user-agent", default=DEFAULT_USER_AGENT)
     return parser
@@ -1251,6 +1220,8 @@ def main() -> int:
     args = build_parser().parse_args()
     if args.delay < 0 or args.limit < 0 or args.progress_every < 1:
         raise SystemExit("--delay and --limit must be non-negative; --progress-every must be at least 1")
+    if not 1 <= args.workers <= MAX_WORKERS:
+        raise SystemExit(f"--workers must be between 1 and {MAX_WORKERS}")
     return run_scrape(args)
 
 
