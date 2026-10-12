@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
-import sqlite3
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+
+import requests
 
 import scrape
 
@@ -65,55 +67,146 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(len(calls), 2)
 
 
-class StateTests(unittest.TestCase):
-    def record(self, value: str) -> dict[str, object]:
-        return {"record_type": "community_product", "source_key": "1", "name": value}
+class FetchOrderedTests(unittest.TestCase):
+    def test_results_come_back_in_input_order(self) -> None:
+        def fetch(number: int) -> int:
+            time.sleep(0.01 * (5 - number))  # Later items finish first.
+            return number * 10
 
-    def test_versions_and_retirement(self) -> None:
+        results = list(scrape.fetch_ordered(fetch, [0, 1, 2, 3, 4], 4))
+        self.assertEqual(results, [0, 10, 20, 30, 40])
+
+    def test_first_error_propagates_and_cancels_pending_work(self) -> None:
+        calls: list[int] = []
+
+        def fetch(number: int) -> int:
+            calls.append(number)
+            time.sleep(0.02)
+            if number == 1:
+                raise RuntimeError("boom")
+            return number
+
+        with self.assertRaisesRegex(RuntimeError, "boom"):
+            list(scrape.fetch_ordered(fetch, list(range(50)), 1))
+        self.assertLess(len(calls), 50)
+
+
+class ConcurrentDetailTests(unittest.TestCase):
+    def test_detail_failures_become_null_detail_with_warning_in_token_order(self) -> None:
+        rows = [
+            {"innovatorID": str(number), "innovatorName": f"N{number}", "innovatorOutstandingID": f"tok{number}"}
+            for number in range(1, 6)
+        ]
+        good = (FIXTURES / "innovator_detail.html").read_text(encoding="utf-8")
+
+        def fake_fetch_text(_session, url, timeout=60):
+            time.sleep(0.01 * (6 - int(url[-1])))  # Later tokens finish first.
+            if url.endswith("tok2"):
+                raise requests.ConnectionError("down")
+            return "<html></html>" if url.endswith("tok4") else good
+
+        def run(workers: int):
+            with (
+                patch.object(scrape, "fetch_json", return_value=({"data": rows, "recordsFiltered": 5}, {})),
+                patch.object(scrape, "fetch_text", fake_fetch_text),
+            ):
+                return scrape.collect_apptech_records(
+                    scrape.create_session("test"), entity="innovator", groups={"1": "G"}, group_filter=None,
+                    page_size=250, limit=None, delay=0, timeout=1, skip_details=False,
+                    reporter=lambda _: None, workers=workers,
+                )
+
+        sequential, concurrent = run(1), run(4)
+        self.assertEqual(sequential, concurrent)
+        records, warnings, _ = concurrent
+        self.assertEqual([record["detail"] is None for record in records], [False, True, False, True, False])
+        self.assertEqual(len(warnings), 2)
+        self.assertIn("tok2 request failed: down", warnings[0])
+        self.assertIn("tok4 parse failed", warnings[1])
+
+
+class CompareWithPreviousTests(unittest.TestCase):
+    DATASET = "community_products"
+
+    def record(self, key: str = "1", value: str = "A") -> dict[str, object]:
+        return {"record_type": "community_product", "source_key": key, "name": value}
+
+    def records(self, count: int, value: str = "A") -> list[dict[str, object]]:
+        return [self.record(str(number), value) for number in range(1, count + 1)]
+
+    def write_previous(self, directory: str, records: list[dict[str, object]]) -> Path:
+        path = Path(directory) / "community_products.json"
+        path.write_text(json.dumps({"data": records}), encoding="utf-8")
+        return path
+
+    def compare(self, records, path, allow_large_removal=False):
+        return scrape.compare_with_previous(self.DATASET, records, path, allow_large_removal=allow_large_removal)
+
+    def test_counts_new_changed_unchanged_and_retired(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            connection = sqlite3.connect(Path(directory) / "state.sqlite3")
-            scrape.init_db(connection)
-            first = scrape.sync_records(connection, "community_products", [self.record("A")], "2026-01-01T00:00:00Z", allow_retirement=False, allow_large_removal=False)
-            same = scrape.sync_records(connection, "community_products", [self.record("A")], "2026-01-02T00:00:00Z", allow_retirement=False, allow_large_removal=False)
-            changed = scrape.sync_records(connection, "community_products", [self.record("B")], "2026-01-03T00:00:00Z", allow_retirement=False, allow_large_removal=False)
-            retired = scrape.sync_records(connection, "community_products", [], "2026-01-04T00:00:00Z", allow_retirement=True, allow_large_removal=True)
-            self.assertEqual(first["new"], 1)
-            self.assertEqual(same["unchanged"], 1)
-            self.assertEqual(changed["changed"], 1)
-            self.assertEqual(retired["retired"], 1)
-            self.assertEqual(scrape.active_records(connection, "community_products"), [])
+            path = self.write_previous(directory, self.records(4))
+            current = self.records(2) + [self.record("3", "changed"), self.record("9")]
+            counts = self.compare(current, path)
+        self.assertEqual(counts, {"new": 1, "changed": 1, "unchanged": 2, "retired": 1})
+
+    def test_retrieved_at_alone_does_not_count_as_change(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            old = {**self.record(), "retrieved_at": "2026-01-01T00:00:00Z"}
+            path = self.write_previous(directory, [old])
+            same = self.compare([{**self.record(), "retrieved_at": "2026-02-02T00:00:00Z"}], path)
+            changed = self.compare([{**self.record(value="B"), "retrieved_at": "x"}], path)
+        self.assertEqual(same["unchanged"], 1)
+        self.assertEqual(changed["changed"], 1)
+
+    def test_first_run_without_file_counts_everything_as_new(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            counts = self.compare(self.records(3), Path(directory) / "missing.json")
+        self.assertEqual(counts, {"new": 3, "changed": 0, "unchanged": 0, "retired": 0})
+
+    def test_removal_guard_trips_at_half_with_ten_record_minimum(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_previous(directory, self.records(30))
+            self.assertEqual(self.compare(self.records(16), path)["retired"], 14)  # 14 < 15
+            with self.assertRaisesRegex(ValueError, "refusing to retire 15 of 30"):
+                self.compare(self.records(15), path)
+            self.assertEqual(self.compare(self.records(15), path, allow_large_removal=True)["retired"], 15)
+
+    def test_removal_guard_minimum_is_ten_records(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_previous(directory, self.records(12))
+            self.assertEqual(self.compare(self.records(3), path)["retired"], 9)  # 9 < max(10, 6)
+            with self.assertRaises(ValueError):
+                self.compare(self.records(2), path)  # 10 retired
+
+    def test_unreadable_previous_file_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "community_products.json"
+            bad_contents = (
+                "{not json",
+                json.dumps([]),
+                json.dumps({"data": {}}),
+                json.dumps({"data": [{"name": "no key"}]}),
+                json.dumps({"data": self.records(1) * 2}),
+            )
+            for contents in bad_contents:
+                path.write_text(contents, encoding="utf-8")
+                with self.subTest(contents=contents), self.assertRaises(ValueError):
+                    self.compare(self.records(1), path, allow_large_removal=True)
 
     def test_duplicate_source_key_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
-            scrape.validate_records("community_products", [self.record("A"), self.record("B")])
+            scrape.validate_records("community_products", [self.record("1", "A"), self.record("1", "B")])
 
     def test_skip_details_retains_previous_detail(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            connection = sqlite3.connect(Path(directory) / "state.sqlite3")
-            scrape.init_db(connection)
-            complete = {
-                "record_type": "apptech_innovator",
-                "source_key": "2:42",
-                "name": "A",
-                "detail": {"collaboration_network": {"start_level": 1, "current_level": 2}},
-            }
-            scrape.sync_records(connection, "apptech_innovators", [complete], "2026-01-01T00:00:00Z", allow_retirement=False, allow_large_removal=False)
-            smoke = {**complete, "name": "B", "detail": None}
-            scrape.retain_known_details_for_smoke_run(connection, "apptech_innovators", [smoke])
-            self.assertEqual(smoke["detail"], complete["detail"])
-
-    def test_interrupted_run_is_recovered_on_open(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "state.sqlite3"
-            connection = sqlite3.connect(path)
-            scrape.init_db(connection)
-            run_id = scrape.start_run(connection, "community_products")
-            connection.close()
-            reopened = sqlite3.connect(path)
-            scrape.init_db(reopened)
-            outcome, error = reopened.execute("SELECT outcome, error_text FROM runs WHERE run_id=?", (run_id,)).fetchone()
-            self.assertEqual(outcome, "interrupted")
-            self.assertIn("process did not finish", error)
+        complete = {
+            "record_type": "apptech_innovator",
+            "source_key": "2:42",
+            "name": "A",
+            "detail": {"collaboration_network": {"start_level": 1, "current_level": 2}},
+        }
+        smoke = {**complete, "name": "B", "detail": None}
+        scrape.retain_known_details({"2:42": complete}, "apptech_innovators", [smoke])
+        self.assertEqual(smoke["detail"], complete["detail"])
 
 
 if __name__ == "__main__":

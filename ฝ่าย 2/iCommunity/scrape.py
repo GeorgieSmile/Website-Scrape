@@ -2,7 +2,8 @@
 """Incremental scraper for public iCommunity and AppTech PMUA records.
 
 The script intentionally exports clean source records rather than a full raw
-HTTP archive. SQLite keeps the latest version and immutable changes.
+HTTP archive. Each run is compared with the previous export in the output
+directory, which is the only state kept.
 """
 
 from __future__ import annotations
@@ -13,12 +14,13 @@ import html as html_module
 import json
 import math
 import re
-import sqlite3
 import sys
+import threading
 import time
 import unicodedata
-import uuid
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Generator, Iterable
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,12 +36,13 @@ from urllib3.util.retry import Retry
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT / "output"
-STATE_PATH = ROOT / "state" / "icommunity.sqlite3"
 APPTECH_BASE = "https://apptechpmua.com"
 ICOMMUNITY_BASE = "https://www.icommunity.in.th"
-DEFAULT_DELAY = 1.0
+DEFAULT_DELAY = 0.0  # Pause after each request, per worker.
+DEFAULT_WORKERS = 4
+MAX_WORKERS = 8
 DEFAULT_PAGE_SIZE = 250
-DEFAULT_USER_AGENT = "iCommunityCollector/1.0 (public research scraper)"
+DEFAULT_USER_AGENT = "iCommunityCollector"
 PLACEHOLDERS = {"", "-", "ไม่มี", "null", "undefined", "n/a"}
 Reporter = Callable[[str], None]
 
@@ -149,6 +152,35 @@ def create_session(user_agent: str) -> requests.Session:
     return session
 
 
+def thread_session_provider(user_agent: str) -> Callable[[], requests.Session]:
+    """Return a function giving each calling thread its own session."""
+    local = threading.local()
+
+    def get_session() -> requests.Session:
+        session = getattr(local, "session", None)
+        if session is None:
+            session = local.session = create_session(user_agent)
+        return session
+
+    return get_session
+
+
+def fetch_ordered(fetch: Callable[[Any], Any], items: list[Any], workers: int) -> Generator[Any, None, None]:
+    """Yield fetch(item) for each item in input order, fetching concurrently.
+
+    The first error raises here and cancels work that has not started. Callers
+    should wrap the iterator in contextlib.closing so that an error in their
+    own loop body also stops the pool.
+    """
+    executor = ThreadPoolExecutor(max_workers=workers)
+    try:
+        futures = [executor.submit(fetch, item) for item in items]
+        for future in futures:
+            yield future.result()
+    finally:
+        executor.shutdown(wait=True, cancel_futures=True)
+
+
 def fetch_response(
     session: requests.Session,
     url: str,
@@ -237,6 +269,11 @@ def parse_float(value: Any) -> float | None:
 def semantic_hash(value: Any) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def comparison_hash(record: dict[str, Any]) -> str:
+    """Hash used only to compare runs: retrieved_at changes every run and is not content."""
+    return semantic_hash({key: value for key, value in record.items() if key != "retrieved_at"})
 
 
 def redact_contacts(value: Any) -> str | None:
@@ -492,6 +529,8 @@ def collect_apptech_records(
     timeout: int,
     skip_details: bool,
     reporter: Reporter,
+    workers: int = DEFAULT_WORKERS,
+    user_agent: str = DEFAULT_USER_AGENT,
 ) -> tuple[list[dict[str, Any]], list[str], bool]:
     if entity not in {"innovator", "innovation"}:
         raise ValueError(f"Unknown AppTech entity: {entity}")
@@ -556,19 +595,34 @@ def collect_apptech_records(
             clean_text(row.get("innovatorOutstandingID" if entity == "innovator" else "innovationID"))
             for row, _, _ in all_rows
         }
-        for token in sorted(token for token in tokens if token):
-            url = f"{APPTECH_BASE}/{'innovator' if entity == 'innovator' else 'innovation'}/content/{token}"
+        ordered_tokens = sorted(token for token in tokens if token)
+        worker_session = thread_session_provider(user_agent)
+
+        def detail_url(token: str) -> str:
+            return f"{APPTECH_BASE}/{'innovator' if entity == 'innovator' else 'innovation'}/content/{token}"
+
+        def fetch_page(token: str) -> str | requests.RequestException:
+            """HTTP only. A failed request is returned so the main thread can warn, as before."""
             try:
-                reporter(f"Fetching AppTech {entity} detail {token[:12]}...")
-                html = fetch_text(session, url, timeout)
-                details[token] = parse_innovator_detail(html, url) if entity == "innovator" else parse_innovation_detail(html, url)
+                return fetch_text(worker_session(), detail_url(token), timeout)
             except requests.RequestException as exc:
-                details[token] = None
-                warnings.append(f"{entity} detail {token[:16]} request failed: {exc}")
-            except ValueError as exc:
-                details[token] = None
-                warnings.append(f"{entity} detail {token[:16]} parse failed: {exc}")
-            maybe_sleep(delay)
+                return exc
+            finally:
+                maybe_sleep(delay)
+
+        with closing(fetch_ordered(fetch_page, ordered_tokens, workers)) as pages:
+            for token, page in zip(ordered_tokens, pages, strict=True):
+                reporter(f"Fetching AppTech {entity} detail {token[:12]}...")
+                if isinstance(page, requests.RequestException):
+                    details[token] = None
+                    warnings.append(f"{entity} detail {token[:16]} request failed: {page}")
+                    continue
+                url = detail_url(token)
+                try:
+                    details[token] = parse_innovator_detail(page, url) if entity == "innovator" else parse_innovation_detail(page, url)
+                except ValueError as exc:
+                    details[token] = None
+                    warnings.append(f"{entity} detail {token[:16]} parse failed: {exc}")
 
     records: list[dict[str, Any]] = []
     for row, group_id, label in all_rows:
@@ -768,74 +822,6 @@ def collect_posts(
     return records, [], False
 
 
-def init_db(connection: sqlite3.Connection) -> None:
-    connection.executescript(
-        """
-        PRAGMA foreign_keys = ON;
-        CREATE TABLE IF NOT EXISTS runs (
-            run_id TEXT PRIMARY KEY,
-            dataset TEXT NOT NULL,
-            started_at TEXT NOT NULL,
-            finished_at TEXT,
-            outcome TEXT NOT NULL,
-            record_count INTEGER,
-            warnings_json TEXT NOT NULL,
-            error_text TEXT
-        );
-        CREATE TABLE IF NOT EXISTS records (
-            dataset TEXT NOT NULL,
-            external_id TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            content_hash TEXT NOT NULL,
-            first_seen_at TEXT NOT NULL,
-            last_seen_at TEXT NOT NULL,
-            last_changed_at TEXT NOT NULL,
-            active INTEGER NOT NULL DEFAULT 1,
-            PRIMARY KEY (dataset, external_id)
-        );
-        CREATE TABLE IF NOT EXISTS record_versions (
-            version_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            dataset TEXT NOT NULL,
-            external_id TEXT NOT NULL,
-            observed_at TEXT NOT NULL,
-            change_type TEXT NOT NULL,
-            payload_json TEXT,
-            content_hash TEXT
-        );
-        """
-    )
-    connection.execute(
-        "UPDATE runs SET finished_at=?, outcome='interrupted', error_text=COALESCE(error_text, 'process did not finish') WHERE outcome='running'",
-        (utc_now(),),
-    )
-    connection.commit()
-
-
-def start_run(connection: sqlite3.Connection, dataset: str) -> str:
-    run_id = str(uuid.uuid4())
-    connection.execute(
-        "INSERT INTO runs (run_id, dataset, started_at, outcome, warnings_json) VALUES (?, ?, ?, ?, ?)",
-        (run_id, dataset, utc_now(), "running", "[]"),
-    )
-    connection.commit()
-    return run_id
-
-
-def finish_run(
-    connection: sqlite3.Connection,
-    run_id: str,
-    outcome: str,
-    record_count: int | None,
-    warnings: list[str],
-    error_text: str | None = None,
-) -> None:
-    connection.execute(
-        "UPDATE runs SET finished_at=?, outcome=?, record_count=?, warnings_json=?, error_text=? WHERE run_id=?",
-        (utc_now(), outcome, record_count, json.dumps(warnings, ensure_ascii=False), error_text, run_id),
-    )
-    connection.commit()
-
-
 def validate_records(dataset: str, records: list[dict[str, Any]]) -> None:
     if len(records) < SPECS[dataset].minimum_records:
         raise ValueError(f"{dataset}: found {len(records)} records, below safety floor")
@@ -849,106 +835,71 @@ def validate_records(dataset: str, records: list[dict[str, Any]]) -> None:
         seen.add(key)
 
 
-def sync_records(
-    connection: sqlite3.Connection,
+def load_previous_records(dataset: str, path: Path) -> dict[str, dict[str, Any]]:
+    """Return the previous export's records by source_key; empty on a first run.
+
+    An existing file that cannot be read fails the dataset so the removal guard
+    is never skipped silently.
+    """
+    if not path.exists():
+        return {}
+    previous: dict[str, dict[str, Any]] = {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))["data"]
+        if not isinstance(data, list):
+            raise TypeError("'data' is not a list")
+        for item in data:
+            key = str(item["source_key"])
+            if key in previous:
+                raise ValueError(f"duplicate source_key {key}")
+            previous[key] = item
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise ValueError(f"{dataset}: cannot read previous output {path.name}: {exc!r}") from exc
+    return previous
+
+
+def compare_with_previous(
     dataset: str,
     records: list[dict[str, Any]],
-    observed_at: str,
+    previous_path: Path,
     *,
-    allow_retirement: bool,
     allow_large_removal: bool,
 ) -> dict[str, int]:
     if records:
         validate_records(dataset, records)
-    elif not allow_retirement:
-        raise ValueError(f"{dataset}: empty incomplete crawl")
+    previous = load_previous_records(dataset, previous_path)
     incoming = {str(record["source_key"]): record for record in records}
-    active_rows = connection.execute(
-        "SELECT external_id, content_hash FROM records WHERE dataset=? AND active=1", (dataset,)
-    ).fetchall()
-    active_ids = {row[0] for row in active_rows}
-    removed = active_ids - set(incoming)
-    if allow_retirement and active_ids and removed and not allow_large_removal:
-        threshold = max(10, math.ceil(len(active_ids) * 0.5))
+    removed = set(previous) - set(incoming)
+    if previous and removed and not allow_large_removal:
+        threshold = max(10, math.ceil(len(previous) * 0.5))
         if len(removed) >= threshold:
-            raise ValueError(f"{dataset}: refusing to retire {len(removed)} of {len(active_ids)} records")
-    result = {"new": 0, "changed": 0, "unchanged": 0, "retired": 0}
-    with connection:
-        for external_id, record in incoming.items():
-            payload = json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-            content_hash = semantic_hash(record)
-            prior = connection.execute(
-                "SELECT content_hash, first_seen_at FROM records WHERE dataset=? AND external_id=?",
-                (dataset, external_id),
-            ).fetchone()
-            if prior is None:
-                result["new"] += 1
-                connection.execute(
-                    "INSERT INTO records VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
-                    (dataset, external_id, payload, content_hash, observed_at, observed_at, observed_at),
-                )
-                change_type = "inserted"
-            elif prior[0] != content_hash:
-                result["changed"] += 1
-                connection.execute(
-                    "UPDATE records SET payload_json=?, content_hash=?, last_seen_at=?, last_changed_at=?, active=1 WHERE dataset=? AND external_id=?",
-                    (payload, content_hash, observed_at, observed_at, dataset, external_id),
-                )
-                change_type = "updated"
-            else:
-                result["unchanged"] += 1
-                connection.execute(
-                    "UPDATE records SET last_seen_at=?, active=1 WHERE dataset=? AND external_id=?",
-                    (observed_at, dataset, external_id),
-                )
-                continue
-            connection.execute(
-                "INSERT INTO record_versions (dataset, external_id, observed_at, change_type, payload_json, content_hash) VALUES (?, ?, ?, ?, ?, ?)",
-                (dataset, external_id, observed_at, change_type, payload, content_hash),
-            )
-        if allow_retirement:
-            for external_id in removed:
-                result["retired"] += 1
-                connection.execute(
-                    "UPDATE records SET active=0, last_seen_at=?, last_changed_at=? WHERE dataset=? AND external_id=?",
-                    (observed_at, observed_at, dataset, external_id),
-                )
-                connection.execute(
-                    "INSERT INTO record_versions (dataset, external_id, observed_at, change_type) VALUES (?, ?, ?, ?)",
-                    (dataset, external_id, observed_at, "retired"),
-                )
+            raise ValueError(f"{dataset}: refusing to retire {len(removed)} of {len(previous)} records")
+    result = {"new": 0, "changed": 0, "unchanged": 0, "retired": len(removed)}
+    for key, record in incoming.items():
+        if key not in previous:
+            result["new"] += 1
+        elif comparison_hash(previous[key]) != comparison_hash(record):
+            result["changed"] += 1
+        else:
+            result["unchanged"] += 1
     return result
 
 
-def active_records(connection: sqlite3.Connection, dataset: str) -> list[dict[str, Any]]:
-    rows = connection.execute(
-        "SELECT payload_json FROM records WHERE dataset=? AND active=1 ORDER BY external_id", (dataset,)
-    ).fetchall()
-    return [json.loads(row[0]) for row in rows]
-
-
-def retain_known_details_for_smoke_run(
-    connection: sqlite3.Connection, dataset: str, records: list[dict[str, Any]]
+def retain_known_details(
+    previous: dict[str, dict[str, Any]], dataset: str, records: list[dict[str, Any]]
 ) -> None:
     """Keep previously collected profile details when --skip-details is used.
 
-    A smoke run is allowed to refresh list-level fields, but it must not turn a
-    successfully collected nested detail object into null merely because detail
-    pages were intentionally skipped.
+    A run with --skip-details may refresh list-level fields, but it must not
+    turn a successfully collected nested detail object into null merely because
+    detail pages were intentionally skipped.
     """
     if dataset not in {"apptech_innovators", "apptech_innovations"}:
         return
-    prior_rows = connection.execute(
-        "SELECT external_id, payload_json FROM records WHERE dataset=? AND active=1", (dataset,)
-    ).fetchall()
-    prior_details = {
-        external_id: json.loads(payload_json).get("detail")
-        for external_id, payload_json in prior_rows
-    }
     for record in records:
-        external_id = str(record["source_key"])
-        if record.get("detail") is None and prior_details.get(external_id) is not None:
-            record["detail"] = prior_details[external_id]
+        prior_detail = previous.get(str(record["source_key"]), {}).get("detail")
+        if record.get("detail") is None and prior_detail is not None:
+            record["detail"] = prior_detail
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -961,19 +912,24 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
 
 
 def write_export(
-    output_dir: Path, dataset: str, records: list[dict[str, Any]], warnings: list[str]
+    output_dir: Path, dataset: str, records: list[dict[str, Any]], warnings: list[str], scraped_at: str
 ) -> None:
+    """Write one export: records in source_key order, keys sorted recursively."""
     spec = SPECS[dataset]
+    exported = [
+        json.loads(json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+        for record in sorted(records, key=lambda record: str(record["source_key"]))
+    ]
     write_json(
         output_dir / spec.output_name,
         {
             "schema_version": 1,
             "dataset": dataset,
             "source_urls": list(spec.source_urls),
-            "scraped_at": utc_now(),
-            "record_count": len(records),
+            "scraped_at": scraped_at,
+            "record_count": len(exported),
             "warnings": warnings,
-            "data": records,
+            "data": exported,
         },
     )
 
@@ -990,26 +946,25 @@ def parse_groups_arg(value: str | None) -> set[str] | None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", action="append", choices=DATASETS, help="Collect only this dataset. Repeatable.")
-    parser.add_argument("--groups", help="Comma-separated AppTech group IDs for a smoke test or targeted run.")
-    parser.add_argument("--limit", type=int, help="Limit AppTech list rows. Limited runs never retire records.")
+    parser.add_argument("--groups", help="Comma-separated AppTech group IDs for a smoke test. Writes nothing.")
+    parser.add_argument("--limit", type=int, help="Limit AppTech list rows for a smoke test. Writes nothing.")
     parser.add_argument("--skip-details", action="store_true", help="Do not fetch AppTech detail pages.")
-    parser.add_argument("--delay", type=float, default=DEFAULT_DELAY)
+    parser.add_argument("--delay", type=float, default=DEFAULT_DELAY, help="Seconds each worker pauses after every request.")
+    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help=f"Concurrent AppTech detail-page fetches, 1 to {MAX_WORKERS}.")
     parser.add_argument("--page-size", type=int, default=DEFAULT_PAGE_SIZE)
     parser.add_argument("--timeout", type=int, default=60)
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
-    parser.add_argument("--state-path", type=Path, default=STATE_PATH)
     parser.add_argument("--allow-large-removal", action="store_true")
     parser.add_argument("--user-agent", default=DEFAULT_USER_AGENT)
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args()
     if args.delay < 0 or args.page_size < 1 or args.limit is not None and args.limit < 1:
         parser.error("delay must be non-negative; page size and limit must be positive")
+    if not 1 <= args.workers <= MAX_WORKERS:
+        parser.error(f"--workers must be between 1 and {MAX_WORKERS}")
     selected = tuple(args.dataset or DATASETS)
     group_filter = parse_groups_arg(args.groups)
     reporter = report_factory(args.quiet)
-    args.state_path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(args.state_path)
-    init_db(connection)
     session = create_session(args.user_agent)
     groups_by_entity: dict[str, dict[str, str]] | None = None
     group_records: list[dict[str, Any]] | None = None
@@ -1025,12 +980,12 @@ def main() -> int:
         "apptech_innovators": lambda: collect_apptech_records(
             session, entity="innovator", groups=ensure_groups()[1]["innovator"], group_filter=group_filter,
             page_size=args.page_size, limit=args.limit, delay=args.delay, timeout=args.timeout,
-            skip_details=args.skip_details, reporter=reporter,
+            skip_details=args.skip_details, reporter=reporter, workers=args.workers, user_agent=args.user_agent,
         ),
         "apptech_innovations": lambda: collect_apptech_records(
             session, entity="innovation", groups=ensure_groups()[1]["innovation"], group_filter=group_filter,
             page_size=args.page_size, limit=args.limit, delay=args.delay, timeout=args.timeout,
-            skip_details=args.skip_details, reporter=reporter,
+            skip_details=args.skip_details, reporter=reporter, workers=args.workers, user_agent=args.user_agent,
         ),
         "apptech_dashboard_summaries": lambda: collect_summaries(
             session, ensure_groups()[1], group_filter, args.delay, args.timeout, reporter
@@ -1040,34 +995,33 @@ def main() -> int:
         "activity_posts": lambda: collect_posts(session, args.timeout, args.delay, reporter),
     }
 
-    failures = 0
+    smoke = group_filter is not None or args.limit is not None
+    summary: dict[str, Any] = {"run_id": utc_now(), "datasets": {}, "failures": []}
     for dataset in selected:
-        run_id = start_run(connection, dataset)
         try:
             reporter(f"Collecting {dataset}")
-            records, warnings, partial = collectors[dataset]()
+            records, warnings, _ = collectors[dataset]()
+            if smoke:
+                summary["datasets"][dataset] = {"status": "smoke_test", "record_count": len(records), "warnings": warnings}
+                reporter(f"{dataset}: smoke test collected {len(records)} records")
+                continue
+            previous_path = args.output_dir / SPECS[dataset].output_name
             if args.skip_details:
-                retain_known_details_for_smoke_run(connection, dataset, records)
-            observed_at = utc_now()
-            stats = sync_records(
-                connection,
-                dataset,
-                records,
-                observed_at,
-                allow_retirement=not partial,
-                allow_large_removal=args.allow_large_removal,
+                retain_known_details(load_previous_records(dataset, previous_path), dataset, records)
+            stats = compare_with_previous(
+                dataset, records, previous_path, allow_large_removal=args.allow_large_removal
             )
-            export_records = active_records(connection, dataset)
             warnings = [*warnings, f"sync: {stats}"]
-            write_export(args.output_dir, dataset, export_records, warnings)
-            finish_run(connection, run_id, "success", len(export_records), warnings)
-            reporter(f"{dataset}: {len(export_records)} active records")
+            write_export(args.output_dir, dataset, records, warnings, utc_now())
+            summary["datasets"][dataset] = {"status": "success", "record_count": len(records), **stats, "warnings": warnings}
+            reporter(f"{dataset}: {len(records)} records")
         except Exception as exc:  # Preserve other datasets and prior good exports.
-            failures += 1
-            finish_run(connection, run_id, "failed", None, [], str(exc))
+            summary["failures"].append(f"{dataset}: {exc}")
+            summary["datasets"][dataset] = {"status": "failed", "error": str(exc)}
             print(f"{dataset}: {exc}", file=sys.stderr)
-    connection.close()
-    return 1 if failures else 0
+    summary["status"] = "failed" if summary["failures"] else "success"
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return 1 if summary["failures"] else 0
 
 
 if __name__ == "__main__":
