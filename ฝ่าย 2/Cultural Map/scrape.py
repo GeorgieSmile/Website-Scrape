@@ -828,7 +828,9 @@ def parse_product_detail(html: str, item: dict[str, Any]) -> dict[str, Any]:
     warnings: list[str] = []
     view_match = re.search(r"เข้าชม\s*:?\s*([\d,]+)\s*ครั้ง", text)
     price_match = re.search(r"ราคา\s*:?\s*(.+?)(?=\s*รายละเอียด\s*:|$)", text)
-    address_match = re.search(r"เลขที่\s*:?\s*(.+)$", text)
+    # The labelled address block is the last thing on the page; "บ้านเลขที่" in seller contact text comes earlier.
+    labelled_addresses = list(re.finditer(r"เลขที่\s*:\s*", text))
+    address_match = re.search(r"(.+)$", text[labelled_addresses[-1].end():]) if labelled_addresses else re.search(r"เลขที่\s*:?\s*(.+)$", text)
     return build_record(
         item["external_id"],
         title,

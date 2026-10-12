@@ -129,6 +129,31 @@ class DetailParserTests(unittest.TestCase):
         self.assertEqual(record["data"]["external_links"][0]["url"], "https://example.org/shop")
         self.assertEqual(record["data"]["gallery_images"][0]["url"], "https://www.culturalmapthailand.info/images/a.jpg")
 
+    def test_product_parser_address_ignores_contact_text_and_view_counter(self) -> None:
+        html = """
+        <section class="culturalproductinfo">
+          <h2 class="mycontainer2header">หม้อหุง</h2>
+          ราคา : 100 บาท รายละเอียด : ทำมือ
+          ช่องทางการจำหน่าย : กลุ่มตีหม้อ ณ บ้านเลขที่ 270 หมู่ที่ 11 ตำบลเขวา
+          Face book : กลุ่มตีหม้อ https://www.facebook.com/groups/1
+          มือถือ 095-1949596 ID Line : example
+          เข้าชม : 1049 ครั้ง
+          ผลิตภัณฑ์จากวัฒนธรรม กลุ่มตีหม้อ
+          เลขที่ : 270 หมู่ที่ 11 บ้านหม้อ ต. เขวา อ. เมืองมหาสารคาม จ. มหาสารคาม 44000
+        </section>
+        """
+        item = {
+            "external_id": "PD-44",
+            "source_url": "https://www.culturalmapthailand.info/PD-44",
+            "discovered_from": [],
+        }
+        record = scrape.parse_product_detail(html, item)
+        self.assertEqual(
+            record["data"]["address_text"],
+            "270 หมู่ที่ 11 บ้านหม้อ ต. เขวา อ. เมืองมหาสารคาม จ. มหาสารคาม 44000",
+        )
+        self.assertEqual(record["data"]["view_count"], 1049)
+
     def test_activity_and_recreation_parsers_accept_known_public_structure(self) -> None:
         activity = scrape.parse_activity_detail(
             "<h2 class='mycontainer2header smallheaderfontsize'>งานบุญ</h2>"
