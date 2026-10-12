@@ -1,6 +1,6 @@
 # RinMP AppTech Scraper
 
-Incremental scraper for the public RinMP AppTech registry at
+Scraper for the public RinMP AppTech registry at
 [app.rinmp.com](https://app.rinmp.com/) — the เครือข่าย มทร. appropriate
 technology (เทคโนโลยีที่เหมาะสมและนวัตกรรมพร้อมใช้) registry under the
 บพท./PMUA program. See `SCRAPER_PLAN.md` for the investigated design and the
@@ -21,36 +21,49 @@ Use the workspace virtual environment at `Website Scrape/.venv`
 
 ```bash
 ../.venv/bin/python test_scrape.py          # offline tests, no network
-../.venv/bin/python scrape.py               # full incremental run (~1 min when unchanged)
-../.venv/bin/python scrape.py --limit 5     # smoke test; touches neither state nor outputs
-../.venv/bin/python scrape.py --full-details  # force re-fetch of every detail page (~11 min)
+../.venv/bin/python scrape.py               # full run: re-fetches all ~630 detail pages
+../.venv/bin/python scrape.py --limit 5     # smoke test; writes nothing
+../.venv/bin/python scrape.py --workers 1   # one detail request at a time
 ```
 
-Useful flags: `--delay` (default 1 s), `--progress-every`, `--quiet`,
-`--state-path`, `--output-dir`, `--allow-large-removal`.
+Useful flags:
+
+- `--workers N` (1–8, default 4): concurrent detail requests.
+- `--delay SECONDS` (default 0): pause each worker takes after every request.
+- `--progress-every`, `--quiet`, `--output-dir`, `--allow-large-removal`.
+
+A JSON run summary (status, reconciliation, counts, warnings) is printed to
+standard output.
 
 ## How it works
 
 1. **Discovery**: pages through `GET /api/appTechPublic?offset&max=99&__template=appTech.public.list`
    until unique IDs equal `totalCount`. Duplicate IDs, a mid-walk total change,
    or a total below the completeness floor (400) abort the run.
-2. **Details**: fetches `GET /api/appTechPublic/{id}` only for new IDs and IDs
-   whose stripped listing payload hash changed since the last run.
+2. **Details**: fetches `GET /api/appTechPublic/{id}` for every catalog ID on
+   every run, concurrently (`--workers`); normalization stays in the main
+   thread, in ID order. A failed detail is counted and warned about. Its record
+   is then kept from the previous `app_tech.json` (with a warning, so that
+   record may be one run stale); the run fails only if a catalog ID has no
+   fresh and no previous record.
 3. **Reconciliation gate**: `listAppTechStatisticData` must confirm both the
    total count and every per-institute count of the collected records;
    mismatch fails the run and preserves the previous exports.
-4. **State**: SQLite tables `runs`, `records`, `record_versions`; content-hash
-   change detection; retirements only after a complete successful run and
-   capped at 25% unless `--allow-large-removal`.
+4. **State**: the previous `output/app_tech.json` and `owner_profiles.json`
+   are the only state. Each run compares its records with them by ID (content
+   hash, ignoring volatile counters) and reports new/updated/unchanged/removed
+   counts; dropping more than 25% of the previous records fails the run
+   unless `--allow-large-removal`, and an unreadable previous file fails it
+   too. Version history is not kept locally.
 5. **Exports**: rewritten only after a fully successful run.
 
 ## PII boundary
 
 Every list and detail response carries owner contact data, and some emails
 hide in free-text fields (e.g. `ownerContact.detail`). `strip_pii()` runs on
-everything before persistence: contact keys are dropped and email-shaped
+everything before it is written: contact keys are dropped and email-shaped
 values are replaced with `[redacted-contact]`. No email or phone value should
-exist in `state/` or `output/`. Owner identity beyond the public display name
+exist in `output/`. Owner identity beyond the public display name
 is reduced to a non-reversible `owner_key`.
 
 ## Deliberately not scraped
@@ -71,6 +84,6 @@ The scraper only talks to `app.rinmp.com`.
 
 Baseline (first successful full runs, 2026-08-22/23 UTC): totalCount = 630,
 owners = 308 distinct names, reconciliation clean, second consecutive run
-created zero new record versions. Refresh trigger: a changed `totalCount`.
+reported zero changed records. Refresh trigger: a changed `totalCount`.
 Known data quirks recorded as warnings in the exports (e.g. 18 records without
 any expected description section, one institute without an HQ province).

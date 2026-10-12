@@ -8,9 +8,8 @@ Collects three datasets from public GET JSON endpoints:
                     reconciliation gate for the app_tech dataset
 - owner_profiles    owner dimension (email/phone stripped at ingest)
 
-SQLite (state/rinmp.sqlite3) is the authoritative incremental store; JSON
-exports in output/ are the latest clean datasets. On any failure the run is
-recorded and the previous good exports are left untouched.
+Each run is compared with the previous JSON exports in output/, which are the
+only state kept. On any failure the previous good exports are left untouched.
 
 Only https://app.rinmp.com is contacted. www.rinmp.com is untrusted
 (self-signed fallback certificate) and never requested.
@@ -22,10 +21,13 @@ import hashlib
 import html as html_module
 import json
 import re
-import sqlite3
 import sys
+import threading
 import time
 import unicodedata
+from collections.abc import Generator, Iterable
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
@@ -35,7 +37,6 @@ import requests
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_OUTPUT_DIR = ROOT / "output"
-DEFAULT_STATE_PATH = ROOT / "state" / "rinmp.sqlite3"
 HQ_PROVINCES_PATH = ROOT / "references" / "institute_hq_provinces.json"
 
 BASE_URL = "https://app.rinmp.com/"
@@ -44,14 +45,15 @@ DETAIL_URL = BASE_URL + "api/appTechPublic/{id}"
 STATS_URL = BASE_URL + "api/custom/appTechPublic/listAppTechStatisticData"
 OWNERS_URL = BASE_URL + "api/custom/appTechPublic/listAppTechOwnerProfile"
 
-PAGE_LISTING = "app_tech_listing"
 PAGE_APP_TECH = "app_tech"
 PAGE_OWNER = "owner_profile"
 
 SCHEMA_VERSION = 1
 LIST_PAGE_SIZE = 99
-DEFAULT_DELAY_SECONDS = 1.0
-DEFAULT_USER_AGENT = "RinMPAppTechCollector/1.0 (public registry incremental scraper)"
+DEFAULT_DELAY_SECONDS = 0.0  # Pause after each request, per worker.
+DEFAULT_WORKERS = 4
+MAX_WORKERS = 8
+DEFAULT_USER_AGENT = "RinMPAppTechCollector"
 
 PLACEHOLDER_TEXT = {"-", "ไม่มี", "-ไม่มี-"}
 # Completeness floor: the catalog has been 600+ records since at least
@@ -79,6 +81,8 @@ VOLATILE_HASH_FIELDS = {
     "currentAdminQuantity",
     "currentLeadAdminQuantity",
 }
+# The API returns tags in a different order on each request; order is not content.
+ORDER_INSENSITIVE_HASH_FIELDS = {"tags"}
 PII_SUBSTRINGS = ("email", "phone", "mobile")
 PII_EXACT_KEYS = {
     "tel",
@@ -131,6 +135,37 @@ def create_session(user_agent: str) -> requests.Session:
     session = requests.Session()
     session.headers.update({"User-Agent": user_agent, "Accept": "application/json"})
     return session
+
+
+def thread_session_provider(user_agent: str) -> Callable[[], requests.Session]:
+    """Return a function giving each calling thread its own session."""
+    local = threading.local()
+
+    def get_session() -> requests.Session:
+        session = getattr(local, "session", None)
+        if session is None:
+            session = local.session = create_session(user_agent)
+        return session
+
+    return get_session
+
+
+def fetch_ordered(
+    fetch: Callable[[Any], Any], items: list[Any], workers: int
+) -> Generator[Any, None, None]:
+    """Yield fetch(item) for each item in input order, fetching concurrently.
+
+    The first error raises here and cancels work that has not started. Callers
+    should wrap the iterator in contextlib.closing so that an error in their
+    own loop body also stops the pool.
+    """
+    executor = ThreadPoolExecutor(max_workers=workers)
+    try:
+        futures = [executor.submit(fetch, item) for item in items]
+        for future in futures:
+            yield future.result()
+    finally:
+        executor.shutdown(wait=True, cancel_futures=True)
 
 
 def fetch_json(
@@ -233,7 +268,11 @@ def semantic_hash(value: Any) -> str:
     def remove_volatile(item: Any) -> Any:
         if isinstance(item, dict):
             return {
-                key: remove_volatile(child)
+                key: (
+                    sorted(child)
+                    if key in ORDER_INSENSITIVE_HASH_FIELDS and isinstance(child, list)
+                    else remove_volatile(child)
+                )
                 for key, child in item.items()
                 if key not in VOLATILE_HASH_FIELDS
             }
@@ -520,18 +559,59 @@ def collect_catalog(
     return listings, seen_total
 
 
-def fetch_detail_record(
-    session: requests.Session,
-    external_id: int,
-    listing: dict[str, Any],
-    hq_provinces: dict[str, str],
-) -> tuple[dict[str, Any], list[str]]:
+def fetch_detail_payload(session: requests.Session, external_id: int) -> dict[str, Any]:
+    """HTTP only: fetch one detail payload. Safe to run in a worker thread."""
     payload = fetch_json(session, DETAIL_URL.format(id=external_id))
     data = payload.get("data")
     if not isinstance(data, dict):
         raise ScrapeError(f"detail {external_id} returned no data object")
-    normalized, warnings = normalize_detail(strip_pii(data), listing, hq_provinces)
-    return normalized, warnings
+    return data
+
+
+def collect_details(
+    external_ids: list[int],
+    listings: dict[int, dict[str, Any]],
+    hq_provinces: dict[str, str],
+    *,
+    user_agent: str,
+    workers: int,
+    delay: float,
+    progress_every: int,
+    report: ProgressReporter,
+) -> tuple[dict[int, dict[str, Any]], list[str], int]:
+    """Fetch details concurrently; normalize them here, in ID order.
+
+    A failed detail is counted and warned about, not raised, as before.
+    """
+    worker_session = thread_session_provider(user_agent)
+
+    def fetch_one(external_id: int) -> dict[str, Any] | ScrapeError:
+        try:
+            return fetch_detail_payload(worker_session(), external_id)
+        except ScrapeError as exc:
+            return exc
+        finally:
+            time.sleep(delay)
+
+    records: dict[int, dict[str, Any]] = {}
+    warnings: list[str] = []
+    failures = 0
+    with closing(fetch_ordered(fetch_one, external_ids, workers)) as payloads:
+        for index, (external_id, payload) in enumerate(zip(external_ids, payloads, strict=True)):
+            try:
+                if isinstance(payload, ScrapeError):
+                    raise payload
+                record, record_warnings = normalize_detail(
+                    strip_pii(payload), listings[external_id], hq_provinces
+                )
+                records[external_id] = record
+                warnings.extend(f"id {external_id}: {warning}" for warning in record_warnings)
+            except ScrapeError as exc:
+                failures += 1
+                warnings.append(f"id {external_id}: detail fetch failed ({exc})")
+            if (index + 1) % max(progress_every, 1) == 0 or index + 1 == len(external_ids):
+                report(f"details: {index + 1}/{len(external_ids)} fetched, {failures} failed")
+    return records, warnings, failures
 
 
 def collect_statistics(session: requests.Session) -> dict[str, Any]:
@@ -657,79 +737,69 @@ def parse_owner_profiles(
 
 
 # ---------------------------------------------------------------------------
-# SQLite state
+# Comparison with the previous export
 
 
-def open_database(path: Path) -> sqlite3.Connection:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS runs (
-            run_id TEXT PRIMARY KEY,
-            started_at TEXT NOT NULL,
-            finished_at TEXT,
-            status TEXT NOT NULL,
-            summary_json TEXT NOT NULL
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS records (
-            page_id TEXT NOT NULL,
-            external_id TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            content_hash TEXT NOT NULL,
-            first_seen_at TEXT NOT NULL,
-            last_seen_at TEXT NOT NULL,
-            last_changed_at TEXT NOT NULL,
-            last_run_id TEXT NOT NULL,
-            active INTEGER NOT NULL DEFAULT 1,
-            PRIMARY KEY (page_id, external_id)
-        )
-        """
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS record_versions (
-            version_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            page_id TEXT NOT NULL,
-            external_id TEXT NOT NULL,
-            observed_at TEXT NOT NULL,
-            event TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            content_hash TEXT NOT NULL
-        )
-        """
-    )
-    return connection
+def record_external_id(page_id: str, record: dict[str, Any]) -> str:
+    return str(record.get("id") if page_id != PAGE_OWNER else record.get("owner_key"))
 
 
-def active_records(connection: sqlite3.Connection, page_id: str) -> dict[str, sqlite3.Row]:
-    rows = connection.execute(
-        "SELECT * FROM records WHERE page_id = ? AND active = 1", (page_id,)
-    ).fetchall()
-    return {row["external_id"]: row for row in rows}
+def load_previous_records(page_id: str, path: Path) -> dict[str, dict[str, Any]]:
+    """Return the previous export's records by ID; empty on a first run.
+
+    An existing file that cannot be read fails the run so the removal guard is
+    never skipped silently.
+    """
+    if not path.exists():
+        return {}
+    previous: dict[str, dict[str, Any]] = {}
+    try:
+        records = json.loads(path.read_text(encoding="utf-8"))["data"]["records"]
+        if not isinstance(records, list):
+            raise TypeError("'data.records' is not a list")
+        for record in records:
+            key = record_external_id(page_id, record)
+            if key in previous:
+                raise ValueError(f"duplicate external id {key}")
+            previous[key] = record
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        raise ScrapeError(f"{page_id}: cannot read previous output {path.name}: {exc!r}") from exc
+    return previous
 
 
-def sync_records(
-    connection: sqlite3.Connection,
+def keep_previous_for_failed(
+    catalog_ids: Iterable[int],
+    new_records: dict[int, dict[str, Any]],
+    previous: dict[str, dict[str, Any]],
+) -> list[str]:
+    """Fill catalog IDs whose detail fetch failed from the previous export.
+
+    Mutates new_records and returns one warning per kept record. IDs with no
+    previous record stay missing so the caller can fail the run.
+    """
+    warnings = []
+    for external_id in sorted(set(catalog_ids) - set(new_records)):
+        old = previous.get(str(external_id))
+        if old is not None:
+            new_records[external_id] = old
+            warnings.append(f"id {external_id}: kept previous record because the detail fetch failed")
+    return warnings
+
+
+def compare_with_previous(
     page_id: str,
     records: list[dict[str, Any]],
-    run_id: str,
-    now: str,
+    previous_path: Path,
     allow_large_removal: bool = False,
 ) -> dict[str, int]:
     by_id: dict[str, dict[str, Any]] = {}
     for record in records:
-        external_id = str(record.get("id") if page_id != PAGE_OWNER else record.get("owner_key"))
+        external_id = record_external_id(page_id, record)
         if external_id in by_id:
             raise ScrapeError(f"{page_id}: duplicate external id {external_id}")
         by_id[external_id] = record
 
-    existing = active_records(connection, page_id)
+    existing = load_previous_records(page_id, previous_path)
     removed_ids = set(existing) - set(by_id)
     if existing and len(removed_ids) / len(existing) > REMOVAL_LIMIT and not allow_large_removal:
         raise ScrapeError(
@@ -737,65 +807,15 @@ def sync_records(
             f"the {REMOVAL_LIMIT:.0%} safety limit"
         )
 
-    counts = {"new": 0, "updated": 0, "unchanged": 0, "removed": 0}
-
-    def insert_version(external_id: str, event: str, payload_json: str, content_hash: str) -> None:
-        connection.execute(
-            """
-            INSERT INTO record_versions
-                (page_id, external_id, observed_at, event, payload_json, content_hash)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (page_id, external_id, now, event, payload_json, content_hash),
-        )
-
-    with connection:
-        for external_id, record in by_id.items():
-            payload_json = json.dumps(record, ensure_ascii=False, sort_keys=True)
-            content_hash = semantic_hash(record)
-            previous = existing.get(external_id)
-            if previous is None:
-                connection.execute(
-                    """
-                    INSERT INTO records (
-                        page_id, external_id, payload_json, content_hash, first_seen_at,
-                        last_seen_at, last_changed_at, last_run_id, active
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-                    """,
-                    (page_id, external_id, payload_json, content_hash, now, now, now, run_id),
-                )
-                insert_version(external_id, "inserted", payload_json, content_hash)
-                counts["new"] += 1
-            elif previous["content_hash"] != content_hash:
-                connection.execute(
-                    """
-                    UPDATE records SET payload_json = ?, content_hash = ?, last_seen_at = ?,
-                        last_changed_at = ?, last_run_id = ?, active = 1
-                    WHERE page_id = ? AND external_id = ?
-                    """,
-                    (payload_json, content_hash, now, now, run_id, page_id, external_id),
-                )
-                insert_version(external_id, "updated", payload_json, content_hash)
-                counts["updated"] += 1
-            else:
-                connection.execute(
-                    """
-                    UPDATE records SET last_seen_at = ?, last_run_id = ?, active = 1
-                    WHERE page_id = ? AND external_id = ?
-                    """,
-                    (now, run_id, page_id, external_id),
-                )
-                counts["unchanged"] += 1
-
-        for external_id in removed_ids:
-            previous = existing[external_id]
-            connection.execute(
-                "UPDATE records SET active = 0, last_seen_at = ?, last_run_id = ? "
-                "WHERE page_id = ? AND external_id = ?",
-                (now, run_id, page_id, external_id),
-            )
-            insert_version(external_id, "retired", previous["payload_json"], previous["content_hash"])
-            counts["removed"] += 1
+    counts = {"new": 0, "updated": 0, "unchanged": 0, "removed": len(removed_ids)}
+    for external_id, record in by_id.items():
+        previous = existing.get(external_id)
+        if previous is None:
+            counts["new"] += 1
+        elif semantic_hash(previous) != semantic_hash(record):
+            counts["updated"] += 1
+        else:
+            counts["unchanged"] += 1
     return counts
 
 
@@ -822,28 +842,26 @@ def base_envelope(dataset: str, run_id: str, scraped_at: str, warnings: list[str
 
 
 def export_page_records(
-    connection: sqlite3.Connection,
     page_id: str,
+    records: list[dict[str, Any]],
     output_path: Path,
     dataset: str,
     run_id: str,
     scraped_at: str,
     warnings: list[str],
 ) -> int:
-    rows = connection.execute(
-        "SELECT payload_json FROM records WHERE page_id = ? AND active = 1", (page_id,)
-    ).fetchall()
-    records = [json.loads(row["payload_json"]) for row in rows]
+    """Write one export: records in ID order, keys sorted recursively."""
+    exported = [json.loads(json.dumps(record, ensure_ascii=False, sort_keys=True)) for record in records]
     if page_id == PAGE_APP_TECH:
-        records.sort(key=lambda record: record["id"])
+        exported.sort(key=lambda record: record["id"])
     elif page_id == PAGE_OWNER:
-        records.sort(key=lambda record: record["owner_key"])
+        exported.sort(key=lambda record: record["owner_key"])
 
     envelope = base_envelope(dataset, run_id, scraped_at, warnings)
-    envelope["record_count"] = len(records)
-    envelope["data"] = {"records": records}
+    envelope["record_count"] = len(exported)
+    envelope["data"] = {"records": exported}
     write_output(output_path, envelope)
-    return len(records)
+    return len(exported)
 
 
 # ---------------------------------------------------------------------------
@@ -862,15 +880,8 @@ def build_title_index(listings: dict[int, dict[str, Any]]) -> dict[str, set[int]
 def run_scrape(args: argparse.Namespace) -> int:
     report = create_progress_reporter(args.quiet)
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    started_at = utc_now()
     output_dir = Path(args.output_dir)
-    connection = open_database(Path(args.state_path))
     summary: dict[str, Any] = {"run_id": run_id, "warnings": []}
-    connection.execute(
-        "INSERT INTO runs (run_id, started_at, status, summary_json) VALUES (?, ?, ?, ?)",
-        (run_id, started_at, "running", "{}"),
-    )
-    connection.commit()
 
     try:
         session = create_session(args.user_agent)
@@ -879,76 +890,59 @@ def run_scrape(args: argparse.Namespace) -> int:
         listings, total = collect_catalog(session, report)
         report(f"catalog complete: {total} unique ids")
 
-        existing_details = active_records(connection, PAGE_APP_TECH)
-        existing_listings = active_records(connection, PAGE_LISTING)
-        old_listing_hashes = {row["external_id"]: row["content_hash"] for row in existing_listings.values()}
-
         # Hash and persist the same stripped shape so delta detection is stable.
         listing_rows = [strip_pii(dict(row)) for row in listings.values()]
         stripped_listings = {row["id"]: row for row in listing_rows}
 
-        needed: list[int] = []
-        for external_id, row in stripped_listings.items():
-            if args.full_details or str(external_id) not in existing_details:
-                needed.append(external_id)
-                continue
-            previous_hash = old_listing_hashes.get(str(external_id))
-            if previous_hash != semantic_hash(row):
-                needed.append(external_id)
+        # Every detail is re-fetched on every run.
+        needed = sorted(stripped_listings)
         report(f"details to fetch: {len(needed)} of {total}")
 
-        fetched_warnings: list[str] = []
-        new_records: dict[int, dict[str, Any]] = {}
-        failures = 0
-        for index, external_id in enumerate(sorted(needed)):
-            if args.limit and index >= args.limit:
-                break
-            try:
-                record, warnings = fetch_detail_record(
-                    session, external_id, stripped_listings[external_id], hq_provinces
-                )
-                new_records[external_id] = record
-                fetched_warnings.extend(f"id {external_id}: {warning}" for warning in warnings)
-            except ScrapeError as exc:
-                failures += 1
-                fetched_warnings.append(f"id {external_id}: detail fetch failed ({exc})")
-            if (index + 1) % max(args.progress_every, 1) == 0 or index + 1 == len(needed):
-                report(f"details: {index + 1}/{len(needed)} fetched, {failures} failed")
-            time.sleep(args.delay)
+        new_records, fetched_warnings, _ = collect_details(
+            needed[: args.limit] if args.limit else needed,
+            stripped_listings,
+            hq_provinces,
+            user_agent=args.user_agent,
+            workers=args.workers,
+            delay=args.delay,
+            progress_every=args.progress_every,
+            report=report,
+        )
 
         if args.limit:
             summary["status"] = f"smoke_test: processed first {min(len(needed), args.limit)} details"
-            finish_run(connection, run_id, "smoke_test", summary)
             report(summary["status"])
+            print(json.dumps(summary, ensure_ascii=False, indent=2))
             return 0
 
-        # Reuse unchanged stored payloads for IDs not re-fetched this run.
-        records_by_id: dict[int, dict[str, Any]] = {}
-        for external_id, row in existing_details.items():
-            records_by_id[int(external_id)] = json.loads(row["payload_json"])
-        records_by_id.update(new_records)
-
-        missing = set(listings) - set(records_by_id)
+        fetched_warnings.extend(
+            keep_previous_for_failed(
+                listings, new_records, load_previous_records(PAGE_APP_TECH, output_dir / "app_tech.json")
+            )
+        )
+        missing = set(listings) - set(new_records)
         if missing:
             sample = ", ".join(str(value) for value in sorted(missing)[:5])
             raise ScrapeError(
                 f"{len(missing)} catalog ids have no usable record (sample: {sample})"
             )
 
-        records = [records_by_id[external_id] for external_id in sorted(records_by_id)]
+        records = [new_records[external_id] for external_id in sorted(new_records)]
 
         stats = collect_statistics(session)
         reconciliation = reconcile_statistics(stats, records)
         summary["reconciliation"] = reconciliation
 
-        counts_listing = sync_records(connection, PAGE_LISTING, listing_rows, run_id, utc_now())
-        counts_detail = sync_records(connection, PAGE_APP_TECH, records, run_id, utc_now())
+        counts_detail = compare_with_previous(
+            PAGE_APP_TECH, records, output_dir / "app_tech.json", args.allow_large_removal
+        )
         title_to_ids = build_title_index(listings)
         owners = collect_owner_profiles(session, title_to_ids, summary["warnings"])
-        counts_owners = sync_records(connection, PAGE_OWNER, owners, run_id, utc_now())
+        counts_owners = compare_with_previous(
+            PAGE_OWNER, owners, output_dir / "owner_profiles.json", args.allow_large_removal
+        )
 
         summary["counts"] = {
-            PAGE_LISTING: counts_listing,
             PAGE_APP_TECH: counts_detail,
             PAGE_OWNER: counts_owners,
         }
@@ -957,7 +951,7 @@ def run_scrape(args: argparse.Namespace) -> int:
         scraped_at = utc_now()
         dataset_warnings = list(summary["warnings"]) + derive_record_warnings(records)
         export_page_records(
-            connection, PAGE_APP_TECH, output_dir / "app_tech.json", PAGE_APP_TECH,
+            PAGE_APP_TECH, records, output_dir / "app_tech.json", PAGE_APP_TECH,
             run_id, scraped_at, dataset_warnings,
         )
         stats_envelope = base_envelope("statistics", run_id, scraped_at, [])
@@ -965,50 +959,45 @@ def run_scrape(args: argparse.Namespace) -> int:
         stats_envelope["data"] = stats
         write_output(output_dir / "statistics.json", stats_envelope)
         export_page_records(
-            connection, PAGE_OWNER, output_dir / "owner_profiles.json", PAGE_OWNER,
+            PAGE_OWNER, owners, output_dir / "owner_profiles.json", PAGE_OWNER,
             run_id, scraped_at, summary["warnings"],
         )
 
         summary["status"] = "success"
-        finish_run(connection, run_id, "success", summary)
         report(
             f"success: {counts_detail['new']} new, {counts_detail['updated']} updated, "
             f"{counts_detail['unchanged']} unchanged app_tech records; "
             f"{counts_owners['new']} new owner profiles"
         )
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 0
     except Exception as exc:  # noqa: BLE001 - run-level failure boundary
         summary["status"] = "failed"
         summary["error"] = str(exc)
-        finish_run(connection, run_id, "failed", summary)
         report(f"FAILED: {exc}")
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 1
-
-
-def finish_run(connection: sqlite3.Connection, run_id: str, status: str, summary: dict[str, Any]) -> None:
-    connection.execute(
-        "UPDATE runs SET finished_at = ?, status = ?, summary_json = ? WHERE run_id = ?",
-        (utc_now(), status, json.dumps(summary, ensure_ascii=False), run_id),
-    )
-    connection.commit()
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Scrape the public RinMP AppTech registry.")
-    parser.add_argument("--delay", type=float, default=DEFAULT_DELAY_SECONDS)
+    parser.add_argument(
+        "--delay", type=float, default=DEFAULT_DELAY_SECONDS, help="Seconds each worker pauses after every request."
+    )
+    parser.add_argument(
+        "--workers", type=int, default=DEFAULT_WORKERS, help=f"Concurrent detail requests, 1 to {MAX_WORKERS}."
+    )
     parser.add_argument(
         "--limit",
         type=int,
         default=0,
-        help="Smoke-test: process only the first N details; does not update state or outputs.",
+        help="Smoke-test: process only the first N details; writes nothing.",
     )
-    parser.add_argument("--full-details", action="store_true", help="Re-fetch every detail page.")
     parser.add_argument(
         "--progress-every", type=int, default=25, help="Report progress every Nth detail fetch."
     )
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--user-agent", default=DEFAULT_USER_AGENT)
-    parser.add_argument("--state-path", default=str(DEFAULT_STATE_PATH))
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR))
     parser.add_argument("--allow-large-removal", action="store_true")
     return parser
@@ -1018,6 +1007,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.delay < 0 or args.limit < 0 or args.progress_every < 1:
         raise SystemExit("--delay and --limit must be non-negative; --progress-every must be >= 1")
+    if not 1 <= args.workers <= MAX_WORKERS:
+        raise SystemExit(f"--workers must be between 1 and {MAX_WORKERS}")
     return run_scrape(args)
 
 
