@@ -11,7 +11,6 @@ import hashlib
 import html as html_module
 import json
 import re
-import sqlite3
 import sys
 import time
 import unicodedata
@@ -30,11 +29,10 @@ from urllib3.util.retry import Retry
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT / "output"
-STATE_PATH = ROOT / "state" / "atlocal.sqlite3"
 MAIN_BASE = "https://atlocalthailand.com"
 MARKET_BASE = "https://market.atlocalthailand.com"
 DEFAULT_DELAY = 1.0
-DEFAULT_USER_AGENT = "AtLocalCollector/1.0 (contact: replace-with-your-email)"
+DEFAULT_USER_AGENT = "AtLocalCollector"
 DATASETS = (
     "articles",
     "cultures",
@@ -733,126 +731,47 @@ COLLECTORS = {
 }
 
 
-def init_db(connection: sqlite3.Connection) -> None:
-    connection.executescript("""
-    CREATE TABLE IF NOT EXISTS runs (
-        run_id TEXT PRIMARY KEY, started_at TEXT NOT NULL, finished_at TEXT,
-        status TEXT NOT NULL, summary_json TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS records (
-        dataset TEXT NOT NULL, record_id TEXT NOT NULL, payload_json TEXT NOT NULL,
-        content_hash TEXT NOT NULL, first_seen_at TEXT NOT NULL, last_seen_at TEXT NOT NULL,
-        last_changed_at TEXT NOT NULL, active INTEGER NOT NULL,
-        PRIMARY KEY (dataset, record_id)
-    );
-    CREATE TABLE IF NOT EXISTS record_versions (
-        dataset TEXT NOT NULL, record_id TEXT NOT NULL, version_no INTEGER NOT NULL,
-        change_type TEXT NOT NULL, payload_json TEXT NOT NULL, changed_at TEXT NOT NULL,
-        PRIMARY KEY (dataset, record_id, version_no)
-    );
-    """)
-    connection.commit()
-
-
-def version(
-    connection: sqlite3.Connection,
-    dataset: str,
-    key: str,
-    payload: str,
-    change_type: str,
-    now: str,
-) -> None:
-    current = connection.execute(
-        "SELECT COALESCE(MAX(version_no), 0) FROM record_versions WHERE dataset = ? AND record_id = ?",
-        (dataset, key),
-    ).fetchone()[0]
-    connection.execute(
-        "INSERT INTO record_versions VALUES (?, ?, ?, ?, ?, ?)",
-        (dataset, key, current + 1, change_type, payload, now),
-    )
-
-
-def sync_records(
-    connection: sqlite3.Connection,
+def compare_with_previous(
     dataset: str,
     records: list[dict[str, Any]],
-    now: str,
+    previous_path: Path,
     allow_large_removal: bool,
 ) -> dict[str, int]:
-    existing = {
-        row["record_id"]: row
-        for row in connection.execute(
-            "SELECT * FROM records WHERE dataset = ?", (dataset,)
-        )
-    }
-    seen: set[str] = set()
+    """Count changes against the previous output file and apply the removal guard."""
     counts = {"new": 0, "changed": 0, "unchanged": 0, "retired": 0}
+    previous: dict[str, dict[str, Any]] = {}
+    if previous_path.exists():
+        try:
+            payload = json.loads(previous_path.read_text(encoding="utf-8"))
+            data = payload["data"]
+            if not isinstance(data, list):
+                raise TypeError("'data' is not a list")
+            for item in data:
+                key = record_id(dataset, item)
+                if key in previous:
+                    raise ValueError(f"duplicate record ID {key}")
+                previous[key] = item
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            raise ValueError(
+                f"{dataset}: cannot read previous output {previous_path.name}: {error!r}"
+            ) from error
+    seen: set[str] = set()
     for record in records:
         key = record_id(dataset, record)
         seen.add(key)
-        payload = json.dumps(record, ensure_ascii=False, sort_keys=True)
-        content_hash = semantic_hash(record)
-        previous = existing.get(key)
-        if not previous:
-            connection.execute(
-                "INSERT INTO records VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
-                (dataset, key, payload, content_hash, now, now, now),
-            )
-            version(connection, dataset, key, payload, "inserted", now)
+        if key not in previous:
             counts["new"] += 1
-        elif previous["content_hash"] != content_hash or not previous["active"]:
-            connection.execute(
-                "UPDATE records SET payload_json=?, content_hash=?, last_seen_at=?, last_changed_at=?, active=1 WHERE dataset=? AND record_id=?",
-                (payload, content_hash, now, now, dataset, key),
-            )
-            version(
-                connection,
-                dataset,
-                key,
-                payload,
-                "changed" if previous["active"] else "reactivated",
-                now,
-            )
+        elif semantic_hash(previous[key]) != semantic_hash(record):
             counts["changed"] += 1
         else:
-            connection.execute(
-                "UPDATE records SET last_seen_at=? WHERE dataset=? AND record_id=?",
-                (now, dataset, key),
-            )
             counts["unchanged"] += 1
-    active_missing = [
-        key for key, row in existing.items() if row["active"] and key not in seen
-    ]
-    active_total = sum(1 for row in existing.values() if row["active"])
-    if (
-        active_total
-        and len(active_missing) / active_total > 0.25
-        and not allow_large_removal
-    ):
+    missing = [key for key in previous if key not in seen]
+    if previous and len(missing) / len(previous) > 0.25 and not allow_large_removal:
         raise ValueError(
-            f"{dataset}: refusing to retire {len(active_missing)}/{active_total} active records"
+            f"{dataset}: refusing to retire {len(missing)}/{len(previous)} active records"
         )
-    for key in active_missing:
-        previous = existing[key]
-        connection.execute(
-            "UPDATE records SET active=0, last_seen_at=?, last_changed_at=? WHERE dataset=? AND record_id=?",
-            (now, now, dataset, key),
-        )
-        version(connection, dataset, key, previous["payload_json"], "retired", now)
-        counts["retired"] += 1
+    counts["retired"] = len(missing)
     return counts
-
-
-def active_records(
-    connection: sqlite3.Connection, dataset: str
-) -> list[dict[str, Any]]:
-    return [
-        json.loads(row["payload_json"])
-        for row in connection.execute(
-            "SELECT payload_json FROM records WHERE dataset=? AND active=1 ORDER BY record_id",
-            (dataset,),
-        )
-    ]
 
 
 def write_json(path: Path, value: dict[str, Any]) -> None:
@@ -866,22 +785,40 @@ def write_json(path: Path, value: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
+def write_dataset(
+    path: Path,
+    dataset: str,
+    records: list[dict[str, Any]],
+    metadata: dict[str, Any],
+    scraped_at: str,
+) -> int:
+    """Write one dataset envelope: records ordered by ID, keys sorted recursively."""
+    exported = [
+        json.loads(json.dumps(record, ensure_ascii=False, sort_keys=True))
+        for record in sorted(records, key=lambda record: record_id(dataset, record))
+    ]
+    write_json(
+        path,
+        {
+            "schema_version": 1,
+            "dataset": dataset,
+            "source_urls": list(SPECS[dataset].source_urls),
+            "scraped_at": scraped_at,
+            "record_count": len(exported),
+            "warnings": [],
+            "metadata": metadata,
+            "data": exported,
+        },
+    )
+    return len(exported)
+
+
+
 def run_scrape(args: argparse.Namespace) -> int:
     selected = DATASETS if args.dataset == "all" else (args.dataset,)
     report = report_factory(args.quiet)
     now = utc_now()
     run_id = now
-    if args.limit:
-        connection = None
-    else:
-        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        connection = sqlite3.connect(STATE_PATH)
-        connection.row_factory = sqlite3.Row
-        init_db(connection)
-        connection.execute(
-            "INSERT INTO runs VALUES (?, ?, NULL, ?, ?)", (run_id, now, "running", "{}")
-        )
-        connection.commit()
     results: dict[str, Any] = {}
     failures: list[str] = []
     session = create_session(args.user_agent)
@@ -893,52 +830,34 @@ def run_scrape(args: argparse.Namespace) -> int:
                     session, args.delay, args.limit, report
                 )
                 require_records(dataset, records)
-                if connection:
-                    stats = sync_records(
-                        connection, dataset, records, now, args.allow_large_removal
-                    )
-                    connection.commit()
-                    export_records = active_records(connection, dataset)
-                    envelope = {
-                        "schema_version": 1,
-                        "dataset": dataset,
-                        "source_urls": list(SPECS[dataset].source_urls),
-                        "scraped_at": now,
-                        "record_count": len(export_records),
-                        "warnings": [],
-                        "metadata": metadata,
-                        "data": export_records,
-                    }
-                    write_json(OUTPUT_DIR / SPECS[dataset].output_name, envelope)
-                    results[dataset] = {"record_count": len(export_records), **stats}
-                else:
+                if args.limit:
                     results[dataset] = {
                         "record_count": len(records),
                         "smoke_test": True,
                         "metadata": metadata,
                     }
+                    continue
+                output_path = OUTPUT_DIR / SPECS[dataset].output_name
+                stats = compare_with_previous(
+                    dataset, records, output_path, args.allow_large_removal
+                )
+                record_count = write_dataset(
+                    output_path, dataset, records, metadata, now
+                )
+                results[dataset] = {"record_count": record_count, **stats}
             except Exception as error:  # noqa: BLE001
                 failures.append(f"{dataset}: {error}")
                 report(f"{dataset}: FAILED: {error}")
-        status = "failed" if failures else "success"
         summary = {
             "run_id": run_id,
-            "status": status,
+            "status": "failed" if failures else "success",
             "datasets": results,
             "failures": failures,
         }
-        if connection:
-            connection.execute(
-                "UPDATE runs SET finished_at=?, status=?, summary_json=? WHERE run_id=?",
-                (utc_now(), status, json.dumps(summary, ensure_ascii=False), run_id),
-            )
-            connection.commit()
         print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 1 if failures else 0
     finally:
         session.close()
-        if connection:
-            connection.close()
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -951,7 +870,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--limit",
         type=int,
         default=0,
-        help="Smoke test limit. Does not write state or JSON.",
+        help="Smoke test limit. Does not write JSON.",
     )
     parser.add_argument("--allow-large-removal", action="store_true")
     parser.add_argument("--user-agent", default=DEFAULT_USER_AGENT)

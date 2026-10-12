@@ -1,9 +1,8 @@
-"""Offline parser and incremental-state checks for the At Local scraper."""
+"""Offline parser and previous-output comparison checks for the At Local scraper."""
 
 from __future__ import annotations
 
 import json
-import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -96,30 +95,64 @@ class HtmlParserTests(unittest.TestCase):
         self.assertTrue(record["cover_image_url"].endswith("/cover.jpg"))
 
 
-class StateTests(unittest.TestCase):
-    def record(self, value: str) -> dict[str, object]:
-        return {"record_type": "article", "article_id": "1", "title": value}
+class CompareWithPreviousTests(unittest.TestCase):
+    def record(self, key: str, title: str = "A") -> dict[str, object]:
+        return {"record_type": "article", "article_id": key, "title": title}
 
-    def test_state_upsert_and_retirement(self) -> None:
+    def write_previous(self, directory: str, records: list[dict[str, object]]) -> Path:
+        path = Path(directory) / "articles.json"
+        path.write_text(json.dumps({"data": records}), encoding="utf-8")
+        return path
+
+    def test_counts_new_changed_unchanged_and_retired(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            connection = sqlite3.connect(Path(directory) / "state.sqlite3")
-            connection.row_factory = sqlite3.Row
-            scrape.init_db(connection)
-            first = scrape.sync_records(connection, "articles", [self.record("A")], "2026-01-01T00:00:00Z", False)
-            second = scrape.sync_records(connection, "articles", [self.record("A")], "2026-01-02T00:00:00Z", False)
-            changed = scrape.sync_records(connection, "articles", [self.record("B")], "2026-01-03T00:00:00Z", False)
-            self.assertEqual(first["new"], 1)
-            self.assertEqual(second["unchanged"], 1)
-            self.assertEqual(changed["changed"], 1)
+            path = self.write_previous(
+                directory,
+                [self.record("1"), self.record("2"), self.record("3"), self.record("4"), self.record("5")],
+            )
+            counts = scrape.compare_with_previous(
+                "articles",
+                [self.record("1"), self.record("2", "B"), self.record("3"), self.record("4"), self.record("6")],
+                path,
+                False,
+            )
+        self.assertEqual(counts, {"new": 1, "changed": 1, "unchanged": 3, "retired": 1})
+
+    def test_first_run_without_file_counts_everything_as_new(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            counts = scrape.compare_with_previous(
+                "articles", [self.record("1"), self.record("2")], Path(directory) / "missing.json", False
+            )
+        self.assertEqual(counts, {"new": 2, "changed": 0, "unchanged": 0, "retired": 0})
+
+    def test_removal_guard_trips_above_threshold_and_override_allows_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_previous(directory, [self.record(str(index)) for index in range(4)])
             with self.assertRaises(ValueError):
-                scrape.sync_records(connection, "articles", [], "2026-01-04T00:00:00Z", False)
-            retired = scrape.sync_records(connection, "articles", [], "2026-01-04T00:00:00Z", True)
-            self.assertEqual(retired["retired"], 1)
-            self.assertEqual(scrape.active_records(connection, "articles"), [])
+                scrape.compare_with_previous("articles", [self.record("0")], path, False)
+            counts = scrape.compare_with_previous("articles", [self.record("0")], path, True)
+        self.assertEqual(counts["retired"], 3)
+
+    def test_removal_at_threshold_is_allowed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = self.write_previous(directory, [self.record(str(index)) for index in range(4)])
+            counts = scrape.compare_with_previous(
+                "articles", [self.record(str(index)) for index in range(3)], path, False
+            )
+        self.assertEqual(counts["retired"], 1)
+
+    def test_unreadable_previous_file_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "articles.json"
+            bad_contents = ("{not json", json.dumps([]), json.dumps({"data": {}}), json.dumps({"data": [{"title": "no id"}]}), json.dumps({"data": [self.record("1"), self.record("1")]}))
+            for contents in bad_contents:
+                path.write_text(contents, encoding="utf-8")
+                with self.subTest(contents=contents), self.assertRaises(ValueError):
+                    scrape.compare_with_previous("articles", [self.record("1")], path, True)
 
     def test_duplicate_record_rejected(self) -> None:
         with self.assertRaises(ValueError):
-            scrape.require_records("articles", [self.record("A"), self.record("B")])
+            scrape.require_records("articles", [self.record("1"), self.record("1", "B")])
 
 
 if __name__ == "__main__":
