@@ -86,6 +86,7 @@ Every file has the same top-level structure:
   "dataset": "product_map",
   "source_urls": ["https://atlocalthailand.com/api/s9001/get_items_by_search_filter_v1"],
   "scraped_at": "2026-10-12T09:42:33.393363+00:00",
+  "run_id": "20261012T094233Z",
   "record_count": 1883,
   "warnings": [],
   "metadata": {},

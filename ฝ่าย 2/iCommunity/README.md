@@ -109,6 +109,7 @@ Every file has the same top-level structure:
   "dataset": "apptech_innovators",
   "source_urls": ["https://apptechpmua.com/innovatorExport/fetchExportList"],
   "scraped_at": "2026-10-12T12:02:52.413280+00:00",
+  "run_id": "20261012T120022Z",
   "record_count": 4998,
   "warnings": [],
   "data": []

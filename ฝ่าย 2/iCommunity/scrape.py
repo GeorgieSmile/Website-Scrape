@@ -917,7 +917,7 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
 
 
 def write_export(
-    output_dir: Path, dataset: str, records: list[dict[str, Any]], warnings: list[str], scraped_at: str
+    output_dir: Path, dataset: str, records: list[dict[str, Any]], warnings: list[str], scraped_at: str, run_id: str
 ) -> None:
     """Write one export: records in source_key order, keys sorted recursively."""
     spec = SPECS[dataset]
@@ -932,6 +932,7 @@ def write_export(
             "dataset": dataset,
             "source_urls": list(spec.source_urls),
             "scraped_at": scraped_at,
+            "run_id": run_id,
             "record_count": len(exported),
             "warnings": warnings,
             "data": exported,
@@ -1018,7 +1019,7 @@ def main() -> int:
                 dataset, records, previous_path, allow_large_removal=args.allow_large_removal
             )
             warnings = [*warnings, f"sync: {stats}"]
-            write_export(args.output_dir, dataset, records, warnings, utc_now())
+            write_export(args.output_dir, dataset, records, warnings, utc_now(), run_id)
             summary["datasets"][dataset] = {"status": "success", "record_count": len(records), **stats, "warnings": warnings}
             reporter(f"{dataset}: {len(records)} records")
         except Exception as exc:  # Preserve other datasets and prior good exports.

@@ -796,6 +796,7 @@ def write_dataset(
     records: list[dict[str, Any]],
     metadata: dict[str, Any],
     scraped_at: str,
+    run_id: str,
 ) -> int:
     """Write one dataset envelope: records ordered by ID, keys sorted recursively."""
     exported = [
@@ -809,6 +810,7 @@ def write_dataset(
             "dataset": dataset,
             "source_urls": list(SPECS[dataset].source_urls),
             "scraped_at": scraped_at,
+            "run_id": run_id,
             "record_count": len(exported),
             "warnings": [],
             "metadata": metadata,
@@ -823,7 +825,7 @@ def run_scrape(args: argparse.Namespace) -> int:
     selected = DATASETS if args.dataset == "all" else (args.dataset,)
     report = report_factory(args.quiet)
     now = utc_now()
-    run_id = now
+    run_id = datetime.fromisoformat(now).strftime("%Y%m%dT%H%M%SZ")
     results: dict[str, Any] = {}
     failures: list[str] = []
     session = create_session(args.user_agent)
@@ -847,7 +849,7 @@ def run_scrape(args: argparse.Namespace) -> int:
                     dataset, records, output_path, args.allow_large_removal
                 )
                 record_count = write_dataset(
-                    output_path, dataset, records, metadata, now
+                    output_path, dataset, records, metadata, now, run_id
                 )
                 results[dataset] = {"record_count": record_count, **stats}
             except Exception as error:  # noqa: BLE001
