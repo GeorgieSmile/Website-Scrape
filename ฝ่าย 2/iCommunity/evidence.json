@@ -1,0 +1,62 @@
+{
+  "source_id": "f2_icommunity",
+  "as_of_rule": "scraped_at",
+  "datasets": [
+    {
+      "dataset_key": "activity_posts",
+      "file": "activity_posts.json",
+      "grain": "หนึ่งไฟล์ snapshot ของโพสต์กิจกรรมสาธารณะ; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "apptech_dashboard_summaries",
+      "file": "apptech_dashboard_summaries.json",
+      "grain": "หนึ่งไฟล์ snapshot ของยอดรวม dashboard ตามขอบเขตที่ต้นทางตอบ; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "apptech_group_catalog",
+      "file": "apptech_group_catalog.json",
+      "grain": "หนึ่งไฟล์ snapshot ของกลุ่มตัวกรอง dashboard; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "apptech_innovations",
+      "file": "apptech_innovations.json",
+      "grain": "หนึ่งไฟล์ snapshot ของรายการนวัตกรรมตามขอบเขต export; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "apptech_innovators",
+      "file": "apptech_innovators.json",
+      "grain": "หนึ่งไฟล์ snapshot ของรายการนวัตกรตามขอบเขต export; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "community_products",
+      "file": "community_products.json",
+      "grain": "หนึ่งไฟล์ snapshot ของรายการสินค้าชุมชนสาธารณะ; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "programme_background",
+      "file": "programme_background.json",
+      "grain": "หนึ่งไฟล์ snapshot ของหน้าข้อมูลโครงการสาธารณะ; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    }
+  ]
+}

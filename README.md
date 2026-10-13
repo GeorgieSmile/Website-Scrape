@@ -74,3 +74,28 @@ single `unittest discover` at the root finds nothing:
 
 Replace `AtLocal` with the relevant project directory. The ฝ่าย 3 scrapers have
 no test suites.
+
+The evidence manifest tool has its own test file:
+
+```bash
+.venv/bin/python -m unittest discover -s "ฝ่าย 2" -p "test_make_manifest_input.py"
+```
+
+## Evidence Manifest (ฝ่าย 2)
+
+Each ฝ่าย 2 project has a committed `evidence.json` that declares its
+`source_id` and, for each dataset, the `dataset_key`, `file`, `grain`, and
+`identity_fields`. These are the human-reviewed parts of an evidence push.
+After a full scraper run, write `output/manifest_input.json` for
+`tools/evidence_push.py` in `aiat-dashboard-final`:
+
+```bash
+.venv/bin/python "ฝ่าย 2/make_manifest_input.py" "ฝ่าย 2/Cultural Map" --fetched-by <github-name>
+```
+
+`as_of` is each file's `scraped_at`, `fetched_at` is the earliest of them, and
+`upstream` lists the files' source URLs. The tool writes nothing if `output/`
+mixes runs, a declared file is missing, or an undeclared file (such as
+`.DS_Store`) would be uploaded with the run. It prints the push command,
+including `--run-id`, which is required because the folder name `output` is not
+a run ID.

@@ -1,0 +1,22 @@
+{
+  "source_id": "f2_apptech_mru",
+  "as_of_rule": "scraped_at",
+  "datasets": [
+    {
+      "dataset_key": "innovations",
+      "file": "innovations.json",
+      "grain": "หนึ่งไฟล์ snapshot ของหน้ารายละเอียดนวัตกรรมสาธารณะ; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].record_id"
+      ]
+    },
+    {
+      "dataset_key": "requirements",
+      "file": "requirements.json",
+      "grain": "หนึ่งไฟล์ snapshot ของหน้ารายละเอียดความต้องการสาธารณะ; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].record_id"
+      ]
+    }
+  ]
+}

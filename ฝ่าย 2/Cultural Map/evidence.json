@@ -1,0 +1,46 @@
+{
+  "source_id": "f2_culturalmap_university",
+  "as_of_rule": "scraped_at",
+  "datasets": [
+    {
+      "dataset_key": "map_inspiration",
+      "file": "map_inspiration.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ Map/Inspiration; รายการทุนวัฒนธรรมอยู่ใน data.records",
+      "identity_fields": [
+        "data.records[].external_id"
+      ]
+    },
+    {
+      "dataset_key": "products",
+      "file": "products.json",
+      "grain": "หนึ่งไฟล์ snapshot ของรายการผลิตภัณฑ์วัฒนธรรม; รายการอยู่ใน data.records",
+      "identity_fields": [
+        "data.records[].external_id"
+      ]
+    },
+    {
+      "dataset_key": "activities",
+      "file": "activities.json",
+      "grain": "หนึ่งไฟล์ snapshot ของรายการกิจกรรมวัฒนธรรม; รายการอยู่ใน data.records",
+      "identity_fields": [
+        "data.records[].external_id"
+      ]
+    },
+    {
+      "dataset_key": "recreation",
+      "file": "recreation.json",
+      "grain": "หนึ่งไฟล์ snapshot ของรายการนันทนาการ; รายการอยู่ใน data.records",
+      "identity_fields": [
+        "data.records[].external_id"
+      ]
+    },
+    {
+      "dataset_key": "team",
+      "file": "team.json",
+      "grain": "หนึ่งไฟล์ snapshot ของข้อมูลทีมจากต้นทาง; รายการอยู่ใน data.records",
+      "identity_fields": [
+        "data.records[].external_id"
+      ]
+    }
+  ]
+}

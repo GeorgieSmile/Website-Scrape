@@ -1,0 +1,94 @@
+{
+  "source_id": "f2_target_household",
+  "as_of_rule": "scraped_at",
+  "datasets": [
+    {
+      "dataset_key": "products",
+      "file": "products.json",
+      "grain": "หนึ่งไฟล์ snapshot ของหน้ารายละเอียดผลิตภัณฑ์หรือนวัตกรรมสาธารณะ; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].record_id"
+      ]
+    },
+    {
+      "dataset_key": "stations",
+      "file": "stations.json",
+      "grain": "หนึ่งไฟล์ snapshot ของสถานีหรือหน่วยงานที่ต้นทางเผยแพร่; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].record_id"
+      ]
+    },
+    {
+      "dataset_key": "researchers",
+      "file": "researchers.json",
+      "grain": "หนึ่งไฟล์ snapshot ของโปรไฟล์นักวิจัยที่ต้นทางเผยแพร่; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].record_id"
+      ]
+    },
+    {
+      "dataset_key": "universities",
+      "file": "universities.json",
+      "grain": "หนึ่งไฟล์ snapshot ของหน่วยงานหรือมหาวิทยาลัยที่ต้นทางเผยแพร่; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].record_id"
+      ]
+    },
+    {
+      "dataset_key": "innovators_all",
+      "file": "dashboards/innovators_all.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ innovator dashboard สำหรับตัวกรองรวมทั้งหมด; จังหวัดอยู่ใน prov_data",
+      "identity_fields": [
+        "record_id"
+      ]
+    },
+    {
+      "dataset_key": "innovators_2026",
+      "file": "dashboards/innovators_2026.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ innovator dashboard สำหรับตัวกรองปี 2026; จังหวัดอยู่ใน prov_data",
+      "identity_fields": [
+        "record_id"
+      ]
+    },
+    {
+      "dataset_key": "innovators_2025",
+      "file": "dashboards/innovators_2025.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ innovator dashboard สำหรับตัวกรองปี 2025; จังหวัดอยู่ใน prov_data",
+      "identity_fields": [
+        "record_id"
+      ]
+    },
+    {
+      "dataset_key": "innovation_map_all",
+      "file": "dashboards/innovation_map_all.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ innovation map dashboard สำหรับตัวกรองรวมทั้งหมด; จังหวัดอยู่ใน prov_data",
+      "identity_fields": [
+        "record_id"
+      ]
+    },
+    {
+      "dataset_key": "family_all",
+      "file": "dashboards/family_all.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ family dashboard สำหรับตัวกรองรวมทั้งหมด; จังหวัดอยู่ใน prov_data",
+      "identity_fields": [
+        "record_id"
+      ]
+    },
+    {
+      "dataset_key": "family_2026",
+      "file": "dashboards/family_2026.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ family dashboard สำหรับตัวกรองปี 2026; จังหวัดอยู่ใน prov_data",
+      "identity_fields": [
+        "record_id"
+      ]
+    },
+    {
+      "dataset_key": "family_2025",
+      "file": "dashboards/family_2025.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ family dashboard สำหรับตัวกรองปี 2025; จังหวัดอยู่ใน prov_data",
+      "identity_fields": [
+        "record_id"
+      ]
+    }
+  ]
+}

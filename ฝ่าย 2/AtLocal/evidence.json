@@ -1,0 +1,63 @@
+{
+  "source_id": "f2_cultural_market_civil",
+  "as_of_rule": "scraped_at",
+  "datasets": [
+    {
+      "dataset_key": "areas",
+      "file": "areas_16.json",
+      "grain": "หนึ่งไฟล์ snapshot ของพื้นที่วัฒนธรรม; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].area_id"
+      ]
+    },
+    {
+      "dataset_key": "articles",
+      "file": "articles.json",
+      "grain": "หนึ่งไฟล์ snapshot ของบทความสาธารณะ; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].article_id"
+      ]
+    },
+    {
+      "dataset_key": "cultures",
+      "file": "cultures.json",
+      "grain": "หนึ่งไฟล์ snapshot ของเรื่องวัฒนธรรมสาธารณะ; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].culture_id"
+      ]
+    },
+    {
+      "dataset_key": "entrepreneurs",
+      "file": "entrepreneurs.json",
+      "grain": "หนึ่งไฟล์ snapshot ของผู้ดำเนินการที่ต้นทางเผยแพร่; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].entrepreneur_id"
+      ]
+    },
+    {
+      "dataset_key": "festivals",
+      "file": "festivals.json",
+      "grain": "หนึ่งไฟล์ snapshot ของกิจกรรมหรือเทศกาลที่ต้นทางเผยแพร่; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].festival_id"
+      ]
+    },
+    {
+      "dataset_key": "marketplace_products",
+      "file": "marketplace_products.json",
+      "grain": "หนึ่งไฟล์ snapshot ของรายการสินค้าใน marketplace; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].shop_id",
+        "data[].marketplace_product_id"
+      ]
+    },
+    {
+      "dataset_key": "product_map",
+      "file": "product_map.json",
+      "grain": "หนึ่งไฟล์ snapshot ของรายการสินค้าในแผนที่; รายการอยู่ใน data[]",
+      "identity_fields": [
+        "data[].map_product_id"
+      ]
+    }
+  ]
+}

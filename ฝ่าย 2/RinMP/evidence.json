@@ -1,0 +1,28 @@
+{
+  "source_id": "f2_apptech_mtr",
+  "as_of_rule": "scraped_at",
+  "datasets": [
+    {
+      "dataset_key": "app_tech",
+      "file": "app_tech.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ AppTech profile สาธารณะ; รายการอยู่ใน data.records[]",
+      "identity_fields": [
+        "data.records[].id"
+      ]
+    },
+    {
+      "dataset_key": "owner_profiles",
+      "file": "owner_profiles.json",
+      "grain": "หนึ่งไฟล์ snapshot ของกลุ่มเจ้าของที่ collector จัดจากชื่อ; รายการอยู่ใน data.records[]",
+      "identity_fields": [
+        "data.records[].owner_key"
+      ]
+    },
+    {
+      "dataset_key": "statistics",
+      "file": "statistics.json",
+      "grain": "หนึ่งไฟล์ snapshot ของยอดสถิติรวมที่ต้นทางเผยแพร่",
+      "identity_fields": []
+    }
+  ]
+}
