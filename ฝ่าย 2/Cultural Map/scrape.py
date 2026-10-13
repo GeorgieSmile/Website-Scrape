@@ -1109,9 +1109,14 @@ def compare_with_previous(
 def write_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as temporary:
-        json.dump(value, temporary, ensure_ascii=False, indent=2)
-        temporary.write("\n")
         temporary_path = Path(temporary.name)
+        try:
+            json.dump(value, temporary, ensure_ascii=False, indent=2)
+            temporary.write("\n")
+        except BaseException:
+            temporary.close()
+            temporary_path.unlink(missing_ok=True)
+            raise
     temporary_path.replace(path)
 
 

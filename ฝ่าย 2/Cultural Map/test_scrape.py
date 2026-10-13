@@ -111,10 +111,11 @@ class DetailParserTests(unittest.TestCase):
         <section class="culturalproductinfo">
           <h2 class="mycontainer2header">ผ้าทอ</h2>
           <a href="P-2">เครื่องแต่งกาย</a><a href="CD-12">บ้านทอผ้า</a>
-          ราคา : 250 บาท รายละเอียด : ทอมือ ช่องทางการจำหน่าย : ตลาดชุมชน
-          เลขที่ : 10 ถนนตัวอย่าง เข้าชม : 1,234 ครั้ง
+          <p>ราคา : 250 บาท รายละเอียด : ทอมือ ช่องทางการจำหน่าย : ตลาดชุมชน</p>
           <a href="https://example.org/shop">ร้านค้า</a>
           <a data-fancybox="gallery" href="/images/a.jpg" data-caption="ด้านหน้า"></a>
+          <p>เข้าชม : 1,234 ครั้ง</p>
+          <p>เลขที่ : 10 ถนนตัวอย่าง</p>
         </section>
         """
         item = {
@@ -126,6 +127,7 @@ class DetailParserTests(unittest.TestCase):
         self.assertEqual(record["title"], "ผ้าทอ")
         self.assertEqual(record["data"]["related_cultural_record"], "CD-12")
         self.assertEqual(record["data"]["view_count"], 1234)
+        self.assertEqual(record["data"]["address_text"], "10 ถนนตัวอย่าง")
         self.assertEqual(record["data"]["external_links"][0]["url"], "https://example.org/shop")
         self.assertEqual(record["data"]["gallery_images"][0]["url"], "https://www.culturalmapthailand.info/images/a.jpg")
 
@@ -133,13 +135,13 @@ class DetailParserTests(unittest.TestCase):
         html = """
         <section class="culturalproductinfo">
           <h2 class="mycontainer2header">หม้อหุง</h2>
-          ราคา : 100 บาท รายละเอียด : ทำมือ
-          ช่องทางการจำหน่าย : กลุ่มตีหม้อ ณ บ้านเลขที่ 270 หมู่ที่ 11 ตำบลเขวา
-          Face book : กลุ่มตีหม้อ https://www.facebook.com/groups/1
-          มือถือ 095-1949596 ID Line : example
-          เข้าชม : 1049 ครั้ง
-          ผลิตภัณฑ์จากวัฒนธรรม กลุ่มตีหม้อ
-          เลขที่ : 270 หมู่ที่ 11 บ้านหม้อ ต. เขวา อ. เมืองมหาสารคาม จ. มหาสารคาม 44000
+          <p>ราคา : 100 บาท รายละเอียด : ทำมือ</p>
+          <p>ช่องทางการจำหน่าย : กลุ่มตีหม้อ ณ บ้านเลขที่ 270 หมู่ที่ 11 ตำบลเขวา</p>
+          <p>Face book : กลุ่มตีหม้อ https://www.facebook.com/groups/1</p>
+          <p>มือถือ 095-1949596 ID Line : example</p>
+          <p>เข้าชม : 1049 ครั้ง</p>
+          <p>ผลิตภัณฑ์จากวัฒนธรรม กลุ่มตีหม้อ</p>
+          <p>เลขที่ : 270 หมู่ที่ 11 บ้านหม้อ ต. เขวา อ. เมืองมหาสารคาม จ. มหาสารคาม 44000</p>
         </section>
         """
         item = {

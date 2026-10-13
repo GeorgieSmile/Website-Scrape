@@ -31,6 +31,7 @@ from contextlib import closing
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any, Callable
 
 import requests
@@ -824,10 +825,18 @@ def compare_with_previous(
 
 
 def write_output(path: Path, envelope: dict[str, Any]) -> None:
+    # Write to a temp file and rename, so a crash never leaves a half-written export.
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as handle:
-        json.dump(envelope, handle, ensure_ascii=False, indent=1)
-        handle.write("\n")
+    with NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as handle:
+        temporary_path = Path(handle.name)
+        try:
+            json.dump(envelope, handle, ensure_ascii=False, indent=1)
+            handle.write("\n")
+        except BaseException:
+            handle.close()
+            temporary_path.unlink(missing_ok=True)
+            raise
+    temporary_path.replace(path)
 
 
 def base_envelope(dataset: str, run_id: str, scraped_at: str, warnings: list[str]) -> dict[str, Any]:

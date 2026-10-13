@@ -779,9 +779,14 @@ def write_json(path: Path, value: dict[str, Any]) -> None:
     with NamedTemporaryFile(
         "w", encoding="utf-8", dir=path.parent, delete=False
     ) as handle:
-        json.dump(value, handle, ensure_ascii=False, indent=2)
-        handle.write("\n")
         temporary = Path(handle.name)
+        try:
+            json.dump(value, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+        except BaseException:
+            handle.close()
+            temporary.unlink(missing_ok=True)
+            raise
     temporary.replace(path)
 
 

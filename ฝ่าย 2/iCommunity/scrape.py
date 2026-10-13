@@ -905,9 +905,14 @@ def retain_known_details(
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2)
-        handle.write("\n")
         temp_path = Path(handle.name)
+        try:
+            json.dump(payload, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+        except BaseException:
+            handle.close()
+            temp_path.unlink(missing_ok=True)
+            raise
     temp_path.replace(path)
 
 
