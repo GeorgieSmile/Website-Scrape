@@ -1001,7 +1001,8 @@ def main() -> int:
     }
 
     smoke = group_filter is not None or args.limit is not None
-    summary: dict[str, Any] = {"run_id": utc_now(), "datasets": {}, "failures": []}
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    summary: dict[str, Any] = {"run_id": run_id, "datasets": {}, "failures": []}
     for dataset in selected:
         try:
             reporter(f"Collecting {dataset}")
