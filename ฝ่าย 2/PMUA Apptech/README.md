@@ -20,7 +20,6 @@ PMUA Apptech/
 ├── test_scrape.py    # offline parser and previous-output checks
 ├── fixtures/         # saved live pages used by the offline tests
 ├── requirements.txt  # requests and Beautiful Soup
-├── SCRAPER_PLAN.md   # local design notes (git-ignored, absent from a clone)
 └── output/           # created at runtime; one JSON file per dataset
 ```
 

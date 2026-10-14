@@ -22,7 +22,6 @@ Cultural Map/
 ├── test_scrape.py    # offline parser and previous-output checks
 ├── references/       # pinned DOPA names/codes and verified local-ID crosswalks
 ├── requirements.txt  # requests and Beautiful Soup
-├── SCRAPER_PLAN.md   # local design notes (git-ignored, absent from a clone)
 └── output/           # created at runtime; five public-data JSON exports
 ```
 

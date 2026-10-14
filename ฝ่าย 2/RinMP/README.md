@@ -21,7 +21,6 @@ RinMP/
 ├── test_scrape.py    # offline parser and previous-output checks
 ├── references/       # institute headquarters provinces (province fallback)
 ├── requirements.txt  # requests
-├── SCRAPER_PLAN.md   # local design notes (git-ignored, absent from a clone)
 └── output/           # created at runtime; three JSON exports
 ```
 

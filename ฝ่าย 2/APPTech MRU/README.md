@@ -22,7 +22,6 @@ APPTech MRU/
 ├── test_browser_access.py # offline verification, concurrency, and cleanup checks
 ├── fixtures/              # saved live detail pages used by the offline tests
 ├── requirements.txt       # requests and Beautiful Soup
-├── SCRAPER_PLAN.md        # local design notes (git-ignored, absent from a clone)
 └── output/                # created at runtime; innovations.json and requirements.json
 ```
 
