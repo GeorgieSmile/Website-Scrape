@@ -1,0 +1,30 @@
+{
+  "source_id": "f2_learning_dashboard",
+  "as_of_rule": "scraped_at",
+  "datasets": [
+    {
+      "dataset_key": "dashboard_counts",
+      "file": "dashboard_counts.json",
+      "grain": "หนึ่งไฟล์ snapshot ของตารางจำนวนธุรกิจชุมชนบน dashboard 4 มิติ (จังหวัด ประเภทนิติบุคคล หมวดธุรกิจ ภูมิภาค); หนึ่งรายการต่อหนึ่งแถวของตาราง อยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "dashboard_impact",
+      "file": "dashboard_impact.json",
+      "grain": "หนึ่งไฟล์ snapshot ของผลกระทบเศรษฐกิจท้องถิ่นรายเดือน; หนึ่งรายการต่อหนึ่งภูมิภาค (ระบุภูมิภาคตามลำดับที่หน้าเว็บใช้) อยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "dashboard_totals",
+      "file": "dashboard_totals.json",
+      "grain": "หนึ่งไฟล์ snapshot ของยอดรวมผลกระทบ (impactSummary) และค่า excludedResourceExpense ที่ต้นทางส่งมาแยก; หนึ่งรายการต่อหนึ่งค่า อยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    }
+  ]
+}
