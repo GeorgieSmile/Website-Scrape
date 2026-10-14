@@ -16,6 +16,9 @@ future dashboard or database use.
 | [PMUA Apptech](ฝ่าย%202/PMUA%20Apptech/README.md) | Products, technology centers, researchers, universities, and dashboards |
 | [AtLocal](ฝ่าย%202/AtLocal/README.md) | Articles, cultures, products, entrepreneurs, festivals, and cultural areas |
 | [iCommunity](ฝ่าย%202/iCommunity/README.md) | AppTech programmes, innovations, innovators, activities, and community products |
+| [Learning Area Based](ฝ่าย%202/Learning%20Area%20Based/README.md) | PMUA area-based business listings and the source's summary statistics |
+| [Wallet All](ฝ่าย%202/Wallet%20All/README.md) | Project-wide monthly household and community-business wallet aggregates |
+| [Wallet Cluster](ฝ่าย%202/Wallet%20Cluster/README.md) | Current month-to-date wallet aggregates by business cluster |
 
 ## Common Features
 
@@ -59,8 +62,10 @@ full collection.
 ```
 
 Most scrapers support limited smoke tests, dataset selection, request delays,
-and large-removal safeguards. Only iCommunity and RinMP accept `--output-dir`. The ฝ่าย 2 scrapers except
-AtLocal also support `--workers` for concurrent detail-page fetching.
+and large-removal safeguards. Only iCommunity, RinMP, Learning Area Based,
+Wallet All and Wallet Cluster accept `--output-dir`. The ฝ่าย 2 scrapers except
+AtLocal, Learning Area Based and Wallet Cluster also support `--workers` for
+concurrent fetching (Wallet All fetches months, the others detail pages).
 
 ## Tests
 

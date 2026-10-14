@@ -1,0 +1,22 @@
+{
+  "source_id": "f2_learning_area_based",
+  "as_of_rule": "scraped_at",
+  "datasets": [
+    {
+      "dataset_key": "area_based",
+      "file": "area_based.json",
+      "grain": "หนึ่งไฟล์ snapshot ของรายการธุรกิจผู้เข้าร่วมโครงการ PMUA area-based; หนึ่งรายการต่อหนึ่งแถวใน data array ของต้นทาง อยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "area_based_stats",
+      "file": "area_based_stats.json",
+      "grain": "หนึ่งไฟล์ snapshot ของสถิติสรุปและค่า filter ที่ต้นทางส่งมาพร้อมรายการ; มีรายการเดียวใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    }
+  ]
+}

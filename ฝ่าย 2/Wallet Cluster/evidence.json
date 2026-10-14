@@ -1,0 +1,22 @@
+{
+  "source_id": "f2_wallet_cluster_realtime",
+  "as_of_rule": "scraped_at",
+  "datasets": [
+    {
+      "dataset_key": "wallet_cluster_household",
+      "file": "wallet_cluster_household.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ aggregate กระเป๋าตังค์ครัวเรือนแยกกลุ่มธุรกิจ เฉพาะเดือนปัจจุบันสะสม (MTD); หนึ่งรายการต่อหนึ่งกลุ่มธุรกิจ อยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    },
+    {
+      "dataset_key": "wallet_cluster_business",
+      "file": "wallet_cluster_business.json",
+      "grain": "หนึ่งไฟล์ snapshot ของ aggregate กระเป๋าตังค์ธุรกิจชุมชนแยกกลุ่มธุรกิจ เฉพาะเดือนปัจจุบันสะสม (MTD); หนึ่งรายการต่อหนึ่งกลุ่มธุรกิจ อยู่ใน data[]",
+      "identity_fields": [
+        "data[].source_key"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,248 @@
+{
+ "thisMonth": "2026-10",
+ "thisMonthName": "ตุลาคม 69",
+ "yesterdayName": "13 ตุลาคม 2569",
+ "categories": [
+  [
+   "Category",
+   "Popularity"
+  ],
+  [
+   "งานฝีมือ(งานคราฟ)",
+   40
+  ],
+  [
+   "วัตถุดิบและเกษตรพื้นฐาน",
+   12
+  ],
+  [
+   "เกษตรและอาหารแปรรูป",
+   35
+  ],
+  [
+   "ร้านค้า",
+   15
+  ],
+  [
+   "ร้านอาหาร/ที่พัก",
+   9
+  ],
+  [
+   "สินค้าอุปโภคสมุนไพรและเวชสำอางค์",
+   22
+  ],
+  [
+   "ท่องเที่ยว",
+   11
+  ]
+ ],
+ "clusters": [
+  {
+   "id": "cat0",
+   "name": "งานฝีมือ(งานคราฟ)"
+  },
+  {
+   "id": "cat1",
+   "name": "วัตถุดิบและเกษตรพื้นฐาน"
+  },
+  {
+   "id": "cat2",
+   "name": "เกษตรและอาหารแปรรูป"
+  },
+  {
+   "id": "cat3",
+   "name": "ร้านค้า"
+  },
+  {
+   "id": "cat4",
+   "name": "ร้านอาหาร/ที่พัก"
+  },
+  {
+   "id": "cat5",
+   "name": "สินค้าอุปโภคสมุนไพรและเวชสำอางค์"
+  },
+  {
+   "id": "cat6",
+   "name": "ท่องเที่ยว"
+  }
+ ],
+ "clustersName": [
+  "งานฝีมือ(งานคราฟ)",
+  "วัตถุดิบและเกษตรพื้นฐาน",
+  "เกษตรและอาหารแปรรูป",
+  "ร้านค้า",
+  "ร้านอาหาร/ที่พัก",
+  "สินค้าอุปโภคสมุนไพรและเวชสำอางค์",
+  "ท่องเที่ยว"
+ ],
+ "snapshotClusters": [
+  {
+   "category": "งานฝีมือ(งานคราฟ)",
+   "totalCash": 560.25,
+   "totalStock": 597,
+   "totalTradeAccPay": 634,
+   "totalTradeAccRec": 671,
+   "totalIncome": 708,
+   "totalExpense": 745,
+   "totalActivities": 782,
+   "totalIncomeActivities": 819,
+   "totalExpenseActivities": 856,
+   "cashflowTable": {
+    "a": 893,
+    "b": 930,
+    "c": 967,
+    "d": 7,
+    "e": 44,
+    "f": 81
+   },
+   "updatedAt": {
+    "_seconds": 1791911409,
+    "_nanoseconds": 390000000
+   }
+  },
+  {
+   "category": "วัตถุดิบและเกษตรพื้นฐาน",
+   "totalCash": 118,
+   "totalStock": 155,
+   "totalTradeAccPay": 192,
+   "totalTradeAccRec": 229.25,
+   "totalIncome": 266,
+   "totalExpense": 303,
+   "totalActivities": 340,
+   "totalIncomeActivities": 377,
+   "totalExpenseActivities": 414,
+   "cashflowTable": {
+    "a": 451,
+    "b": 488,
+    "c": 525,
+    "d": 562,
+    "e": 599,
+    "f": 636
+   },
+   "updatedAt": {
+    "_seconds": 1791911408,
+    "_nanoseconds": 901000000
+   }
+  },
+  {
+   "category": "เกษตรและอาหารแปรรูป",
+   "totalCash": 673.25,
+   "totalStock": 710,
+   "totalTradeAccPay": 747,
+   "totalTradeAccRec": 784,
+   "totalIncome": 821,
+   "totalExpense": 858,
+   "totalActivities": 895,
+   "totalIncomeActivities": 932,
+   "totalExpenseActivities": 969,
+   "cashflowTable": {
+    "a": 9,
+    "b": 46,
+    "c": 83,
+    "d": 120,
+    "e": 157,
+    "f": 194
+   },
+   "updatedAt": {
+    "_seconds": 1791911409,
+    "_nanoseconds": 913000000
+   }
+  },
+  {
+   "category": "ร้านค้า",
+   "totalCash": 231,
+   "totalStock": 268,
+   "totalTradeAccPay": 305,
+   "totalTradeAccRec": 342,
+   "totalIncome": 379,
+   "totalExpense": 416,
+   "totalActivities": 453,
+   "totalIncomeActivities": 490,
+   "totalExpenseActivities": 527,
+   "cashflowTable": {
+    "a": 564,
+    "b": 601,
+    "c": 638,
+    "d": 675,
+    "e": 712,
+    "f": 749
+   },
+   "updatedAt": {
+    "_seconds": 1791911408,
+    "_nanoseconds": 625000000
+   }
+  },
+  {
+   "category": "ร้านอาหาร/ที่พัก",
+   "totalCash": 786.25,
+   "totalStock": 823,
+   "totalTradeAccPay": 860,
+   "totalTradeAccRec": 897,
+   "totalIncome": 934,
+   "totalExpense": 971,
+   "totalActivities": 11,
+   "totalIncomeActivities": 48,
+   "totalExpenseActivities": 85,
+   "cashflowTable": {
+    "a": 122,
+    "b": 159,
+    "c": 196,
+    "d": 233,
+    "e": 270,
+    "f": 307
+   },
+   "updatedAt": {
+    "_seconds": 1791911408,
+    "_nanoseconds": 577000000
+   }
+  },
+  {
+   "category": "สินค้าอุปโภคสมุนไพรและเวชสำอางค์",
+   "totalCash": 344.25,
+   "totalStock": 381,
+   "totalTradeAccPay": 418,
+   "totalTradeAccRec": 455,
+   "totalIncome": 492,
+   "totalExpense": 529,
+   "totalActivities": 566,
+   "totalIncomeActivities": 603,
+   "totalExpenseActivities": 640,
+   "cashflowTable": {
+    "a": 677,
+    "b": 714,
+    "c": 751,
+    "d": 788,
+    "e": 825,
+    "f": 862
+   },
+   "updatedAt": {
+    "_seconds": 1791911408,
+    "_nanoseconds": 894000000
+   }
+  },
+  {
+   "category": "ท่องเที่ยว",
+   "totalCash": 899,
+   "totalStock": 936,
+   "totalTradeAccPay": 973,
+   "totalTradeAccRec": 13,
+   "totalIncome": 50,
+   "totalExpense": 87,
+   "totalActivities": 124,
+   "totalIncomeActivities": 161,
+   "totalExpenseActivities": 198,
+   "cashflowTable": {
+    "a": 235,
+    "b": 272,
+    "c": 309,
+    "d": 346,
+    "e": 383,
+    "f": 420
+   },
+   "updatedAt": {
+    "_seconds": 1791911408,
+    "_nanoseconds": 681000000
+   }
+  }
+ ]
+}

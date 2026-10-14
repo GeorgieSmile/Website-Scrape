@@ -1,0 +1,295 @@
+{
+ "thisMonth": "2026-10",
+ "thisMonthName": "ตุลาคม 69",
+ "yesterdayName": "13 ตุลาคม 2569",
+ "categories": [
+  [
+   "Category",
+   "Popularity"
+  ],
+  [
+   "งานฝีมือ(งานคราฟ)",
+   40
+  ],
+  [
+   "วัตถุดิบและเกษตรพื้นฐาน",
+   12
+  ],
+  [
+   "เกษตรและอาหารแปรรูป",
+   35
+  ],
+  [
+   "ร้านค้า",
+   15
+  ],
+  [
+   "ร้านอาหาร/ที่พัก",
+   9
+  ],
+  [
+   "สินค้าอุปโภคสมุนไพรและเวชสำอางค์",
+   22
+  ],
+  [
+   "ท่องเที่ยว",
+   11
+  ]
+ ],
+ "snapshotClusters": [
+  {
+   "category": "งานฝีมือ(งานคราฟ)",
+   "totalCash": 67.25,
+   "totalIncome": 104.25,
+   "totalExpense": 141,
+   "totalSaving": 178,
+   "totalDebt": 215,
+   "totalActivities": 252,
+   "totalIncomeActivities": 289,
+   "totalExpenseActivities": 326,
+   "totalSavingActivities": 363,
+   "totalDebtActivities": 400,
+   "totalDebtOriginated": 437,
+   "totalDebtRepayed": 474,
+   "totalDebtPaidAll": 511,
+   "totalDebtPaidInterest": 548,
+   "incomeExpenseTable": {
+    "totalExpenseA": 585,
+    "primitiveIncome": 622.25,
+    "totalExpenseB": 659,
+    "totalExpenseC": 696,
+    "totalExpenseD": 733,
+    "fixedExpense": 770,
+    "netIncome": 807.25
+   },
+   "satisfied": {
+    "feelGood": 844,
+    "toBeStronger": 881,
+    "getSick": 918
+   },
+   "updatedAt": {
+    "_seconds": 1791911406,
+    "_nanoseconds": 556000000
+   }
+  },
+  {
+   "category": "วัตถุดิบและเกษตรพื้นฐาน",
+   "totalCash": 955.25,
+   "totalIncome": 992,
+   "totalExpense": 32,
+   "totalSaving": 69,
+   "totalDebt": 106,
+   "totalActivities": 143,
+   "totalIncomeActivities": 180,
+   "totalExpenseActivities": 217,
+   "totalSavingActivities": 254,
+   "totalDebtActivities": 291,
+   "totalDebtOriginated": 328,
+   "totalDebtRepayed": 365,
+   "totalDebtPaidAll": 402,
+   "totalDebtPaidInterest": 439,
+   "incomeExpenseTable": {
+    "totalExpenseA": 476,
+    "primitiveIncome": 513,
+    "totalExpenseB": 550,
+    "totalExpenseC": 587,
+    "totalExpenseD": 624,
+    "fixedExpense": 661,
+    "netIncome": 698
+   },
+   "satisfied": {
+    "feelGood": 735,
+    "toBeStronger": 772,
+    "getSick": 809
+   },
+   "updatedAt": {
+    "_seconds": 1791911405,
+    "_nanoseconds": 952000000
+   }
+  },
+  {
+   "category": "เกษตรและอาหารแปรรูป",
+   "totalCash": 846.25,
+   "totalIncome": 883,
+   "totalExpense": 920.25,
+   "totalSaving": 957,
+   "totalDebt": 994,
+   "totalActivities": 34,
+   "totalIncomeActivities": 71,
+   "totalExpenseActivities": 108,
+   "totalSavingActivities": 145,
+   "totalDebtActivities": 182,
+   "totalDebtOriginated": 219,
+   "totalDebtRepayed": 256,
+   "totalDebtPaidAll": 293,
+   "totalDebtPaidInterest": 330,
+   "incomeExpenseTable": {
+    "totalExpenseA": 367,
+    "primitiveIncome": 404,
+    "totalExpenseB": 441.25,
+    "totalExpenseC": 478,
+    "totalExpenseD": 515,
+    "fixedExpense": 552.25,
+    "netIncome": 589.25
+   },
+   "satisfied": {
+    "feelGood": 626,
+    "toBeStronger": 663,
+    "getSick": 700
+   },
+   "updatedAt": {
+    "_seconds": 1791911407,
+    "_nanoseconds": 184000000
+   }
+  },
+  {
+   "category": "ร้านค้า",
+   "totalCash": 737.25,
+   "totalIncome": 774,
+   "totalExpense": 811,
+   "totalSaving": 848,
+   "totalDebt": 885,
+   "totalActivities": 922,
+   "totalIncomeActivities": 959,
+   "totalExpenseActivities": 996,
+   "totalSavingActivities": 36,
+   "totalDebtActivities": 73,
+   "totalDebtOriginated": 110,
+   "totalDebtRepayed": 147,
+   "totalDebtPaidAll": 184,
+   "totalDebtPaidInterest": 221,
+   "incomeExpenseTable": {
+    "totalExpenseA": 258,
+    "primitiveIncome": 295,
+    "totalExpenseB": 332,
+    "totalExpenseC": 369,
+    "totalExpenseD": 406,
+    "fixedExpense": 443,
+    "netIncome": 480
+   },
+   "satisfied": {
+    "feelGood": 517,
+    "toBeStronger": 554,
+    "getSick": 591
+   },
+   "updatedAt": {
+    "_seconds": 1791911405,
+    "_nanoseconds": 575000000
+   }
+  },
+  {
+   "category": "ร้านอาหาร/ที่พัก",
+   "totalCash": 628,
+   "totalIncome": 665,
+   "totalExpense": 702,
+   "totalSaving": 739,
+   "totalDebt": 776,
+   "totalActivities": 813,
+   "totalIncomeActivities": 850,
+   "totalExpenseActivities": 887,
+   "totalSavingActivities": 924,
+   "totalDebtActivities": 961,
+   "totalDebtOriginated": 998,
+   "totalDebtRepayed": 38,
+   "totalDebtPaidAll": 75,
+   "totalDebtPaidInterest": 112,
+   "incomeExpenseTable": {
+    "totalExpenseA": 149,
+    "primitiveIncome": 186,
+    "totalExpenseB": 223,
+    "totalExpenseC": 260,
+    "totalExpenseD": 297,
+    "fixedExpense": 334,
+    "netIncome": 371
+   },
+   "satisfied": {
+    "feelGood": 408,
+    "toBeStronger": 445,
+    "getSick": 482
+   },
+   "updatedAt": {
+    "_seconds": 1791911405,
+    "_nanoseconds": 609000000
+   }
+  },
+  {
+   "category": "สินค้าอุปโภคสมุนไพรและเวชสำอางค์",
+   "totalCash": 519.25,
+   "totalIncome": 556,
+   "totalExpense": 593,
+   "totalSaving": 630,
+   "totalDebt": 667,
+   "totalActivities": 704,
+   "totalIncomeActivities": 741,
+   "totalExpenseActivities": 778,
+   "totalSavingActivities": 815,
+   "totalDebtActivities": 852,
+   "totalDebtOriginated": 889,
+   "totalDebtRepayed": 926,
+   "totalDebtPaidAll": 963,
+   "totalDebtPaidInterest": 3,
+   "incomeExpenseTable": {
+    "totalExpenseA": 40,
+    "primitiveIncome": 77,
+    "totalExpenseB": 114,
+    "totalExpenseC": 151,
+    "totalExpenseD": 188,
+    "fixedExpense": 225,
+    "netIncome": 262
+   },
+   "satisfied": {
+    "feelGood": 299,
+    "toBeStronger": 336,
+    "getSick": 373
+   },
+   "updatedAt": {
+    "_seconds": 1791911405,
+    "_nanoseconds": 882000000
+   }
+  },
+  {
+   "category": "ท่องเที่ยว",
+   "totalCash": 410,
+   "totalIncome": 447,
+   "totalExpense": 484,
+   "totalSaving": 521,
+   "totalDebt": 558,
+   "totalActivities": 595,
+   "totalIncomeActivities": 632,
+   "totalExpenseActivities": 669,
+   "totalSavingActivities": 706,
+   "totalDebtActivities": 743,
+   "totalDebtOriginated": 780,
+   "totalDebtRepayed": 817,
+   "totalDebtPaidAll": 854,
+   "totalDebtPaidInterest": 891,
+   "incomeExpenseTable": {
+    "totalExpenseA": 928,
+    "primitiveIncome": 965,
+    "totalExpenseB": 5,
+    "totalExpenseC": 42,
+    "totalExpenseD": 79,
+    "fixedExpense": 116,
+    "netIncome": 153
+   },
+   "satisfied": {
+    "feelGood": 190,
+    "toBeStronger": 227,
+    "getSick": 264
+   },
+   "updatedAt": {
+    "_seconds": 1791911405,
+    "_nanoseconds": 614000000
+   }
+  }
+ ],
+ "clustersName": [
+  "งานฝีมือ(งานคราฟ)",
+  "วัตถุดิบและเกษตรพื้นฐาน",
+  "เกษตรและอาหารแปรรูป",
+  "ร้านค้า",
+  "ร้านอาหาร/ที่พัก",
+  "สินค้าอุปโภคสมุนไพรและเวชสำอางค์",
+  "ท่องเที่ยว"
+ ]
+}
