@@ -14,6 +14,8 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import requests
+from requests.cookies import RequestsCookieJar
+
 import scrape
 from browser_access import (
     BrowserCredentials,
@@ -22,7 +24,6 @@ from browser_access import (
     VerifiedSession,
     capture_browser_credentials,
 )
-from requests.cookies import RequestsCookieJar
 
 URL = "https://38rat.nstru.ac.th/backend/ajax/public/innovation.php"
 CHALLENGE = "<html><title>One moment, please...</title></html>"

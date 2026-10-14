@@ -22,21 +22,22 @@ from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any
 from urllib.parse import urljoin, urlparse
 
 import requests
+from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
 from browser_access import (
     BrowserVerification,
     VerifiedSession,
     reject_browser_challenge,
 )
-from bs4 import BeautifulSoup
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT / "output"
@@ -80,7 +81,7 @@ class DatasetDefinition:
 
 
 def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def no_progress(_: str) -> None:
@@ -835,7 +836,9 @@ def collect_dataset(
     user_agent: str = DEFAULT_USER_AGENT,
 ) -> list[dict[str, Any]]:
     rows = fetch_catalog(session, dataset, delay, report, limit=limit)
-    verification = session.verification if isinstance(session, VerifiedSession) else None
+    verification = (
+        session.verification if isinstance(session, VerifiedSession) else None
+    )
     worker_session = thread_session_provider(user_agent, verification)
 
     def fetch_page(row: dict[str, Any]) -> str:
@@ -867,9 +870,14 @@ def write_json(path: Path, value: dict[str, Any]) -> None:
     with NamedTemporaryFile(
         "w", encoding="utf-8", dir=path.parent, delete=False
     ) as temporary:
-        json.dump(value, temporary, ensure_ascii=False, indent=2)
-        temporary.write("\n")
         temporary_path = Path(temporary.name)
+        try:
+            json.dump(value, temporary, ensure_ascii=False, indent=2)
+            temporary.write("\n")
+        except BaseException:
+            temporary.close()
+            temporary_path.unlink(missing_ok=True)
+            raise
     temporary_path.replace(path)
 
 
@@ -1007,7 +1015,7 @@ def select_datasets(name: str) -> list[DatasetDefinition]:
 def run_scrape(args: argparse.Namespace) -> int:
     selected = select_datasets(args.dataset)
     report = create_progress_reporter(args.quiet)
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     verification = (
         BrowserVerification(args.chrome_path, args.browser_timeout, report)
         if args.browser
